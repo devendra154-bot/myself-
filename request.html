@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start a Project | DevInventor</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+</head>
+<body>
+<header>
+  <nav class="container nav">
+    <a href="index.html" class="logo">Dev<span>Inventor</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#services">Services</a></li>
+      <li id="nav-auth"></li>
+    </ul>
+    <button id="navToggle" aria-label="Menu">☰</button>
+  </nav>
+</header>
+
+<div class="container form-wrap">
+  <!-- LOGIN / SIGN UP (shown when not logged in) -->
+  <div id="authBox" class="auth-wrap" hidden>
+    <div class="panel">
+      <h2 style="text-align:center">Welcome to DevInventor</h2>
+      <p class="sub" style="text-align:center">Login or create an account to submit your project</p>
+      <div class="tabs">
+        <button id="tabLogin" class="active" type="button">Login</button>
+        <button id="tabSignup" type="button">Sign up</button>
+      </div>
+      <div id="authMsg" class="msg"></div>
+      <form id="loginForm" novalidate>
+        <div class="field"><label>Email</label><input type="email" name="email" autocomplete="email"></div>
+        <div class="field"><label>Password</label><input type="password" name="password" autocomplete="current-password"></div>
+        <button class="btn btn-block" type="submit">Login</button>
+        <p class="note" style="text-align:center;margin-top:12px">New here? <a href="#" id="toSignup">Create an account</a></p>
+      </form>
+      <form id="signupForm" novalidate hidden>
+        <div class="field"><label>Full name</label><input name="name" autocomplete="name"></div>
+        <div class="field"><label>Email</label><input type="email" name="email" autocomplete="email"></div>
+        <div class="field"><label>Mobile (WhatsApp)</label><input type="tel" name="phone" placeholder="10-digit number" inputmode="numeric"></div>
+        <div class="field"><label>Password (min 6 characters)</label><input type="password" name="password" autocomplete="new-password"></div>
+        <button class="btn btn-block" type="submit">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <form id="projectForm" novalidate hidden>
+    <!-- STEP 1 -->
+    <div class="panel">
+      <h2>1. Your Details</h2>
+      <p class="sub">We'll contact you on WhatsApp with a quote.</p>
+      <div class="row">
+        <div class="field"><label>Full name <span class="req">*</span></label><input name="name" required></div>
+        <div class="field"><label>WhatsApp number <span class="req">*</span></label><input name="phone" type="tel" required></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Email <span class="req">*</span></label><input name="email" type="email" required></div>
+        <div class="field"><label>City / State</label><input name="city"></div>
+      </div>
+      <div class="field">
+        <label>You are a</label>
+        <select name="customerType">
+          <option>Student</option><option>Hobbyist / Maker</option><option>Startup</option><option>Business / Industry</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="panel">
+      <h2>2. Project Details</h2>
+      <p class="sub">The more details you share, the more accurate our quote.</p>
+      <div class="field"><label>Project title <span class="req">*</span></label><input name="title" required placeholder="e.g. Smart irrigation system with soil moisture sensor"></div>
+      <div class="row">
+        <div class="field">
+          <label>Project category <span class="req">*</span></label>
+          <select name="category" required>
+            <option value="">-- Select --</option>
+            <option>IoT Project</option><option>Embedded Firmware</option><option>PCB Design</option>
+            <option>Home Automation</option><option>Industrial Automation</option><option>Robotics</option>
+            <option>Edge AI / Raspberry Pi</option><option>Student Final-Year Project</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Controller / board</label>
+          <select name="board">
+            <option>Not sure – suggest me</option><option>Arduino (Uno/Nano/Mega)</option><option>ESP32</option><option>ESP8266 / NodeMCU</option>
+            <option>STM32</option><option>Raspberry Pi</option><option>Raspberry Pi Pico</option><option>PIC / AVR</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Connectivity</label>
+        <div class="checks" data-group="connectivity">
+          <label><input type="checkbox" value="Wi-Fi">Wi-Fi</label>
+          <label><input type="checkbox" value="Bluetooth/BLE">Bluetooth/BLE</label>
+          <label><input type="checkbox" value="GSM/4G">GSM/4G</label>
+          <label><input type="checkbox" value="LoRa">LoRa</label>
+          <label><input type="checkbox" value="Zigbee">Zigbee</label>
+          <label><input type="checkbox" value="None">None</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>What do you need?</label>
+        <div class="checks" data-group="deliverables">
+          <label><input type="checkbox" value="Working hardware">Working hardware</label>
+          <label><input type="checkbox" value="Source code">Source code</label>
+          <label><input type="checkbox" value="Circuit diagram">Circuit diagram</label>
+          <label><input type="checkbox" value="Custom PCB">Custom PCB</label>
+          <label><input type="checkbox" value="Mobile app">Mobile app</label>
+          <label><input type="checkbox" value="Cloud dashboard">Cloud dashboard</label>
+          <label><input type="checkbox" value="Project report">Project report</label>
+        </div>
+      </div>
+      <div class="field"><label>Sensors / modules (if known)</label><input name="sensors" placeholder="e.g. DHT22, ultrasonic, relay, GPS, OLED display"></div>
+      <div class="field"><label>Describe your project <span class="req">*</span></label><textarea name="description" required placeholder="What should the device do? Inputs, outputs, features…"></textarea></div>
+      <div class="row">
+        <div class="field">
+          <label>Budget</label>
+          <select name="budget">
+            <option>Under ₹2,000</option><option>₹2,000 – ₹5,000</option><option>₹5,000 – ₹15,000</option>
+            <option>₹15,000 – ₹50,000</option><option>Above ₹50,000</option><option>Not decided</option>
+          </select>
+        </div>
+        <div class="field"><label>Needed by (deadline)</label><input name="deadline" type="date"></div>
+      </div>
+      <div class="field">
+        <label>Delivery</label>
+        <select name="delivery">
+          <option>Courier / shipping</option><option>Pickup in person</option><option>Only code / files (online)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- PAYMENT INFO -->
+    <div class="panel">
+      <h2>3. Payment</h2>
+      <p class="sub">Payment is done only after we confirm your quote on WhatsApp.</p>
+      <div class="pay-box">
+        <div>PhonePe number: <strong class="upi" id="phonepeNum"></strong></div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="panel">
+      <h2>4. Send to DevInventor</h2>
+      <p class="sub">Your details will open in WhatsApp – just press <strong>Send</strong>.</p>
+      <div id="msg" class="msg"></div>
+      <button type="submit" class="btn btn-wa btn-block">💬 Send Project Details on WhatsApp</button>
+      <a id="waLink" class="btn btn-wa btn-block" target="_blank" rel="noopener" hidden style="margin-top:12px">👉 Tap here to open WhatsApp</a>
+    </div>
+  </form>
+</div>
+
+<script>
+// ---- Login / sign-up on this page ----
+(() => {
+  const authBox = document.getElementById("authBox"), pf = document.getElementById("projectForm");
+  if (Auth.current()) { pf.hidden = false; return; }
+  authBox.hidden = false;
+  const msg = document.getElementById("authMsg");
+  const lf = document.getElementById("loginForm"), sf = document.getElementById("signupForm");
+  const tl = document.getElementById("tabLogin"), ts = document.getElementById("tabSignup");
+  function show(signup) {
+    sf.hidden = !signup; lf.hidden = signup;
+    ts.classList.toggle("active", signup); tl.classList.toggle("active", !signup);
+    msg.className = "msg";
+  }
+  tl.onclick = () => show(false); ts.onclick = () => show(true);
+  document.getElementById("toSignup").onclick = e => { e.preventDefault(); show(true); };
+  if (location.hash === "#signup") show(true);
+  async function handle(e, fn) {
+    e.preventDefault();
+    const btn = e.target.querySelector("button"); btn.disabled = true;
+    try {
+      await fn(Object.fromEntries(new FormData(e.target)));
+      msg.textContent = "Success! Loading project form…"; msg.className = "msg ok";
+      setTimeout(() => location.reload(), 400);
+    } catch (err) {
+      msg.textContent = err.message || "Something went wrong. Please try again."; msg.className = "msg err";
+      btn.disabled = false;
+    }
+  }
+  lf.onsubmit = e => handle(e, Auth.login);
+  sf.onsubmit = e => handle(e, Auth.signup);
+})();
+
+(() => {
+  if (!Auth.current()) return;
+  const C = DEVINVENTOR_CONFIG;
+  const form = document.getElementById("projectForm");
+  const user = Auth.current();
+  const DRAFT_KEY = "di_draft_" + (user ? user.email : "");
+
+  // Prefill from account + saved draft
+  if (user) { form.name.value = user.name; form.email.value = user.email; form.phone.value = user.phone; }
+  const draft = Store.get(DRAFT_KEY) || {};
+  Object.entries(draft).forEach(([k, v]) => {
+    if (Array.isArray(v)) document.querySelectorAll(`[data-group="${k}"] input`).forEach(i => i.checked = v.includes(i.value));
+    else if (form.elements[k]) form.elements[k].value = v;
+  });
+
+  function collect() {
+    const data = Object.fromEntries(new FormData(form));
+    document.querySelectorAll("[data-group]").forEach(g => {
+      data[g.dataset.group] = [...g.querySelectorAll("input:checked")].map(i => i.value);
+    });
+    return data;
+  }
+  form.addEventListener("input", () => Store.set(DRAFT_KEY, collect()));
+
+  document.getElementById("phonepeNum").textContent = C.phonepeNumber;
+
+  // ---- Submit to WhatsApp ----
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const msg = document.getElementById("msg");
+    const bad = [...form.querySelectorAll("[required]")].find(el => !el.value.trim() || !el.checkValidity());
+    if (bad) {
+      msg.textContent = "Please fill: " + bad.closest(".field").querySelector("label").textContent.replace("*", "").trim();
+      msg.className = "msg err"; bad.focus(); return;
+    }
+    const d = collect();
+    const lines = [
+      `*New Project Request – ${C.siteName}*`,
+      ``,
+      `*👤 Customer*`,
+      `Name: ${d.name}`,
+      `WhatsApp: ${d.phone}`,
+      `Email: ${d.email}`,
+      (d.city) ? `City: ${d.city}` : null,
+      `Type: ${d.customerType}`,
+      ``,
+      `*🔧 Project*`,
+      `Title: ${d.title}`,
+      `Category: ${d.category}`,
+      `Board: ${d.board}`,
+      (d.connectivity.length) ? `Connectivity: ${d.connectivity.join(", ")}` : null,
+      (d.deliverables.length) ? `Needs: ${d.deliverables.join(", ")}` : null,
+      (d.sensors) ? `Sensors/Modules: ${d.sensors}` : null,
+      `Budget: ${d.budget}`,
+      (d.deadline) ? `Deadline: ${d.deadline}` : null,
+      `Delivery: ${d.delivery}`,
+      ``,
+      `*📝 Description*`,
+      d.description,
+    ].filter(l => l !== null);
+
+    const text = lines.join("\n");
+    const url = "https://wa.me/" + C.whatsappNumber + "?text=" + encodeURIComponent(text);
+    notifyOwner(text);
+    const waLink = document.getElementById("waLink");
+    waLink.href = url; waLink.hidden = false;
+    try { window.open(url, "_blank"); } catch (_) {}
+    msg.textContent = "Your details are ready. If WhatsApp didn't open, tap the button below, then press Send in WhatsApp.";
+    msg.className = "msg ok";
+  });
+})();
+</script>
+</body>
+</html>
