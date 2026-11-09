@@ -94,5 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-year]").forEach(el => el.textContent = new Date().getFullYear());
   document.querySelectorAll("[data-wa-link]").forEach(el => el.href = "https://wa.me/" + C.whatsappNumber);
   document.querySelectorAll("[data-email]").forEach(el => { el.textContent = C.contactEmail; el.href = "mailto:" + C.contactEmail; });
+  document.querySelectorAll("[data-insta]").forEach(el => { el.href = "https://instagram.com/" + C.instagram; if (!el.children.length) el.textContent = "@" + C.instagram; });
   document.querySelectorAll("[data-phone]").forEach(el => el.textContent = C.contactPhone);
 });

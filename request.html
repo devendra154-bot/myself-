@@ -144,6 +144,14 @@
       <div class="pay-box">
         <div>PhonePe number: <strong class="upi" id="phonepeNum"></strong></div>
       </div>
+      <div class="field">
+        <label>Coupon code</label>
+        <div class="coupon-row">
+          <input name="coupon" id="couponInput" placeholder="Enter coupon code" autocomplete="off">
+          <button type="button" class="btn btn-small" id="applyCoupon">Apply</button>
+        </div>
+        <div id="couponMsg" class="msg" style="margin-top:10px"></div>
+      </div>
     </div>
 
     <!-- STEP 4 -->
@@ -216,6 +224,20 @@
 
   document.getElementById("phonepeNum").textContent = C.phonepeNumber;
 
+  // ---- Coupon ----
+  const normCode = c => String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const couponDiscount = c => (C.coupons || {})[normCode(c)] || 0;
+  function checkCoupon() {
+    const el = document.getElementById("couponMsg"), code = form.coupon.value.trim();
+    if (!code) { el.className = "msg"; return; }
+    const off = couponDiscount(code);
+    el.textContent = off ? `✅ Coupon applied! You get ₹${off} OFF on your project.` : "❌ Invalid coupon code.";
+    el.className = "msg " + (off ? "ok" : "err");
+  }
+  document.getElementById("applyCoupon").onclick = checkCoupon;
+  form.coupon.addEventListener("change", checkCoupon);
+  checkCoupon();
+
   // ---- Submit to WhatsApp ----
   form.addEventListener("submit", e => {
     e.preventDefault();
@@ -249,6 +271,8 @@
       ``,
       `*📝 Description*`,
       d.description,
+      couponDiscount(d.coupon) ? `` : null,
+      couponDiscount(d.coupon) ? `*🎟️ Coupon:* ${d.coupon.trim().toUpperCase()} – ₹${couponDiscount(d.coupon)} OFF` : null,
     ].filter(l => l !== null);
 
     const text = lines.join("\n");

@@ -18,7 +18,11 @@ const DEVINVENTOR_CONFIG = {
   // 3) It replies with your API key – paste it below.
   callmebotApiKey: "",
 
-  contactEmail: "contact@devinventor.in",
+  contactEmail: "2465devendra@gmail.com",
+  instagram: "devinventor2010",
   contactPhone: "+91 96184 28273",
   location: "India",
+
+  // Coupon codes: code -> discount in INR (spaces and capital letters are ignored)
+  coupons: { "JAISHRIRAM": 500 },
 };
