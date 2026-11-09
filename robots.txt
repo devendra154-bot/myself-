@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://devendra154-bot.github.io/myself-/sitemap.xml
