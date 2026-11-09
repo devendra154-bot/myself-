@@ -135,32 +135,12 @@
       </div>
     </div>
 
-    <!-- STEP 3 -->
+    <!-- PAYMENT INFO -->
     <div class="panel">
-      <h2>3. Booking Advance via PhonePe</h2>
-      <p class="sub">Pay a small advance to confirm your project slot (adjusted in the final bill). You can also skip and pay after receiving the quote.</p>
-      <div class="amounts" id="amounts"></div>
-      <div class="field"><label>Or enter amount (₹)</label><input type="number" id="customAmount" min="1" placeholder="Custom amount"></div>
-
+      <h2>3. Payment</h2>
+      <p class="sub">Payment is done only after we confirm your quote on WhatsApp.</p>
       <div class="pay-box">
-        <div>
-          <div>Pay <strong id="payAmt">₹0</strong> to</div>
-          <div class="upi" id="upiText"></div>
-          <div class="note">Open this page on your phone and tap the button to pay in the PhonePe app. You can also pay to this UPI ID from any UPI app.</div>
-          <div class="pay-actions">
-            <a class="btn btn-phonepe" id="phonepeBtn" href="#">Pay with PhonePe</a>
-            <a class="btn btn-ghost btn-small" id="upiBtn" href="#">Other UPI app</a>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="field"><label>UPI transaction / UTR ID (after paying)</label><input name="txnId" placeholder="e.g. T2511091234567890"></div>
-        <div class="field">
-          <label>Payment status</label>
-          <select name="paymentStatus">
-            <option>Will pay after quote</option><option>Paid advance</option>
-          </select>
-        </div>
+        <div>PhonePe number: <strong class="upi" id="phonepeNum"></strong></div>
       </div>
     </div>
 
@@ -232,29 +212,7 @@
   }
   form.addEventListener("input", () => Store.set(DRAFT_KEY, collect()));
 
-  // ---- Payment (PhonePe / UPI) ----
-  let amount = C.advanceOptions[0];
-  const amountsEl = document.getElementById("amounts");
-  C.advanceOptions.forEach(a => {
-    const b = document.createElement("button");
-    b.type = "button"; b.textContent = "₹" + a.toLocaleString("en-IN"); b.dataset.amt = a;
-    b.onclick = () => { amount = a; document.getElementById("customAmount").value = ""; updatePay(); };
-    amountsEl.appendChild(b);
-  });
-  document.getElementById("customAmount").oninput = e => { amount = Number(e.target.value) || 0; updatePay(); };
-
-  function updatePay() {
-    amountsEl.querySelectorAll("button").forEach(b => b.classList.toggle("active", Number(b.dataset.amt) === amount));
-    const note = "DevInventor project advance - " + (form.title.value || "booking");
-    const params = new URLSearchParams({ pa: C.upiId, pn: C.payeeName, am: amount.toFixed(2), cu: "INR", tn: note.slice(0, 60) });
-    const q = params.toString().replace(/\+/g, "%20");
-    document.getElementById("upiBtn").href = "upi://pay?" + q;
-    document.getElementById("phonepeBtn").href = "phonepe://pay?" + q;
-    document.getElementById("payAmt").textContent = "₹" + amount.toLocaleString("en-IN");
-    document.getElementById("upiText").textContent = C.upiId;
-  }
-  form.title.addEventListener("change", updatePay);
-  updatePay();
+  document.getElementById("phonepeNum").textContent = C.phonepeNumber;
 
   // ---- Submit to WhatsApp ----
   form.addEventListener("submit", e => {
@@ -266,7 +224,6 @@
       msg.className = "msg err"; bad.focus(); return;
     }
     const d = collect();
-    const paid = d.paymentStatus === "Paid advance";
     const lines = [
       `*New Project Request – ${C.siteName}*`,
       ``,
@@ -290,11 +247,6 @@
       ``,
       `*📝 Description*`,
       d.description,
-      ``,
-      `*💳 Payment*`,
-      `Status: ${d.paymentStatus}`,
-      (paid) ? `Amount: ₹${amount}` : null,
-      (paid && d.txnId) ? `UPI Txn/UTR: ${d.txnId}` : null,
     ].filter(l => l !== null);
 
     const text = lines.join("\n");

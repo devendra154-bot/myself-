@@ -8,14 +8,8 @@ const DEVINVENTOR_CONFIG = {
   // Country code + number, digits only (no +, spaces or dashes). Example for India: 919876543210
   whatsappNumber: "919618428273",
 
-  // Your UPI ID linked to PhonePe (e.g. yourname@ybl, 98xxxxxxxx@ybl, yourname@axl)
-  upiId: "yourname@ybl",
-
-  // Name shown to the customer in the PhonePe / UPI app
-  payeeName: "DevInventor",
-
-  // Booking / advance amount options in INR
-  advanceOptions: [499, 999, 1999, 4999],
+  // PhonePe number shown to customers for payment
+  phonepeNumber: "9618705747",
 
   // ---- Automatic WhatsApp alerts to YOU (on every login, sign-up and project request) ----
   // Free service: https://www.callmebot.com/blog/free-api-whatsapp-messages/

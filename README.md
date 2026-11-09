@@ -6,7 +6,7 @@ Website for **DevInventor** – custom embedded systems & IoT project services.
 - **Home page** – services, how it works, pricing, contact, floating WhatsApp button
 - **Login / Sign up** – built into the project page; customers must log in before submitting a project
 - **Project request form** – customer details, project category, board, connectivity, deliverables, sensors, description, budget, deadline (drafts auto-save)
-- **PhonePe / UPI payment** – booking advance via "Pay with PhonePe" button (opens the PhonePe app on mobile), or any UPI app; customer enters the UTR/transaction ID
+- **Payment info** – shows the PhonePe number (9618705747); payment is arranged after the quote on WhatsApp
 - **Send by WhatsApp** – all details are formatted and opened in WhatsApp to your number with one tap
 
 ## Automatic WhatsApp alerts to the owner
@@ -19,8 +19,7 @@ Every customer **sign-up, login and project request** sends an automatic WhatsAp
 Edit `js/config.js`:
 ```js
 whatsappNumber: "919618428273", // your WhatsApp: country code + number, digits only
-upiId: "yourname@ybl",          // your PhonePe UPI ID
-advanceOptions: [499, 999, 1999, 4999],
+phonepeNumber: "9618705747",    // PhonePe number shown to customers
 contactEmail: "...", contactPhone: "...",
 ```
 
@@ -34,4 +33,3 @@ Repo **Settings → Pages → Deploy from branch** → pick your branch and `/ (
 
 ## Notes
 - Login is browser-based (accounts are stored in the visitor's browser via localStorage). It works on static hosting with no server; for accounts that work across devices, connect Firebase Authentication or a backend later.
-- Payments go directly to your UPI ID. Verify the UTR ID in your PhonePe app before starting work. The official PhonePe Payment Gateway (automatic confirmation) needs a PhonePe Business merchant account and a server.
