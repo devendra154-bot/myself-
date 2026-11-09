@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevInventor | Custom Embedded & IoT Project Services</title>
+  <meta name="description" content="DevInventor builds custom embedded systems and IoT projects – Arduino, ESP32, STM32, Raspberry Pi, PCB design, firmware, mobile apps and cloud dashboards.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <nav class="container nav">
+    <a href="index.html" class="logo">Dev<span>Inventor</span></a>
+    <ul class="nav-links">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#process">How it works</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="request.html">Start a Project</a></li>
+      <li id="nav-auth"></li>
+    </ul>
+    <button id="navToggle" aria-label="Menu">☰</button>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="tag">⚡ Embedded Systems • IoT • Automation</span>
+      <h1>Your idea, turned into a <span>working device</span>.</h1>
+      <p>DevInventor designs and builds custom embedded and IoT projects – from circuit and PCB to firmware, mobile app and cloud dashboard. For students, startups and businesses.</p>
+      <div class="hero-actions">
+        <a href="request.html" class="btn">🚀 Start Your Project</a>
+        <a href="#services" class="btn btn-ghost">Explore Services</a>
+      </div>
+    </div>
+    <div class="chip-board">
+<pre><span class="c">// devinventor.ino</span>
+<span class="k">#include</span> &lt;WiFi.h&gt;
+<span class="k">#include</span> &lt;DevInventor.h&gt;
+
+<span class="k">void</span> setup() {
+  WiFi.begin(<span class="s">"your-idea"</span>);
+  Sensor.attach(DHT22, GPIO4);
+  Cloud.connect(<span class="s">"dashboard"</span>);
+}
+
+<span class="k">void</span> loop() {
+  Cloud.send(Sensor.read());
+  <span class="c">// ✅ project delivered</span>
+}</pre>
+    </div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="container">
+    <div class="section-title">
+      <h2>What We Build</h2>
+      <p>End-to-end custom hardware & software development</p>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="icon">🔌</div><h3>Embedded Firmware</h3><p>Bare-metal & RTOS firmware in C/C++ for Arduino, ESP32, ESP8266, STM32, PIC, AVR, nRF52 and more.</p></div>
+      <div class="card"><div class="icon">🌐</div><h3>IoT Solutions</h3><p>Wi-Fi, BLE, LoRa, GSM/4G and MQTT devices with live cloud dashboards (Blynk, ThingsBoard, Firebase, AWS IoT).</p></div>
+      <div class="card"><div class="icon">🧩</div><h3>PCB Design</h3><p>Schematic, PCB layout, Gerbers and BOM using KiCad / EasyEDA. Prototype assembly and testing.</p></div>
+      <div class="card"><div class="icon">🏠</div><h3>Home & Industrial Automation</h3><p>Smart switches, energy meters, motor control, PLC-style controllers and remote monitoring.</p></div>
+      <div class="card"><div class="icon">🤖</div><h3>Robotics & Sensors</h3><p>Line followers, robotic arms, drones, sensor fusion, GPS tracking, RFID and biometric systems.</p></div>
+      <div class="card"><div class="icon">📱</div><h3>App & Dashboard</h3><p>Android / web apps and dashboards to control and monitor your device from anywhere.</p></div>
+      <div class="card"><div class="icon">🎓</div><h3>Student Projects</h3><p>Final-year & mini projects with working hardware, source code, report and demo support.</p></div>
+      <div class="card"><div class="icon">🧠</div><h3>Edge AI & Raspberry Pi</h3><p>Camera, face recognition, object detection and ML on Raspberry Pi, Jetson and ESP32-CAM.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="process" class="alt">
+  <div class="container">
+    <div class="section-title">
+      <h2>How It Works</h2>
+      <p>Simple 4-step process</p>
+    </div>
+    <div class="grid steps">
+      <div class="card step"><h3>Login & Fill Details</h3><p>Create an account and fill in your project requirements in our form.</p></div>
+      <div class="card step"><h3>Pay Booking Advance</h3><p>Confirm your slot with a small advance via PhonePe / any UPI app.</p></div>
+      <div class="card step"><h3>Send on WhatsApp</h3><p>Your project details are sent to us directly on WhatsApp with one tap.</p></div>
+      <div class="card step"><h3>Build & Deliver</h3><p>We design, build, test and deliver with code, documentation and support.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="container">
+    <div class="section-title">
+      <h2>Pricing</h2>
+      <p>Final price depends on your requirements – starting prices below</p>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>Student / Mini Project</h3><div class="price">₹1,999 <small>onwards</small></div><ul><li>Arduino / ESP based</li><li>Source code + circuit diagram</li><li>Demo video & support</li></ul></div>
+      <div class="card"><h3>IoT Project</h3><div class="price">₹4,999 <small>onwards</small></div><ul><li>Cloud dashboard / mobile app</li><li>Sensors + Wi-Fi / BLE / GSM</li><li>Documentation</li></ul></div>
+      <div class="card"><h3>Custom Product / PCB</h3><div class="price">₹14,999 <small>onwards</small></div><ul><li>Custom PCB design</li><li>Production-ready firmware</li><li>Prototype & testing</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container cta">
+    <h2>Have a project idea?</h2>
+    <p>Tell us what you need – we'll reply on WhatsApp with a quote and timeline.</p>
+    <a href="request.html" class="btn">Submit Project Details</a>
+  </div>
+</section>
+
+<footer id="contact">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a href="index.html" class="logo">Dev<span>Inventor</span></a>
+        <p style="margin-top:10px">Custom embedded systems & IoT project development services.</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <a data-email href="#"></a>
+        <span data-phone></span>
+      </div>
+      <div>
+        <h4>Links</h4>
+        <a href="request.html">Start a Project</a>
+        <a href="login.html">Login / Sign up</a>
+        <a data-wa-link href="#" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+    <div class="copy">© <span data-year></span> DevInventor. All rights reserved.</div>
+  </div>
+</footer>
+<a class="wa-float" data-wa-link href="#" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">💬</a>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>
