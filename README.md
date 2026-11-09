@@ -6,7 +6,7 @@ Website for **DevInventor** – custom embedded systems & IoT project services.
 - **Home page** – services, how it works, pricing, contact, floating WhatsApp button
 - **Login / Sign up** – built into the project page; customers must log in before submitting a project
 - **Project request form** – customer details, project category, board, connectivity, deliverables, sensors, description, budget, deadline (drafts auto-save)
-- **Coupon codes** – e.g. `JAI SHRI RAM` gives ₹500 off (set in `coupons` in `js/config.js`)
+- **Private coupon codes** – stored only as SHA-256 hashes in `js/config.js` (the code itself is never in the site)
 - **Payment info** – shows the PhonePe number (9618705747); payment is arranged after the quote on WhatsApp
 - **Send by WhatsApp** – all details are formatted and opened in WhatsApp to your number with one tap
 

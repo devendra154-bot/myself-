@@ -101,7 +101,5 @@ footer{border-top:1px solid var(--line);padding:40px 0 24px;color:var(--muted);f
 @media(max-width:720px){.foot-grid{grid-template-columns:1fr}}
 .wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:var(--wa);display:grid;place-items:center;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:60;font-size:1.6rem}
 .nav-links a.btn{color:#0b1020}
-.promo{background:linear-gradient(90deg,#f97316,#ec4899);color:#fff;text-align:center;padding:10px 16px;font-size:.95rem}
-.promo a{color:#fff;text-decoration:underline;margin-left:6px;font-weight:600}
 .coupon-row{display:flex;gap:10px}
 .coupon-row input{flex:1;text-transform:uppercase}

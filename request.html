@@ -224,22 +224,30 @@
 
   document.getElementById("phonepeNum").textContent = C.phonepeNumber;
 
-  // ---- Coupon ----
+  // ---- Coupon (codes are stored as hashes, never in plain text) ----
   const normCode = c => String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const couponDiscount = c => (C.coupons || {})[normCode(c)] || 0;
-  function checkCoupon() {
+  let couponOff = 0;
+  async function couponDiscount(c) {
+    const code = normCode(c);
+    if (!code || !(window.crypto && crypto.subtle)) return 0;
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(code));
+    const h = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    return (C.coupons || {})[h] || 0;
+  }
+  async function checkCoupon() {
     const el = document.getElementById("couponMsg"), code = form.coupon.value.trim();
+    couponOff = 0;
     if (!code) { el.className = "msg"; return; }
-    const off = couponDiscount(code);
-    el.textContent = off ? `✅ Coupon applied! You get ₹${off} OFF on your project.` : "❌ Invalid coupon code.";
-    el.className = "msg " + (off ? "ok" : "err");
+    couponOff = await couponDiscount(code);
+    el.textContent = couponOff ? `✅ Coupon applied! You get ₹${couponOff} OFF on your project.` : "❌ Invalid coupon code.";
+    el.className = "msg " + (couponOff ? "ok" : "err");
   }
   document.getElementById("applyCoupon").onclick = checkCoupon;
   form.coupon.addEventListener("change", checkCoupon);
   checkCoupon();
 
   // ---- Submit to WhatsApp ----
-  form.addEventListener("submit", e => {
+  form.addEventListener("submit", async e => {
     e.preventDefault();
     const msg = document.getElementById("msg");
     const bad = [...form.querySelectorAll("[required]")].find(el => !el.value.trim() || !el.checkValidity());
@@ -248,6 +256,7 @@
       msg.className = "msg err"; bad.focus(); return;
     }
     const d = collect();
+    await checkCoupon();
     const lines = [
       `*New Project Request – ${C.siteName}*`,
       ``,
@@ -271,8 +280,8 @@
       ``,
       `*📝 Description*`,
       d.description,
-      couponDiscount(d.coupon) ? `` : null,
-      couponDiscount(d.coupon) ? `*🎟️ Coupon:* ${d.coupon.trim().toUpperCase()} – ₹${couponDiscount(d.coupon)} OFF` : null,
+      couponOff ? `` : null,
+      couponOff ? `*🎟️ Coupon:* ${d.coupon.trim().toUpperCase()} – ₹${couponOff} OFF` : null,
     ].filter(l => l !== null);
 
     const text = lines.join("\n");

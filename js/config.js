@@ -23,6 +23,8 @@ const DEVINVENTOR_CONFIG = {
   contactPhone: "+91 96184 28273",
   location: "India",
 
-  // Coupon codes: code -> discount in INR (spaces and capital letters are ignored)
-  coupons: { "JAISHRIRAM": 500 },
+  // Private coupon codes, stored only as SHA-256 hashes so the code is not visible.
+  // Key = sha256 of the code in CAPITALS with spaces removed; value = discount in INR.
+  // Ask Claude to add/change a coupon, or run:  printf 'MYCODE' | sha256sum
+  coupons: { "96d71e6d2ffc149f7702139e9c0f86bd7d972a5c822fc33a4ffd0e0639df1090": 500 },
 };
