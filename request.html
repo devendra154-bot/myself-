@@ -8,7 +8,6 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script>Auth.requireLogin();</script>
 </head>
 <body>
 <header>
@@ -24,7 +23,33 @@
 </header>
 
 <div class="container form-wrap">
-  <form id="projectForm" novalidate>
+  <!-- LOGIN / SIGN UP (shown when not logged in) -->
+  <div id="authBox" class="auth-wrap" hidden>
+    <div class="panel">
+      <h2 style="text-align:center">Welcome to DevInventor</h2>
+      <p class="sub" style="text-align:center">Login or create an account to submit your project</p>
+      <div class="tabs">
+        <button id="tabLogin" class="active" type="button">Login</button>
+        <button id="tabSignup" type="button">Sign up</button>
+      </div>
+      <div id="authMsg" class="msg"></div>
+      <form id="loginForm" novalidate>
+        <div class="field"><label>Email</label><input type="email" name="email" autocomplete="email"></div>
+        <div class="field"><label>Password</label><input type="password" name="password" autocomplete="current-password"></div>
+        <button class="btn btn-block" type="submit">Login</button>
+        <p class="note" style="text-align:center;margin-top:12px">New here? <a href="#" id="toSignup">Create an account</a></p>
+      </form>
+      <form id="signupForm" novalidate hidden>
+        <div class="field"><label>Full name</label><input name="name" autocomplete="name"></div>
+        <div class="field"><label>Email</label><input type="email" name="email" autocomplete="email"></div>
+        <div class="field"><label>Mobile (WhatsApp)</label><input type="tel" name="phone" placeholder="10-digit number" inputmode="numeric"></div>
+        <div class="field"><label>Password (min 6 characters)</label><input type="password" name="password" autocomplete="new-password"></div>
+        <button class="btn btn-block" type="submit">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <form id="projectForm" novalidate hidden>
     <!-- STEP 1 -->
     <div class="panel">
       <h2>1. Your Details</h2>
@@ -153,7 +178,40 @@
 </div>
 
 <script>
+// ---- Login / sign-up on this page ----
 (() => {
+  const authBox = document.getElementById("authBox"), pf = document.getElementById("projectForm");
+  if (Auth.current()) { pf.hidden = false; return; }
+  authBox.hidden = false;
+  const msg = document.getElementById("authMsg");
+  const lf = document.getElementById("loginForm"), sf = document.getElementById("signupForm");
+  const tl = document.getElementById("tabLogin"), ts = document.getElementById("tabSignup");
+  function show(signup) {
+    sf.hidden = !signup; lf.hidden = signup;
+    ts.classList.toggle("active", signup); tl.classList.toggle("active", !signup);
+    msg.className = "msg";
+  }
+  tl.onclick = () => show(false); ts.onclick = () => show(true);
+  document.getElementById("toSignup").onclick = e => { e.preventDefault(); show(true); };
+  if (location.hash === "#signup") show(true);
+  async function handle(e, fn) {
+    e.preventDefault();
+    const btn = e.target.querySelector("button"); btn.disabled = true;
+    try {
+      await fn(Object.fromEntries(new FormData(e.target)));
+      msg.textContent = "Success! Loading project form…"; msg.className = "msg ok";
+      setTimeout(() => location.reload(), 400);
+    } catch (err) {
+      msg.textContent = err.message || "Something went wrong. Please try again."; msg.className = "msg err";
+      btn.disabled = false;
+    }
+  }
+  lf.onsubmit = e => handle(e, Auth.login);
+  sf.onsubmit = e => handle(e, Auth.signup);
+})();
+
+(() => {
+  if (!Auth.current()) return;
   const C = DEVINVENTOR_CONFIG;
   const form = document.getElementById("projectForm");
   const user = Auth.current();
@@ -161,7 +219,7 @@
 
   // Prefill from account + saved draft
   if (user) { form.name.value = user.name; form.email.value = user.email; form.phone.value = user.phone; }
-  const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+  const draft = Store.get(DRAFT_KEY) || {};
   Object.entries(draft).forEach(([k, v]) => {
     if (Array.isArray(v)) document.querySelectorAll(`[data-group="${k}"] input`).forEach(i => i.checked = v.includes(i.value));
     else if (form.elements[k]) form.elements[k].value = v;
@@ -174,7 +232,7 @@
     });
     return data;
   }
-  form.addEventListener("input", () => localStorage.setItem(DRAFT_KEY, JSON.stringify(collect())));
+  form.addEventListener("input", () => Store.set(DRAFT_KEY, collect()));
 
   // ---- Payment (PhonePe / UPI) ----
   let amount = C.advanceOptions[0];
@@ -246,6 +304,7 @@
 
     const text = lines.join("\n");
     const url = "https://wa.me/" + C.whatsappNumber + "?text=" + encodeURIComponent(text);
+    notifyOwner(text);
     const waLink = document.getElementById("waLink");
     waLink.href = url; waLink.hidden = false;
     try { window.open(url, "_blank"); } catch (_) {}

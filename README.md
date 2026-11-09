@@ -4,15 +4,21 @@ Website for **DevInventor** – custom embedded systems & IoT project services.
 
 ## Features
 - **Home page** – services, how it works, pricing, contact, floating WhatsApp button
-- **Login / Sign up** – customers must log in before submitting a project
+- **Login / Sign up** – built into the project page; customers must log in before submitting a project
 - **Project request form** – customer details, project category, board, connectivity, deliverables, sensors, description, budget, deadline (drafts auto-save)
 - **PhonePe / UPI payment** – booking advance via "Pay with PhonePe" button (opens the PhonePe app on mobile), any UPI app, or a scannable QR code; customer enters the UTR/transaction ID
 - **Send by WhatsApp** – all details are formatted and opened in WhatsApp to your number with one tap
 
+## Automatic WhatsApp alerts to the owner
+Every customer **sign-up, login and project request** sends an automatic WhatsApp message to the owner's number (via the free CallMeBot API). One-time setup:
+1. Save **+34 644 66 32 62** in your phone contacts.
+2. From your WhatsApp (9618428273) send it: `I allow callmebot to send me messages`
+3. Paste the API key you receive into `callmebotApiKey` in `js/config.js`.
+
 ## Setup (required)
 Edit `js/config.js`:
 ```js
-whatsappNumber: "919999999999", // your WhatsApp: country code + number, digits only
+whatsappNumber: "919618428273", // your WhatsApp: country code + number, digits only
 upiId: "yourname@ybl",          // your PhonePe UPI ID
 advanceOptions: [499, 999, 1999, 4999],
 contactEmail: "...", contactPhone: "...",
