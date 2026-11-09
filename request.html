@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>Auth.requireLogin();</script>
 </head>
 <body>
@@ -118,7 +119,7 @@
       <div class="field"><label>Or enter amount (₹)</label><input type="number" id="customAmount" min="1" placeholder="Custom amount"></div>
 
       <div class="pay-box">
-        <img id="qr" alt="UPI QR code">
+        <div id="qr" class="qr"></div>
         <div>
           <div>Pay <strong id="payAmt">₹0</strong> to</div>
           <div class="upi" id="upiText"></div>
@@ -146,6 +147,7 @@
       <p class="sub">Your details will open in WhatsApp – just press <strong>Send</strong>.</p>
       <div id="msg" class="msg"></div>
       <button type="submit" class="btn btn-wa btn-block">💬 Send Project Details on WhatsApp</button>
+      <a id="waLink" class="btn btn-wa btn-block" target="_blank" rel="noopener" hidden style="margin-top:12px">👉 Tap here to open WhatsApp</a>
     </div>
   </form>
 </div>
@@ -194,7 +196,9 @@
     document.getElementById("phonepeBtn").href = "phonepe://pay?" + q;
     document.getElementById("payAmt").textContent = "₹" + amount.toLocaleString("en-IN");
     document.getElementById("upiText").textContent = C.upiId;
-    document.getElementById("qr").src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + encodeURIComponent("upi://pay?" + q);
+    const qr = document.getElementById("qr"); qr.innerHTML = "";
+    if (window.QRCode) new QRCode(qr, { text: "upi://pay?" + q, width: 164, height: 164, correctLevel: QRCode.CorrectLevel.M });
+    else qr.textContent = "Open on phone & tap Pay with PhonePe";
   }
   form.title.addEventListener("change", updatePay);
   updatePay();
@@ -241,8 +245,11 @@
     ].filter(l => l !== null);
 
     const text = lines.join("\n");
-    window.open("https://wa.me/" + C.whatsappNumber + "?text=" + encodeURIComponent(text), "_blank");
-    msg.textContent = "WhatsApp opened with your details. Press Send in WhatsApp to submit. We'll reply soon!";
+    const url = "https://wa.me/" + C.whatsappNumber + "?text=" + encodeURIComponent(text);
+    const waLink = document.getElementById("waLink");
+    waLink.href = url; waLink.hidden = false;
+    try { window.open(url, "_blank"); } catch (_) {}
+    msg.textContent = "Your details are ready. If WhatsApp didn't open, tap the button below, then press Send in WhatsApp.";
     msg.className = "msg ok";
   });
 })();

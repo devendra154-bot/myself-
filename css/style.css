@@ -93,7 +93,8 @@ textarea{min-height:120px;resize:vertical}
 .amounts button{padding:10px 18px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-weight:600;cursor:pointer}
 .amounts button.active{border-color:var(--phonepe);background:rgba(95,37,159,.25)}
 .pay-box{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;background:var(--bg);border:1px dashed var(--line);border-radius:var(--radius);padding:20px;margin:16px 0}
-.pay-box img{width:180px;height:180px;background:#fff;border-radius:10px;padding:8px}
+.pay-box .qr{width:180px;height:180px;background:#fff;border-radius:10px;padding:8px;display:grid;place-items:center;color:#333;font-size:.8rem;text-align:center}
+.pay-box .qr img,.pay-box .qr canvas{width:164px!important;height:164px!important}
 .pay-box .upi{font-family:Consolas,monospace;color:var(--brand)}
 .pay-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 @media(max-width:640px){.pay-box{grid-template-columns:1fr;justify-items:center;text-align:center}.pay-actions{justify-content:center}}
