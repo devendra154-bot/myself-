@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>హెల్మెట్ ధరించండి – మీ ప్రాణాలను కాపాడుకోండి!</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #111; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+         font-family: 'Noto Sans Telugu', sans-serif; color: #eee; }
+  canvas { height: min(88vh, 177vw); aspect-ratio: 9/16; border-radius: 14px; box-shadow: 0 10px 40px #000a; }
+  button { font: inherit; font-size: 18px; padding: 10px 26px; border: 0; border-radius: 30px;
+           background: #ff3b30; color: #fff; cursor: pointer; }
+  body.render { display: block; background: #000; }
+  body.render canvas { height: auto; width: 1080px; border-radius: 0; box-shadow: none; }
+  body.render button, body.render a { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div><button id="play">▶ ప్లే చేయండి</button> <a href="helmet-safety.mp4" style="color:#9cf">MP4 డౌన్‌లోడ్</a></div>
+<audio id="audio" src="assets/audio.m4a" preload="auto"></audio>
+<script>
+const W = 1080, H = 1920;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const FONT = "'Noto Sans Telugu', sans-serif";
+let TL = null;
+
+// ---------- helpers ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = t => { t = clamp(t); return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; };
+const easeOutBack = t => { t = clamp(t); const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+function rand(i) { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function circle(x, y, r, fill) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill(); }
+const OUT = '#1d1d2b';
+
+function mouthAt(t) {
+  if (!TL) return 0;
+  const f = t * TL.fps, i = Math.floor(f), k = f - i;
+  const m = TL.mouth;
+  return lerp(m[clamp(i, 0, m.length - 1)] || 0, m[clamp(i + 1, 0, m.length - 1)] || 0, k);
+}
+function blinkAt(t, seed = 0) {
+  const period = 3.1 + seed * .7, p = (t + seed * 1.3) % period;
+  return p < .14 ? Math.sin(p / .14 * Math.PI) : 0;
+}
+
+// ---------- characters ----------
+// Talking helmet. (x,y) = centre of the dome; s = scale (1 => ~420px wide)
+function drawHelmet(x, y, s, o = {}) {
+  const { mouth = 0, blink = 0, mood = 'happy', tilt = 0, armL = 0.3, armR = 0.3,
+          thumbs = false, wave = 0, look = [0, 0], arms = true, color = ['#ff5a4e', '#d61f26'] } = o;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(tilt); ctx.scale(s, s);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+  // arms (behind the shell)
+  if (arms) {
+    drawArm(-1, armL, false, 0);
+    drawArm(1, armR, thumbs, wave);
+  }
+  // shadow inside shell
+  ctx.beginPath();
+  ctx.arc(0, 0, 210, Math.PI, 0);
+  ctx.lineTo(210, 110); ctx.quadraticCurveTo(205, 200, 120, 205);
+  ctx.lineTo(-120, 205); ctx.quadraticCurveTo(-205, 200, -210, 110); ctx.closePath();
+  const g = ctx.createLinearGradient(-200, -200, 200, 200);
+  g.addColorStop(0, color[0]); g.addColorStop(1, color[1]);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 10; ctx.strokeStyle = OUT; ctx.stroke();
+  // racing stripe
+  ctx.save(); ctx.clip();
+  ctx.fillStyle = '#fff'; ctx.globalAlpha = .9;
+  ctx.fillRect(-26, -230, 52, 140);
+  ctx.globalAlpha = .25; ctx.beginPath(); ctx.ellipse(-90, -130, 70, 40, -.6, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // visor
+  rr(-170, -95, 340, 160, 60);
+  const vg = ctx.createLinearGradient(0, -95, 0, 65);
+  vg.addColorStop(0, '#2b3a67'); vg.addColorStop(1, '#141a33');
+  ctx.fillStyle = vg; ctx.fill(); ctx.lineWidth = 9; ctx.strokeStyle = OUT; ctx.stroke();
+  ctx.save(); rr(-170, -95, 340, 160, 60); ctx.clip();
+  ctx.globalAlpha = .18; ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.moveTo(60, -95); ctx.lineTo(120, -95); ctx.lineTo(40, 65); ctx.lineTo(-20, 65); ctx.fill();
+  ctx.restore();
+
+  // eyes
+  for (const side of [-1, 1]) {
+    const ex = side * 70, ey = -18;
+    const open = 1 - blink;
+    ctx.save(); ctx.translate(ex, ey);
+    ctx.beginPath(); ctx.ellipse(0, 0, 50, Math.max(4, 58 * open), 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff'; ctx.fill(); ctx.lineWidth = 6; ctx.strokeStyle = OUT; ctx.stroke();
+    if (open > .25) {
+      ctx.save(); ctx.beginPath(); ctx.ellipse(0, 0, 50, 58 * open, 0, 0, Math.PI * 2); ctx.clip();
+      const px = look[0] * 14, py = look[1] * 14 + 6;
+      circle(px, py, 28, '#3a2416');
+      circle(px, py, 16, '#000');
+      circle(px + 10, py - 12, 9, '#fff');
+      circle(px - 9, py + 9, 4, '#fff');
+      if (mood === 'worried') { ctx.fillStyle = '#141a33'; ctx.fillRect(-60, -70, 120, 34 + 6 * side); }
+      ctx.restore();
+    }
+    ctx.restore();
+    // eyebrows (drawn on the shell above the visor)
+    ctx.save(); ctx.translate(ex, -118);
+    let a = 0, dy = 0;
+    if (mood === 'worried') a = side * .38;
+    else if (mood === 'serious') { a = -side * .3; dy = 6; }
+    else if (mood === 'excited') dy = -10;
+    ctx.rotate(a); ctx.lineWidth = 13; ctx.strokeStyle = OUT;
+    ctx.beginPath(); ctx.moveTo(-30, dy); ctx.quadraticCurveTo(0, dy - 12, 30, dy); ctx.stroke();
+    ctx.restore();
+  }
+
+  // cheeks
+  ctx.globalAlpha = .45;
+  circle(-140, 112, 24, '#ff9aa8'); circle(140, 112, 24, '#ff9aa8');
+  ctx.globalAlpha = 1;
+
+  // chin guard + mouth
+  const mo = clamp(mouth);
+  ctx.save(); ctx.translate(0, 132);
+  if (mo < .06) {
+    ctx.lineWidth = 9; ctx.strokeStyle = OUT; ctx.beginPath();
+    if (mood === 'worried') { ctx.moveTo(-36, 14); ctx.quadraticCurveTo(0, -10, 36, 14); }
+    else { ctx.moveTo(-42, -6); ctx.quadraticCurveTo(0, 30, 42, -6); }
+    ctx.stroke();
+  } else {
+    const mw = 44 + mo * 12, mh = 8 + mo * 42;
+    ctx.beginPath();
+    if (mood === 'worried') ctx.ellipse(0, 6, mw * .75, mh * .7, 0, 0, Math.PI * 2);
+    else { ctx.moveTo(-mw, -6); ctx.quadraticCurveTo(0, -6 - mh * .25, mw, -6); ctx.quadraticCurveTo(mw * .9, mh * 1.2, 0, mh + 4); ctx.quadraticCurveTo(-mw * .9, mh * 1.2, -mw, -6); }
+    ctx.fillStyle = '#5b0f1a'; ctx.fill(); ctx.lineWidth = 8; ctx.strokeStyle = OUT; ctx.stroke();
+    ctx.save(); ctx.clip();
+    circle(0, mh + 12, mw * .55, '#ff6b81');
+    ctx.fillStyle = '#fff'; ctx.fillRect(-mw * .6, -14, mw * 1.2, 12);
+    ctx.restore();
+  }
+  ctx.restore();
+  // vents on chin
+  ctx.fillStyle = '#0006';
+  for (const vx of [-95, 95]) { rr(vx - 18, 165, 36, 10, 5); ctx.fill(); }
+  ctx.restore();
+}
+
+function drawArm(side, ang, thumbs, wave) {
+  ctx.save(); ctx.translate(side * 195, 105);
+  const a = side * (ang + Math.sin(wave) * .35);
+  ctx.rotate(a);
+  ctx.lineWidth = 22; ctx.strokeStyle = OUT;
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(side * 60, 10, side * 95, -40); ctx.stroke();
+  ctx.lineWidth = 12; ctx.strokeStyle = '#ff5a4e';
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(side * 60, 10, side * 95, -40); ctx.stroke();
+  // glove
+  ctx.translate(side * 100, -50);
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = OUT; ctx.lineWidth = 7;
+  if (thumbs) {
+    ctx.rotate(-a); ctx.scale(1.3, 1.3);
+    rr(-30, -22, 60, 52, 20); ctx.fill(); ctx.stroke();
+    rr(-11, -66, 22, 52, 11); ctx.fill(); ctx.stroke();
+    ctx.lineWidth = 4; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(-24, -6 + k * 12); ctx.lineTo(18, -6 + k * 12); ctx.stroke(); }
+  } else {
+    ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// Simple cartoon person (side or front). (x,y) = feet position
+function drawPerson(x, y, s, o = {}) {
+  const { shirt = '#2f80ed', skin = '#e0a878', hair = '#2b1b10', helmet = false, wave = null, kid = false, dress = false, face = 1 } = o;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.strokeStyle = OUT; ctx.lineWidth = 7;
+  // legs
+  ctx.fillStyle = '#34405a';
+  rr(-38, -170, 30, 170, 12); ctx.fill(); ctx.stroke();
+  rr(8, -170, 30, 170, 12); ctx.fill(); ctx.stroke();
+  // body
+  ctx.fillStyle = shirt;
+  if (dress) { ctx.beginPath(); ctx.moveTo(-50, -330); ctx.lineTo(50, -330); ctx.lineTo(80, -140); ctx.lineTo(-80, -140); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  else { rr(-55, -340, 110, 190, 36); ctx.fill(); ctx.stroke(); }
+  // arms
+  ctx.lineWidth = 22; ctx.strokeStyle = OUT;
+  const armPath = (sd, up) => {
+    ctx.beginPath(); ctx.moveTo(sd * 48, -310);
+    if (up !== null && up !== undefined) ctx.lineTo(sd * 95 + Math.sin(up) * 18, -420);
+    else ctx.lineTo(sd * 72, -190);
+    ctx.stroke();
+  };
+  for (const sd of [-1, 1]) { armPath(sd, sd === 1 ? wave : null); }
+  ctx.lineWidth = 12; ctx.strokeStyle = skin;
+  for (const sd of [-1, 1]) { armPath(sd, sd === 1 ? wave : null); }
+  // head
+  ctx.strokeStyle = OUT; ctx.lineWidth = 7;
+  circle(0, -410, 62, skin); ctx.stroke();
+  if (helmet) {
+    ctx.beginPath(); ctx.arc(0, -420, 76, Math.PI * 1.02, -0.02); ctx.lineTo(76, -380); ctx.lineTo(-76, -380); ctx.closePath();
+    ctx.fillStyle = '#e8262d'; ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.fillRect(-9, -494, 18, 60);
+    rr(-60, -440, 120, 34, 14); ctx.fillStyle = '#20294d'; ctx.fill(); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(0, -425, 64, Math.PI * 1.05, -0.05); ctx.quadraticCurveTo(30, -440, -60, -420); ctx.closePath();
+    ctx.fillStyle = hair; ctx.fill();
+    if (dress) { circle(0, -478, 24, hair); }
+  }
+  // face
+  if (face) {
+    circle(-22, -405, 7, OUT); circle(22, -405, 7, OUT);
+    ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(0, -390, 20, .2, Math.PI - .2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawBike(x, y, s, o = {}) {
+  const { spin = 0, color = '#1f6feb' } = o;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  const wheel = wx => {
+    ctx.save(); ctx.translate(wx, 0);
+    circle(0, 0, 78, OUT); circle(0, 0, 54, '#ccd3e0'); circle(0, 0, 14, OUT);
+    ctx.rotate(spin); ctx.strokeStyle = '#555'; ctx.lineWidth = 5;
+    for (let k = 0; k < 6; k++) { ctx.rotate(Math.PI / 3); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 52); ctx.stroke(); }
+    ctx.restore();
+  };
+  wheel(-170); wheel(170);
+  ctx.strokeStyle = OUT; ctx.lineWidth = 8;
+  // body
+  ctx.beginPath(); ctx.moveTo(-210, -40); ctx.quadraticCurveTo(-150, -150, 0, -130); ctx.lineTo(120, -110); ctx.quadraticCurveTo(170, -60, 170, 0);
+  ctx.lineTo(80, -10); ctx.quadraticCurveTo(0, -60, -120, -30); ctx.closePath();
+  ctx.fillStyle = color; ctx.fill(); ctx.stroke();
+  // tank
+  ctx.beginPath(); ctx.ellipse(40, -140, 80, 40, -.1, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill(); ctx.stroke();
+  ctx.globalAlpha = .35; ctx.beginPath(); ctx.ellipse(20, -155, 40, 12, -.1, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.globalAlpha = 1;
+  // seat
+  rr(-150, -170, 130, 34, 17); ctx.fillStyle = '#222'; ctx.fill(); ctx.stroke();
+  // fork + handlebar
+  ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(170, 0); ctx.lineTo(120, -190); ctx.stroke();
+  ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(95, -200); ctx.lineTo(160, -215); ctx.stroke();
+  circle(170, -165, 26, '#ffe066'); ctx.lineWidth = 6; ctx.stroke();
+  // exhaust
+  rr(-230, -30, 110, 22, 11); ctx.fillStyle = '#9aa3b5'; ctx.fill(); ctx.lineWidth = 6; ctx.stroke();
+  ctx.restore();
+}
+
+function drawHouse(x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.strokeStyle = OUT; ctx.lineWidth = 8; ctx.lineJoin = 'round';
+  rr(-220, -330, 440, 330, 10); ctx.fillStyle = '#ffe2b8'; ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-260, -320); ctx.lineTo(0, -520); ctx.lineTo(260, -320); ctx.closePath(); ctx.fillStyle = '#c0392b'; ctx.fill(); ctx.stroke();
+  rr(-60, -210, 120, 210, 8); ctx.fillStyle = '#8e5a32'; ctx.fill(); ctx.stroke();
+  circle(35, -105, 8, '#ffd166');
+  for (const wx of [-155, 155]) { rr(wx - 50, -260, 100, 90, 8); ctx.fillStyle = '#ffd36b'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(wx, -260); ctx.lineTo(wx, -170); ctx.moveTo(wx - 50, -215); ctx.lineTo(wx + 50, -215); ctx.stroke(); }
+  ctx.restore();
+}
+
+function heart(x, y, s, col = '#ff4d6d') {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.beginPath();
+  ctx.moveTo(0, 20); ctx.bezierCurveTo(-40, -10, -25, -45, 0, -25); ctx.bezierCurveTo(25, -45, 40, -10, 0, 20);
+  ctx.fillStyle = col; ctx.fill(); ctx.restore();
+}
+
+// ---------- backgrounds ----------
+function sky(top, bottom) { const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, top); g.addColorStop(1, bottom); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+function clouds(t, alpha = 1) {
+  ctx.globalAlpha = alpha * .9;
+  for (let i = 0; i < 5; i++) {
+    const cx = ((rand(i) * W + t * (20 + 15 * rand(i + 9))) % (W + 400)) - 200, cy = 180 + rand(i + 3) * 500;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(cx, cy, 50, 0, 7); ctx.arc(cx + 55, cy - 25, 60, 0, 7); ctx.arc(cx + 120, cy, 48, 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+function road(y, t, speed = 0) {
+  ctx.fillStyle = '#7cc56a'; ctx.fillRect(0, y - 120, W, 140);
+  ctx.fillStyle = '#3d4250'; ctx.fillRect(0, y, W, H - y);
+  ctx.fillStyle = '#f5f5f5';
+  const off = (t * speed) % 200;
+  for (let x = -200 + (200 - off); x < W + 200; x += 200) ctx.fillRect(x, y + 120, 110, 16);
+}
+function rays(t, c1, c2) {
+  ctx.save(); ctx.translate(W / 2, H * .42); ctx.rotate(t * .15);
+  for (let i = 0; i < 16; i++) { ctx.rotate(Math.PI / 8); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-160, -1600); ctx.lineTo(160, -1600); ctx.closePath(); ctx.fillStyle = i % 2 ? c1 : c2; ctx.fill(); }
+  ctx.restore();
+}
+
+// ---------- text ----------
+function wrap(text, maxW) {
+  const words = text.split(' '), lines = []; let cur = '';
+  for (const w of words) { const test = cur ? cur + ' ' + w : w; if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; } else cur = test; }
+  if (cur) lines.push(cur); return lines;
+}
+function chunksOf(text) { return text.match(/[^!?.]+(\.\.\.|[!?.])?/g).map(s => s.trim()).filter(Boolean); }
+function subtitle(sc, t) {
+  const chunks = chunksOf(sc.text);
+  const total = chunks.reduce((a, c) => a + c.length, 0);
+  let acc = sc.voiceStart, cur = null;
+  for (const c of chunks) { const d = sc.voiceDur * c.length / total; if (t < acc + d || c === chunks[chunks.length - 1]) { cur = c; break; } acc += d; }
+  if (t < sc.voiceStart - .3) return;
+  ctx.font = `600 50px ${FONT}`;
+  const lines = wrap(cur, 900), lh = 72;
+  const bh = lines.length * lh + 50, by = H - 300 - bh / 2;
+  ctx.fillStyle = 'rgba(10,12,30,.72)'; rr(60, by, W - 120, bh, 36); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  lines.forEach((l, i) => ctx.fillText(l, W / 2, by + 25 + lh / 2 + i * lh));
+}
+function sceneTag(sc, t, k) {
+  const a = clamp(k * 3) * clamp((1 - k) * 6);
+  ctx.globalAlpha = a; ctx.font = `700 40px ${FONT}`;
+  const label = `సీన్ ${sc.id} • ${sc.title}`;
+  const w = ctx.measureText(label).width + 60;
+  ctx.fillStyle = '#ffcc00'; rr(W / 2 - w / 2, 90, w, 76, 38); ctx.fill();
+  ctx.fillStyle = '#1d1d2b'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label, W / 2, 130);
+  ctx.globalAlpha = 1;
+}
+function bigText(lines, y, size, col, stroke, a = 1, sc = 1) {
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(W / 2, y); ctx.scale(sc, sc);
+  ctx.font = `800 ${size}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  lines.forEach((l, i) => { const yy = i * size * 1.35; ctx.lineWidth = size * .22; ctx.strokeStyle = stroke; ctx.strokeText(l, 0, yy); ctx.fillStyle = col; ctx.fillText(l, 0, yy); });
+  ctx.restore();
+}
+
+// ---------- scenes ----------
+const SCENES = {
+  1(t, k, sc, m) { // intro
+    sky('#56b4ff', '#bfe6ff'); clouds(t); road(1480, t, 0);
+    const pop = easeOutBack(clamp((t - sc.start) / .8));
+    const bob = Math.sin(t * 3) * 14;
+    ctx.globalAlpha = .25; ctx.beginPath(); ctx.ellipse(W / 2, 1470, 220 * pop, 36 * pop, 0, 0, 7); ctx.fillStyle = '#000'; ctx.fill(); ctx.globalAlpha = 1;
+    const wave = t < sc.start + 2.5 ? t * 9 : 0;
+    drawHelmet(W / 2, 980 + bob, 1.45 * pop, { mouth: m, blink: blinkAt(t), mood: k > .55 ? 'serious' : 'happy', armR: wave ? 1.3 : .3, wave, armL: .3, tilt: Math.sin(t * 2) * .04 });
+    bigText(['హెల్మెట్ ధరించండి'], 330, 96, '#fff', '#d61f26', clamp((t - sc.start - .3) * 2), 1);
+    bigText(['మీ ప్రాణాలను కాపాడుకోండి!'], 455, 62, '#ffe066', '#1d1d2b', clamp((t - sc.start - .7) * 2), 1);
+  },
+  2(t, k, sc, m) { // negligence
+    sky('#ffb37a', '#ffe0c2'); clouds(t, .6); road(1500, t, 0);
+    const lt = t - sc.start;
+    drawBike(560, 1430, 1.25, {});
+    // helmet left on the seat (it's our talker)
+    drawHelmet(430, 1105 + Math.sin(t * 6) * 4, .5, { mouth: m, blink: blinkAt(t, 1), mood: 'worried', armL: .9 + Math.sin(t * 5) * .2, armR: .9 + Math.cos(t * 5) * .2, look: [-.8, 0] });
+    // rider walking towards the bike without helmet
+    const px = lerp(-150, 230, ease(lt / 3.2));
+    drawPerson(px, 1540, 1.05, { shirt: '#27ae60' });
+    // big red warning
+    const pulse = .5 + .5 * Math.sin(t * 7);
+    if (lt > 2) {
+      ctx.save(); ctx.globalAlpha = .1 + .12 * pulse; ctx.fillStyle = '#ff0000'; ctx.fillRect(0, 0, W, H); ctx.restore();
+      const s = easeOutBack(clamp((lt - 2) / .6)) * (1 + pulse * .05);
+      ctx.save(); ctx.translate(W / 2, 560); ctx.scale(s, s);
+      ctx.beginPath(); ctx.moveTo(0, -170); ctx.lineTo(190, 150); ctx.lineTo(-190, 150); ctx.closePath();
+      ctx.fillStyle = '#ffcc00'; ctx.fill(); ctx.lineWidth = 16; ctx.lineJoin = 'round'; ctx.strokeStyle = OUT; ctx.stroke();
+      ctx.fillStyle = OUT; rr(-18, -70, 36, 140, 18); ctx.fill(); circle(0, 108, 22, OUT);
+      ctx.restore();
+      bigText(['ప్రమాదం!'], 820, 90, '#fff', '#c0141b', clamp((lt - 2.3) * 3));
+    }
+    // speech arrow from helmet
+    ctx.fillStyle = '#fff'; ctx.globalAlpha = .9;
+  },
+  3(t, k, sc, m) { // wear it properly
+    sky('#7ed6a5', '#e3fff0');
+    rays(t, 'rgba(255,255,255,.18)', 'rgba(255,255,255,0)');
+    const lt = t - sc.start;
+    const cx = W / 2, headY = 1150;
+    // person (front, bust)
+    ctx.save(); ctx.strokeStyle = OUT; ctx.lineWidth = 10;
+    rr(cx - 260, headY + 230, 520, 600, 160); ctx.fillStyle = '#2f80ed'; ctx.fill(); ctx.stroke();
+    rr(cx - 55, headY + 150, 110, 120, 20); ctx.fillStyle = '#e0a878'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, headY + 30, 190, 220, 0, 0, 7); ctx.fillStyle = '#e0a878'; ctx.fill(); ctx.stroke();
+    ctx.restore();
+    // helmet comes down onto the head
+    const drop = ease(clamp(lt / 1.6));
+    const hy = lerp(150, headY - 10, drop);
+    if (drop < 1) { // show person's face before helmet arrives
+      circle(cx - 65, headY + 10, 14, OUT); circle(cx + 65, headY + 10, 14, OUT);
+      ctx.lineWidth = 9; ctx.strokeStyle = OUT; ctx.beginPath(); ctx.arc(cx, headY + 60, 50, .3, Math.PI - .3); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, headY - 40, 195, Math.PI * 1.08, -0.08); ctx.fillStyle = '#2b1b10'; ctx.fill();
+    }
+    // strap
+    const strap = clamp((lt - 2.2) / 1.2);
+    if (drop >= 1) {
+      ctx.lineWidth = 16; ctx.strokeStyle = '#222'; ctx.lineCap = 'round';
+      for (const sd of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + sd * 175, headY + 100); ctx.quadraticCurveTo(cx + sd * 140, headY + 230, cx + sd * lerp(140, 8, strap), headY + 240); ctx.stroke(); }
+      if (strap >= 1) {
+        rr(cx - 34, headY + 220, 68, 44, 10); ctx.fillStyle = '#ffcc00'; ctx.fill(); ctx.lineWidth = 6; ctx.strokeStyle = OUT; ctx.stroke();
+      }
+    }
+    drawHelmet(cx, hy, 1.08, { mouth: m, blink: blinkAt(t, 2), mood: strap >= 1 ? 'excited' : 'happy', armL: .4 + Math.sin(t * 3) * .1, armR: strap >= 1 ? 1.1 : .4, thumbs: strap >= 1 });
+    // click + shield
+    if (strap >= 1) {
+      const a = clamp((lt - 3.4) * 2.5), s = easeOutBack(a);
+      if (lt < 4.2) bigText(['క్లిక్!'], headY + 330, 70, '#ffcc00', OUT, clamp((4.2 - lt) * 3));
+      ctx.save(); ctx.translate(W / 2, 400); ctx.scale(s, s);
+      ctx.beginPath(); ctx.moveTo(0, -150); ctx.quadraticCurveTo(110, -110, 130, -100); ctx.quadraticCurveTo(130, 60, 0, 150); ctx.quadraticCurveTo(-130, 60, -130, -100); ctx.quadraticCurveTo(-110, -110, 0, -150); ctx.closePath();
+      ctx.fillStyle = '#27ae60'; ctx.fill(); ctx.lineWidth = 14; ctx.strokeStyle = OUT; ctx.stroke();
+      ctx.lineWidth = 24; ctx.strokeStyle = '#fff'; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-50, 0); ctx.lineTo(-10, 45); ctx.lineTo(60, -45); ctx.stroke();
+      ctx.restore();
+      bigText(['సురక్షితం!'], 620, 72, '#fff', '#1e8449', a);
+    }
+  },
+  4(t, k, sc, m) { // family
+    sky('#ff8a5c', '#ffd59e');
+    circle(W * .78, 620, 120, '#fff3b0');
+    clouds(t * .5, .5);
+    road(1450, t, 0);
+    drawHouse(800, 1340, 1.0);
+    const lt = t - sc.start;
+    const arrive = ease(clamp(lt / 3));
+    const bx = lerp(-300, 330, arrive);
+    // family at door
+    const greet = clamp((lt - 3) * 2);
+    const wv = greet > 0 ? t * 9 : null;
+    drawPerson(690, 1430, .62, { shirt: '#e84393', dress: true, wave: wv, hair: '#1b0f08' });
+    drawPerson(900, 1430, .66, { shirt: '#8e44ad', wave: wv, hair: '#3b2a1a' });
+    drawPerson(800, 1440, .42, { shirt: '#f39c12', wave: wv !== null ? wv + 1 : null });
+    // bike + helmeted rider
+    drawBike(bx, 1520, .8, { spin: arrive * 30, color: '#1f6feb' });
+    if (arrive < 1) { drawPerson(bx - 30, 1430, .62, { shirt: '#27ae60', helmet: true, face: 0 }); }
+    else { drawPerson(bx + 170, 1520, .62, { shirt: '#27ae60', helmet: true, face: 0, wave: t * 9 }); }
+    // hearts
+    if (greet > 0) for (let i = 0; i < 9; i++) {
+      const p = ((t - sc.start - 3) * .35 + rand(i)) % 1;
+      heart(600 + rand(i + 4) * 420, 1150 - p * 600, .9 + rand(i) * .8, ['#ff4d6d', '#ff8fab', '#ffd166'][i % 3]);
+    }
+    // talking helmet badge (narrator)
+    ctx.save(); ctx.globalAlpha = .95; circle(230, 470, 190, 'rgba(255,255,255,.85)'); ctx.restore();
+    drawHelmet(230, 470, .62, { mouth: m, blink: blinkAt(t, 3), mood: 'happy', armL: .5, armR: .5 + Math.sin(t * 2) * .2 });
+  },
+  5(t, k, sc, m) { // finale
+    sky('#2b5876', '#4e4376');
+    rays(t, 'rgba(255,214,102,.18)', 'rgba(255,255,255,.02)');
+    const lt = t - sc.start;
+    // confetti
+    for (let i = 0; i < 70; i++) {
+      const p = (lt * (.18 + rand(i) * .2) + rand(i + 50)) % 1;
+      const x = rand(i + 7) * W + Math.sin(t * 2 + i) * 30, y = p * (H + 100) - 50;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(t * 3 + i);
+      ctx.fillStyle = ['#ff3b30', '#ffcc00', '#34c759', '#5ac8fa', '#ff9ff3'][i % 5]; ctx.fillRect(-10, -5, 20, 10); ctx.restore();
+    }
+    const s = easeOutBack(clamp(lt / .8));
+    drawHelmet(W / 2, 900 + Math.sin(t * 3) * 10, 1.45 * s, { mouth: m, blink: blinkAt(t, 4), mood: 'excited', armL: .4 + Math.sin(t * 4) * .15, armR: 1.15, thumbs: true });
+    const tag = clamp((t - (sc.voiceStart + sc.voiceDur * .62)) * 2);
+    bigText(['హెల్మెట్ ధరించండి...', 'మీ ప్రాణాలను కాపాడుకోండి!'], 330, 76, '#ffe066', '#1d1d2b', tag, .9 + .1 * easeOutBack(tag));
+  },
+};
+
+function render(t) {
+  if (!TL) return;
+  const sc = TL.scenes.find(s => t >= s.start && t < s.end) || TL.scenes[TL.scenes.length - 1];
+  const k = (t - sc.start) / (sc.end - sc.start);
+  ctx.save(); ctx.clearRect(0, 0, W, H);
+  SCENES[sc.id](t, k, sc, mouthAt(t));
+  sceneTag(sc, t, k);
+  subtitle(sc, t);
+  // scene transitions (fade through white)
+  const fin = clamp(1 - (t - sc.start) / .35), fout = sc.id < 5 ? clamp(1 - (sc.end - t) / .25) : clamp(1 - (sc.end - t) / .8);
+  const a = Math.max(sc.id > 1 ? fin : 0, fout);
+  if (a > 0) { ctx.fillStyle = sc.id < 5 ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${a})`; ctx.fillRect(0, 0, W, H); }
+  ctx.restore();
+}
+window.render = render;
+
+window.ready = (async () => {
+  TL = await (await fetch('assets/timeline.json')).json();
+  // merge texts from scenes (titles + dialogue live in timeline.json)
+  await document.fonts.load(`700 50px ${FONT}`, 'హెల్మెట్');
+  await document.fonts.load(`800 50px ${FONT}`, 'హెల్మెట్');
+  render(0.6);
+  return true;
+})();
+
+if (new URLSearchParams(location.search).has('render')) document.body.classList.add('render');
+const audio = document.getElementById('audio'), btn = document.getElementById('play');
+btn.onclick = () => { if (audio.paused) { audio.play(); btn.textContent = '❚❚ పాజ్'; loop(); } else { audio.pause(); btn.textContent = '▶ ప్లే చేయండి'; } };
+audio.onended = () => { btn.textContent = '▶ మళ్ళీ ప్లే'; };
+function loop() { render(Math.min(audio.currentTime, TL.duration - .001)); if (!audio.paused) requestAnimationFrame(loop); }
+</script>
+</body>
+</html>
