@@ -123,8 +123,8 @@
         <div class="field">
           <label>Budget</label>
           <select name="budget">
-            <option>Under ₹2,000</option><option>₹2,000 – ₹5,000</option><option>₹5,000 – ₹15,000</option>
-            <option>₹15,000 – ₹50,000</option><option>Above ₹50,000</option><option>Not decided</option>
+            <option>₹1,500 – ₹2,000</option><option>₹2,000 – ₹2,500</option><option>₹3,000 – ₹5,000</option>
+            <option selected>Not decided</option>
           </select>
         </div>
         <div class="field"><label>Needed by (deadline)</label><input name="deadline" type="date"></div>
@@ -212,6 +212,7 @@
     if (Array.isArray(v)) document.querySelectorAll(`[data-group="${k}"] input`).forEach(i => i.checked = v.includes(i.value));
     else if (form.elements[k]) form.elements[k].value = v;
   });
+  form.querySelectorAll("select").forEach(sel => { if (sel.selectedIndex < 0) sel.value = (sel.querySelector("[selected]") || sel.options[0]).value; });
 
   function collect() {
     const data = Object.fromEntries(new FormData(form));
