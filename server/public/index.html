@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevInventor · Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='36' fill='none' stroke='%237a50dc' stroke-width='14'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono&family=Noto+Sans+Devanagari&family=Noto+Sans+Telugu&family=Noto+Sans+Tamil&family=Noto+Sans+Kannada&family=Noto+Sans+Malayalam&display=swap" rel="stylesheet">
+<style>
+:root{--b:#7a50dc;--b50:#f2ecfd;--b100:#e6dbfb;--ink:#0f0f14;--muted:#6b6b78;--line:#e4e4e9;--canvas:#f6f6f8;--ok:#149e6a;--warn:#c2741a;--bad:#d94848}
+*{box-sizing:border-box;margin:0}
+body{font-family:Inter,"Noto Sans Devanagari","Noto Sans Telugu","Noto Sans Tamil","Noto Sans Kannada","Noto Sans Malayalam",system-ui,sans-serif;background:var(--canvas);color:var(--ink);font-size:14px}
+.mono{font-family:"Geist Mono",monospace;font-size:12.5px}
+header{display:flex;align-items:center;gap:24px;padding:14px 28px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.logo{font-size:18px;letter-spacing:-.04em}.logo span{color:#8c66e4}
+nav{display:flex;gap:4px}
+nav button{padding:8px 14px;border-radius:9px;border:0;background:none;font:inherit;font-weight:500;color:#44444f;cursor:pointer}
+nav button.on{background:var(--ink);color:#fff}
+header .right{margin-left:auto;display:flex;gap:10px;align-items:center;color:var(--muted)}
+main{max-width:1180px;margin:0 auto;padding:28px}
+h2{font-size:22px;letter-spacing:-.02em;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+label{display:block;font-size:12.5px;font-weight:500;color:#44444f;margin:12px 0 5px}
+input,select,textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--b)}
+textarea{min-height:90px;resize:vertical}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:0;font:inherit;font-weight:600;cursor:pointer;background:var(--b);color:#fff}
+.btn.dark{background:var(--ink)}.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.sm{padding:6px 12px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:wait}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.muted{color:var(--muted)}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:6px;background:var(--canvas);border:1px solid var(--line)}
+.tag.ok{background:#ecfaf3;color:var(--ok);border-color:#c5ecd9}.tag.warn{background:#fdf5ea;color:var(--warn);border-color:#f2dcbc}.tag.bad{background:#fdecec;color:var(--bad);border-color:#f5c9c9}.tag.b{background:var(--b50);color:#673fc4;border-color:var(--b100)}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:500}
+tr.click{cursor:pointer}tr.click:hover{background:var(--canvas)}
+.banner{padding:12px 16px;border-radius:12px;margin-bottom:16px;background:#fdf5ea;border:1px solid #f2dcbc;color:#7a4a10}
+.bar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--canvas);margin:10px 0}
+.bar i{display:block}
+.stats{display:flex;gap:18px;flex-wrap:wrap;margin-top:6px}
+.stats b{font-size:18px;display:block}
+.chat{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto;padding:4px}
+.msg{max-width:80%;padding:8px 12px;border-radius:12px;line-height:1.45}
+.msg.agent{background:var(--b50);align-self:flex-start}.msg.caller{background:var(--ink);color:#fff;align-self:flex-end}
+.login{max-width:380px;margin:80px auto}
+dialog{margin:auto;max-height:90vh;overflow:auto;border:0;border-radius:16px;padding:24px;max-width:640px;width:92vw;box-shadow:0 30px 60px -20px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(15,15,20,.4)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;display:none;z-index:50}
+code.copy{display:block;background:var(--canvas);border:1px solid var(--line);border-radius:8px;padding:8px 10px;word-break:break-all;cursor:copy;margin-top:4px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const LANGS = { hi: "Hindi", te: "Telugu", ta: "Tamil", kn: "Kannada", ml: "Malayalam", mr: "Marathi", en: "English" };
+const OUT = { interested: "ok", booked: "ok", callback: "b", not_interested: "bad", do_not_call: "bad", wrong_number: "bad", no_answer: "warn", busy: "warn", failed: "bad", voicemail: "warn", completed: "" };
+let token = localStorage.getItem("dv_token") || "";
+let view = "agents";
+let state = { status: null, agents: [], calls: [], campaigns: [], voices: [] };
+
+function toast(m) { const t = $("#toast"); t.textContent = m; t.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => (t.style.display = "none"), 3000); }
+
+async function api(path, opts = {}) {
+  const res = await fetch("/api" + path, { ...opts, headers: { authorization: "Bearer " + token, "content-type": "application/json" }, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if (res.status === 401) { localStorage.removeItem("dv_token"); token = ""; render(); throw new Error("Please sign in"); }
+  if (res.status === 204) return null;
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+async function refresh() {
+  if (!token) return;
+  const [status, agents, calls, campaigns] = await Promise.all([api("/status"), api("/agents"), api("/calls?limit=200"), api("/campaigns")]);
+  state = { ...state, status, agents, calls, campaigns };
+  render();
+}
+
+function render() {
+  if (!token) {
+    $("#app").innerHTML = `<div class="card login"><div class="logo" style="font-size:22px;margin-bottom:8px">DEVINVENT<span>O</span>R</div>
+      <p class="muted">Sign in with your ADMIN_TOKEN.</p><label>Admin token</label><input id="tok" type="password">
+      <p style="margin-top:14px"><button class="btn" id="go">Sign in</button></p></div>`;
+    $("#go").onclick = () => { token = $("#tok").value.trim(); localStorage.setItem("dv_token", token); refresh().catch((e) => toast(e.message)); };
+    return;
+  }
+  const s = state.status;
+  $("#app").innerHTML = `
+  <header><div class="logo">DEVINVENT<span>O</span>R</div>
+    <nav>${["agents", "campaigns", "calls"].map((v) => `<button class="${view === v ? "on" : ""}" data-v="${v}">${v[0].toUpperCase() + v.slice(1)}</button>`).join("")}</nav>
+    <div class="right">${s ? `<span class="tag ${s.inCallingHours ? "ok" : "warn"}">${s.inCallingHours ? "Calling hours" : "Outside calling hours"}</span><span>${s.activeCalls} live</span>` : ""}
+    <button class="btn ghost sm" id="out">Sign out</button></div></header>
+  <main>${s && s.missingConfig.length ? `<div class="banner">Setup needed on the server: <b>${s.missingConfig.map(esc).join(", ")}</b>. Calls won't work until these are set.</div>` : ""}
+  <div id="view"></div></main>`;
+  document.querySelectorAll("nav button").forEach((b) => (b.onclick = () => { view = b.dataset.v; render(); }));
+  $("#out").onclick = () => { localStorage.removeItem("dv_token"); token = ""; render(); };
+  ({ agents: renderAgents, campaigns: renderCampaigns, calls: renderCalls })[view]();
+}
+
+// ---------------- agents ----------------
+function renderAgents() {
+  $("#view").innerHTML = `<h2>AI employees <button class="btn sm" id="new">+ New employee</button></h2>
+    ${state.agents.length ? "" : `<div class="card muted">No employees yet. Click “New employee” and describe what it should do.</div>`}
+    <div class="grid">${state.agents.map((a) => `<div class="card">
+      <div class="row" style="justify-content:space-between"><b style="font-size:16px">${esc(a.name)}</b><span class="tag b">${LANGS[a.language] || a.language}</span></div>
+      <p class="muted" style="margin:6px 0 10px">${esc(a.persona)} · ${esc(a.business)}</p>
+      <p style="line-height:1.5">${esc(a.goal)}</p>
+      <div class="row" style="margin-top:14px"><button class="btn sm" data-call="${a.id}">Test call</button><button class="btn ghost sm" data-edit="${a.id}">Edit</button><button class="btn ghost sm" data-int="${a.id}">Connect leads</button></div>
+    </div>`).join("")}</div>`;
+  $("#new").onclick = () => agentDialog();
+  document.querySelectorAll("[data-edit]").forEach((b) => (b.onclick = () => agentDialog(state.agents.find((a) => a.id === b.dataset.edit))));
+  document.querySelectorAll("[data-call]").forEach((b) => (b.onclick = () => testCall(state.agents.find((a) => a.id === b.dataset.call))));
+  document.querySelectorAll("[data-int]").forEach((b) => (b.onclick = () => integrations(state.agents.find((a) => a.id === b.dataset.int))));
+}
+
+function dialog(html) {
+  const d = document.createElement("dialog");
+  d.innerHTML = html;
+  document.body.appendChild(d);
+  d.addEventListener("close", () => d.remove());
+  d.showModal();
+  return d;
+}
+
+async function agentDialog(a) {
+  if (!state.voices.length) api("/voices").then((v) => { state.voices = v; const sel = $("#f_voice"); if (sel) fillVoices(sel, a?.voiceId); }).catch(() => {});
+  const d = dialog(`<h2>${a ? "Edit employee" : "New AI employee"}</h2>
+    ${a ? "" : `<div class="card" style="background:var(--b50);border-color:var(--b100)"><b>Describe it in one line</b>
+      <textarea id="desc" placeholder="e.g. Call new property leads, ask budget and purpose, and book a site visit."></textarea>
+      <div class="two"><div><label>Business name</label><input id="bbiz"></div><div><label>Language</label><select id="blang">${Object.entries(LANGS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></div></div>
+      <p style="margin-top:12px"><button class="btn" id="build">Write it for me</button></p></div>`}
+    <div class="two"><div><label>Name</label><input id="f_name"></div><div><label>Business</label><input id="f_business"></div></div>
+    <div class="two"><div><label>Telecaller name</label><input id="f_persona"></div><div><label>Language</label><select id="f_language">${Object.entries(LANGS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></div></div>
+    <label>Voice (ElevenLabs)</label><select id="f_voice"><option value="">Default voice</option></select>
+    <label>Goal of the call</label><textarea id="f_goal" style="min-height:60px"></textarea>
+    <label>Instructions, facts, prices, offers</label><textarea id="f_instructions" style="min-height:140px"></textarea>
+    <label>Opening line</label><input id="f_openingLine">
+    <label>Details to collect (comma separated)</label><input id="f_fields">
+    <div class="two"><div><label>Transfer to human (phone)</label><input id="f_transfer" placeholder="+91…"></div><div><label>Outcome webhook (optional)</label><input id="f_webhook" placeholder="https://…"></div></div>
+    <div class="row" style="margin-top:18px;justify-content:space-between">
+      <div class="row"><button class="btn dark" id="save">Save</button><button class="btn ghost" id="cancel">Cancel</button></div>
+      ${a ? `<button class="btn ghost" id="del" style="color:var(--bad)">Delete</button>` : ""}</div>`);
+  const set = (v) => {
+    $("#f_name", d).value = v.name || ""; $("#f_business", d).value = v.business || ""; $("#f_persona", d).value = v.persona || "";
+    $("#f_language", d).value = v.language || "hi"; $("#f_goal", d).value = v.goal || ""; $("#f_instructions", d).value = v.instructions || "";
+    $("#f_openingLine", d).value = v.openingLine || ""; $("#f_fields", d).value = (v.fieldsToCollect || []).join(", ");
+    $("#f_transfer", d).value = v.transferNumber || ""; $("#f_webhook", d).value = v.outcomeWebhook || "";
+  };
+  if (a) set(a);
+  fillVoices($("#f_voice", d), a?.voiceId);
+  $("#cancel", d).onclick = () => d.close();
+  if ($("#build", d)) $("#build", d).onclick = async (e) => {
+    e.target.disabled = true; e.target.textContent = "Writing…";
+    try {
+      const lang = $("#blang", d).value, biz = $("#bbiz", d).value;
+      const out = await api("/agents/build", { method: "POST", body: { description: $("#desc", d).value, business: biz, language: lang } });
+      set({ ...out, business: biz, language: lang });
+    } catch (err) { toast(err.message); }
+    e.target.disabled = false; e.target.textContent = "Write it for me";
+  };
+  $("#save", d).onclick = async () => {
+    const body = {
+      name: $("#f_name", d).value, business: $("#f_business", d).value, persona: $("#f_persona", d).value, language: $("#f_language", d).value,
+      voiceId: $("#f_voice", d).value, goal: $("#f_goal", d).value, instructions: $("#f_instructions", d).value, openingLine: $("#f_openingLine", d).value,
+      fieldsToCollect: $("#f_fields", d).value.split(",").map((s) => s.trim()).filter(Boolean), transferNumber: $("#f_transfer", d).value, outcomeWebhook: $("#f_webhook", d).value,
+    };
+    try { await api(a ? `/agents/${a.id}` : "/agents", { method: a ? "PATCH" : "POST", body }); d.close(); toast("Saved"); refresh(); } catch (err) { toast(err.message); }
+  };
+  if ($("#del", d)) $("#del", d).onclick = async () => { if (confirm("Delete this employee?")) { await api(`/agents/${a.id}`, { method: "DELETE" }); d.close(); refresh(); } };
+}
+
+function fillVoices(sel, current) {
+  sel.innerHTML = `<option value="">Default voice</option>` + state.voices.map((v) => `<option value="${esc(v.id)}">${esc(v.name)}${v.labels.gender ? " · " + esc(v.labels.gender) : ""}${v.labels.accent ? " · " + esc(v.labels.accent) : ""}</option>`).join("");
+  sel.value = current || "";
+}
+
+function testCall(a) {
+  const d = dialog(`<h2>Test call · ${esc(a.name)}</h2><p class="muted">Your phone will ring and ${esc(a.persona)} will talk to you.</p>
+    <div class="two"><div><label>Your phone</label><input id="ph" placeholder="98765 43210"></div><div><label>Your name</label><input id="nm"></div></div>
+    <label class="row" style="gap:8px;font-weight:400"><input type="checkbox" id="iw" style="width:auto"> Call even outside calling hours (testing only)</label>
+    <div class="row" style="margin-top:16px"><button class="btn" id="go">Call me</button><button class="btn ghost" id="cancel">Close</button></div>`);
+  $("#cancel", d).onclick = () => d.close();
+  $("#go", d).onclick = async () => {
+    try { await api(`/agents/${a.id}/call`, { method: "POST", body: { phone: $("#ph", d).value, name: $("#nm", d).value, ignoreWindow: $("#iw", d).checked } }); d.close(); toast("Calling…"); view = "calls"; refresh(); }
+    catch (err) { toast(err.message); }
+  };
+}
+
+function integrations(a) {
+  const curl = `curl -X POST ${a.leadIntakeUrl} \\\n  -H "X-DevInventor-Lead-Secret: ${a.leadSecret}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"phone":"+919876543210","name":"Rahul"}'`;
+  const d = dialog(`<h2>Connect leads · ${esc(a.name)}</h2>
+    <p class="muted">Send each new lead here (Meta Lead Ads via Pabbly/Zapier, website forms, Google Sheets). It is called within seconds during calling hours, or queued for the next window.</p>
+    <label>Lead intake URL (POST)</label><code class="copy">${esc(a.leadIntakeUrl)}</code>
+    <label>Header X-DevInventor-Lead-Secret</label><code class="copy">${esc(a.leadSecret)}</code>
+    <label>Example</label><code class="copy" style="white-space:pre">${esc(curl)}</code>
+    <label>Inbound calls: set your number's answer URL (POST) to</label><code class="copy">${esc(a.inboundUrl)}</code>
+    <p style="margin-top:16px"><button class="btn ghost" id="cancel">Close</button></p>`);
+  $("#cancel", d).onclick = () => d.close();
+  d.querySelectorAll("code.copy").forEach((c) => (c.onclick = () => { navigator.clipboard.writeText(c.textContent); toast("Copied"); }));
+}
+
+// ---------------- campaigns ----------------
+function renderCampaigns() {
+  $("#view").innerHTML = `<h2>Bulk campaigns <button class="btn sm" id="new">+ New campaign</button></h2>
+    ${state.campaigns.length ? "" : `<div class="card muted">No campaigns yet. Upload a list and your AI employee calls everyone on it.</div>`}
+    ${state.campaigns.slice().reverse().map((c) => {
+      const s = c.stats, pct = (n) => (s.total ? (n / s.total) * 100 : 0);
+      const agent = state.agents.find((a) => a.id === c.agentId);
+      return `<div class="card"><div class="row" style="justify-content:space-between">
+        <div><b style="font-size:16px">${esc(c.name)}</b> <span class="tag ${c.status === "running" ? "ok" : c.status === "finished" ? "b" : "warn"}">${c.status}</span>
+        <div class="muted" style="margin-top:4px">${esc(agent?.name || "deleted agent")} · ${s.total} contacts · ${c.window.start}–${c.window.end} · ${c.concurrency} at a time</div></div>
+        <div class="row">${c.status === "running" ? `<button class="btn ghost sm" data-act="pause" data-id="${c.id}">Pause</button>` : c.status !== "finished" ? `<button class="btn sm" data-act="start" data-id="${c.id}">Start</button>` : ""}
+        <button class="btn ghost sm" data-calls="${c.id}">Calls</button></div></div>
+        <div class="row" style="justify-content:space-between;margin-top:14px"><span><b>${s.called}</b> of ${s.total} called</span><span class="muted">${s.active} live now</span></div>
+        <div class="bar"><i style="width:${pct(s.interested)}%;background:var(--ok)"></i><i style="width:${pct(s.callback)}%;background:#3a78c9"></i><i style="width:${pct(s.not_interested)}%;background:#c9c9d1"></i><i style="width:${pct(s.retrying)}%;background:#ecdcb4"></i></div>
+        <div class="stats"><div><b>${s.interested}</b><span class="muted">Interested</span></div><div><b>${s.callback}</b><span class="muted">Call back</span></div><div><b>${s.not_interested}</b><span class="muted">Not interested</span></div><div><b>${s.retrying}</b><span class="muted">Retrying</span></div><div><b>${s.pending}</b><span class="muted">Not called yet</span></div></div></div>`;
+    }).join("")}`;
+  $("#new").onclick = newCampaign;
+  document.querySelectorAll("[data-act]").forEach((b) => (b.onclick = async () => { await api(`/campaigns/${b.dataset.id}/${b.dataset.act}`, { method: "POST" }); refresh(); }));
+  document.querySelectorAll("[data-calls]").forEach((b) => (b.onclick = () => { view = "calls"; state.filter = b.dataset.calls; render(); }));
+}
+
+function newCampaign() {
+  if (!state.agents.length) return toast("Create an AI employee first");
+  const d = dialog(`<h2>New campaign</h2>
+    <div class="two"><div><label>Name</label><input id="n" placeholder="Festive offer · past enquiries"></div>
+    <div><label>AI employee</label><select id="ag">${state.agents.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join("")}</select></div></div>
+    <label>Contacts: upload a CSV or paste (phone,name,…extra columns)</label><input type="file" id="file" accept=".csv,text/csv">
+    <textarea id="list" placeholder="phone,name,city&#10;9876543210,Rahul,Noida&#10;9123456780,Priya,Pune" style="margin-top:8px;min-height:120px"></textarea>
+    <div class="two"><div><label>Calls at a time</label><input id="cc" type="number" value="5" min="1" max="50"></div><div><label>Attempts per number</label><input id="ma" type="number" value="3" min="1" max="5"></div></div>
+    <div class="two"><div><label>Start calling at</label><input id="ws" type="time" value="10:00"></div><div><label>Stop calling at</label><input id="we" type="time" value="19:00"></div></div>
+    <label>Retry after (minutes)</label><input id="rm" type="number" value="120">
+    <div class="row" style="margin-top:16px"><button class="btn" id="go">Create and start</button><button class="btn ghost" id="save">Create paused</button><button class="btn ghost" id="cancel">Cancel</button></div>`);
+  $("#file", d).onchange = async (e) => { $("#list", d).value = await e.target.files[0].text(); };
+  $("#cancel", d).onclick = () => d.close();
+  const create = async (start) => {
+    try {
+      const c = await api("/campaigns", { method: "POST", body: { name: $("#n", d).value, agentId: $("#ag", d).value, contacts: $("#list", d).value, concurrency: +$("#cc", d).value, maxAttempts: +$("#ma", d).value, retryMinutes: +$("#rm", d).value, window: { start: $("#ws", d).value, end: $("#we", d).value } } });
+      if (start) await api(`/campaigns/${c.id}/start`, { method: "POST" });
+      d.close(); toast(`${c.stats.total} contacts added`); refresh();
+    } catch (err) { toast(err.message); }
+  };
+  $("#go", d).onclick = () => create(true);
+  $("#save", d).onclick = () => create(false);
+}
+
+// ---------------- calls ----------------
+function renderCalls() {
+  const list = state.calls.filter((c) => !state.filter || c.campaignId === state.filter);
+  $("#view").innerHTML = `<h2>Calls ${state.filter ? `<button class="btn ghost sm" id="clr">Show all</button>` : ""}</h2>
+    <div class="card" style="padding:6px 12px">${list.length ? `<table><tr><th>When</th><th>Number</th><th>Employee</th><th>Status</th><th>Outcome</th><th>Summary</th></tr>
+    ${list.map((c) => `<tr class="click" data-id="${c.id}"><td class="muted">${new Date(c.createdAt).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</td>
+      <td class="mono">${esc(c.phone)}<div class="muted">${esc(c.name)}</div></td><td>${esc(state.agents.find((a) => a.id === c.agentId)?.name || "")}<div class="muted">${c.direction}</div></td>
+      <td><span class="tag">${c.status}</span></td><td>${c.outcome ? `<span class="tag ${OUT[c.outcome] || ""}">${c.outcome.replace(/_/g, " ")}</span>` : ""}</td>
+      <td style="max-width:360px">${esc(c.summary || c.error || "")}</td></tr>`).join("")}</table>` : `<p class="muted" style="padding:12px">No calls yet.</p>`}</div>`;
+  if ($("#clr")) $("#clr").onclick = () => { state.filter = null; render(); };
+  document.querySelectorAll("tr[data-id]").forEach((r) => (r.onclick = () => showCall(r.dataset.id)));
+}
+
+async function showCall(id) {
+  const c = await api(`/calls/${id}`);
+  const fields = Object.entries(c.fields || {});
+  const d = dialog(`<h2>${esc(c.name || c.phone)} ${c.outcome ? `<span class="tag ${OUT[c.outcome] || ""}">${c.outcome.replace(/_/g, " ")}</span>` : ""}</h2>
+    <p class="muted mono">${esc(c.phone)} · ${c.direction} · ${c.durationSec ? c.durationSec + "s" : c.status}</p>
+    ${c.summary ? `<p style="margin:12px 0;line-height:1.55">${esc(c.summary)}</p>` : ""}
+    ${c.booking ? `<p><span class="tag ok">Booked</span> ${esc(c.booking.what)} · ${esc(c.booking.when)}</p>` : ""}
+    ${fields.length ? `<table style="margin:12px 0">${fields.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</table>` : ""}
+    <div class="chat">${(c.transcript || []).map((t) => `<div class="msg ${t.role}">${esc(t.text)}</div>`).join("") || `<p class="muted">No conversation.</p>`}</div>
+    <p style="margin-top:16px"><button class="btn ghost" id="cancel">Close</button></p>`);
+  $("#cancel", d).onclick = () => d.close();
+}
+
+render();
+refresh().catch((e) => toast(e.message));
+setInterval(() => { if (token && !document.querySelector("dialog")) refresh().catch(() => {}); }, 8000);
+</script>
+</body>
+</html>

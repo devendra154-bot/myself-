@@ -40,6 +40,10 @@
     if (a.dataset.tab) setEmp(+a.dataset.tab);
   }));
   $("#yr").textContent = new Date().getFullYear();
+  if (window.DEVINVENTOR_API) {
+    const dash = window.DEVINVENTOR_API.replace(/\/$/, "") + "/dashboard/";
+    $$("a.signin, .nav-right a.btn-brand, .cta-btns a.btn-white").forEach((a) => (a.href = dash));
+  }
 
   /* ---------- hero greeting ---------- */
   let gi = 0;
