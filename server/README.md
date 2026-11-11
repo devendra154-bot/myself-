@@ -96,12 +96,36 @@ Set `OUTCOME_WEBHOOK_URL`, or a webhook per employee, to receive this after ever
 
 If WhatsApp Cloud API keys aren't set, `send_whatsapp` actions go to the same webhook as `{"event":"whatsapp.send","to":…,"message":…}`. Your Pabbly or Zapier flow can send them from there.
 
+## Pricing plans
+
+Each AI employee is on one plan. Customers pay per connected minute, billed per second. Unanswered calls are free. Prices exclude GST.
+
+| Plan | Price / min | Claude model | Good for |
+|---|---|---|---|
+| Basic | ₹4.5 | Claude Haiku 5.5 | Reminders, confirmations, COD checks |
+| Standard | ₹6 | Claude Sonnet 5.5 | Lead qualification, support, bookings |
+| Premium | ₹8 | Claude Opus 5.5 | Loans, insurance, complex or high-value sales |
+
+The phone line and voice are the same on every plan; only the "brain" changes. With the default cost settings, a typical minute (AI speaking about half the time) costs you about:
+
+| Plan | Phone | Voice | Listening | AI | Est. cost | Margin |
+|---|---|---|---|---|---|---|
+| Basic | ₹0.60 | ₹1.98 | ₹0.29 | ₹0.05 | **₹2.92** | ₹1.58 |
+| Standard | ₹0.60 | ₹1.98 | ₹0.29 | ~₹1.00 | **₹3.87** | ₹2.13 |
+| Premium | ₹0.60 | ₹1.98 | ₹0.29 | ~₹2.30 | **₹5.17** | ₹2.83 |
+
+These are estimates. A pricier ElevenLabs plan, long calls or a talkative AI cost more. Watch the real margin on the dashboard for the first weeks and adjust prices if needed.
+
+Change prices or models with `PRICE_BASIC`, `PRICE_STANDARD`, `PRICE_PREMIUM`, `CLAUDE_MODEL_BASIC`, `CLAUDE_MODEL_STANDARD` and `CLAUDE_MODEL`.
+
+Every finished call stores `billing`: seconds, rate, price, estimated cost by part, and margin. The dashboard's Calls page shows each call's charge and 30-day totals, and the outcome webhook includes it. Set the `COST_*` values to the rates on your invoices so the margin is accurate.
+
 ## Tuning
 
 - **Faster replies:** `CLAUDE_EFFORT=low` (default). `CLAUDE_SPEED=fast` is faster again but costs twice as much. `ELEVENLABS_TTS_MODEL=eleven_flash_v2_5` is the fastest voice model.
 - **Better Telugu, Kannada, Malayalam or Marathi pronunciation:** try `ELEVENLABS_TTS_MODEL=eleven_v3` or an Indian voice from the ElevenLabs voice library.
 - **Interruptions:** `VAD_BARGE_IN_MS` sets how long the caller must talk over the AI before it stops (default 250 ms). On noisy lines, raise `VAD_THRESHOLD`.
-- **Cost per minute (rough):** phone line + ElevenLabs voice and recognition + Claude. Check each provider's pricing page before setting your own price per minute.
+- **Lower your cost:** speech is the biggest cost. Shorter replies (already the default) and cheaper voice providers help most. Buying phone minutes in bulk lowers the line cost.
 
 ## Project layout
 

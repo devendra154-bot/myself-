@@ -6,6 +6,7 @@ import { Conversation } from "./agent.js";
 import { calls } from "./store.js";
 import { sendWhatsApp } from "./actions.js";
 import { localNow } from "./time.js";
+import { addClaudeUsage, emptyUsage } from "./billing.js";
 
 const MAX_CALL_MS = 10 * 60 * 1000;
 const SILENCE_NUDGE_MS = 9000;
@@ -24,6 +25,7 @@ export class CallSession {
     this.nudges = 0;
     this.endAfterSpeech = null;
     this.sttLang = LANGUAGES[agent.language]?.stt;
+    call.usage ||= emptyUsage();
 
     this.vad = new VoiceDetector({
       threshold: config.vad.threshold,
@@ -35,6 +37,7 @@ export class CallSession {
     this.convo = new Conversation(agent, {
       onSentence: (s) => this.say(s),
       runTool: (name, input) => this.runTool(name, input),
+      onUsage: (model, usage) => addClaudeUsage(this.call, model, usage),
     });
   }
 
@@ -69,6 +72,7 @@ export class CallSession {
     this.lastActivity = Date.now();
     let text = "";
     try {
+      this.call.usage.sttSeconds += pcm.length / 16000; // PCM16 at 8 kHz
       text = await transcribe(pcm, this.sttLang);
     } catch (err) {
       console.error(`[${this.call.id}] STT failed:`, err.message);
@@ -115,6 +119,7 @@ export class CallSession {
       if (gen !== this.generation || this.ended) return;
       this.abort = new AbortController();
       try {
+        this.call.usage.ttsChars += sentence.length;
         await speak(sentence, {
           voiceId: this.agent.voiceId,
           languageCode: this.agent.language,

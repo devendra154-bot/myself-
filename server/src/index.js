@@ -14,6 +14,7 @@ import { CallSession } from "./session.js";
 import { buildAgent } from "./builder.js";
 import { listVoices } from "./speech.js";
 import { inWindow, maskPhone } from "./time.js";
+import { plansSummary } from "./billing.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 store.load();
@@ -115,7 +116,7 @@ const publicAgent = (a) => ({ ...a, leadIntakeUrl: `${config.publicUrl}/lead-int
 const publicCall = (c) => { const { token, ...rest } = c; return rest; };
 const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "agent";
 
-admin.get("/status", (req, res) => res.json({ missingConfig: checkConfig(), provider: config.telephony, callerId: config.callerId, languages: LANGUAGES, inCallingHours: inWindow(), activeCalls: calls.active().length }));
+admin.get("/status", (req, res) => res.json({ missingConfig: checkConfig(), provider: config.telephony, callerId: config.callerId, languages: LANGUAGES, plans: plansSummary(), inCallingHours: inWindow(), activeCalls: calls.active().length }));
 admin.get("/voices", wrap(async (req, res) => res.json(await listVoices())));
 
 admin.get("/agents", (req, res) => res.json(agents.all().map(publicAgent)));
@@ -131,6 +132,7 @@ admin.post("/agents", (req, res) => {
   while (agents.get(slug)) slug += "-" + crypto.randomBytes(2).toString("hex");
   const a = agents.add({
     id: store.id("agt"), slug, name: b.name || b.business, business: b.business, persona: b.persona, gender: b.gender || "female",
+    plan: config.plans[b.plan] ? b.plan : "standard",
     language: LANGUAGES[b.language] ? b.language : "hi", voiceId: b.voiceId || "", goal: b.goal, instructions: b.instructions || "",
     openingLine: b.openingLine || "", fieldsToCollect: b.fieldsToCollect || [], transferNumber: b.transferNumber || "",
     outcomeWebhook: b.outcomeWebhook || "", leadSecret: store.token(), createdAt: new Date().toISOString(),
@@ -138,8 +140,9 @@ admin.post("/agents", (req, res) => {
   res.status(201).json(publicAgent(a));
 });
 admin.patch("/agents/:id", (req, res) => {
-  const allowed = ["name", "business", "persona", "gender", "language", "voiceId", "goal", "instructions", "openingLine", "fieldsToCollect", "transferNumber", "outcomeWebhook"];
+  const allowed = ["plan", "name", "business", "persona", "gender", "language", "voiceId", "goal", "instructions", "openingLine", "fieldsToCollect", "transferNumber", "outcomeWebhook"];
   const patch = Object.fromEntries(Object.entries(req.body || {}).filter(([k]) => allowed.includes(k)));
+  if ("plan" in patch && !config.plans[patch.plan]) return res.status(400).json({ error: "plan must be basic, standard or premium" });
   const a = agents.update(req.params.id, patch);
   a ? res.json(publicAgent(a)) : res.sendStatus(404);
 });
@@ -154,6 +157,24 @@ admin.get("/calls", (req, res) => {
   const limit = Math.min(500, Number(req.query.limit) || 100);
   const list = calls.all().filter((c) => !req.query.campaignId || c.campaignId === req.query.campaignId);
   res.json(list.slice(-limit).reverse().map(({ transcript, token, ...c }) => ({ ...c, turns: transcript.length })));
+});
+// Totals for a period: minutes, what customers owe, estimated cost and margin.
+admin.get("/billing", (req, res) => {
+  const since = req.query.since ? new Date(req.query.since) : new Date(Date.now() - 30 * 864e5);
+  const t = { since: since.toISOString(), calls: 0, connected: 0, minutes: 0, price: 0, estCost: 0, margin: 0, byPlan: {} };
+  for (const c of calls.all()) {
+    if (!c.billing || new Date(c.createdAt) < since) continue;
+    const b = c.billing;
+    t.calls++;
+    if (b.seconds) t.connected++;
+    t.minutes += b.seconds / 60; t.price += b.price; t.estCost += b.estCost; t.margin += b.margin;
+    const p = (t.byPlan[b.plan] ||= { minutes: 0, price: 0, estCost: 0 });
+    p.minutes += b.seconds / 60; p.price += b.price; p.estCost += b.estCost;
+  }
+  const r = (n) => Math.round(n * 100) / 100;
+  for (const k of ["minutes", "price", "estCost", "margin"]) t[k] = r(t[k]);
+  for (const p of Object.values(t.byPlan)) for (const k in p) p[k] = r(p[k]);
+  res.json(t);
 });
 admin.get("/calls/:id", (req, res) => { const c = calls.get(req.params.id); c ? res.json(publicCall(c)) : res.sendStatus(404); });
 

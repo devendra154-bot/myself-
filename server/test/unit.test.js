@@ -53,3 +53,24 @@ test("CSV contacts with and without header", () => {
   assert.equal(b[1].phone, "9123456780");
   assert.equal(b[0].name, "Rahul");
 });
+
+test("plans map to models; Haiku requests skip server-side fallbacks", async () => {
+  const { baseParams, modelFor } = await import("../src/claude.js");
+  assert.equal(modelFor({ plan: "basic" }), "claude-haiku-5-5");
+  assert.equal(modelFor({ plan: "standard" }), "claude-sonnet-5-5");
+  assert.equal(modelFor({ plan: "premium" }), "claude-opus-5-5");
+  const haiku = baseParams({ model: "claude-haiku-5-5" });
+  assert.equal(haiku.fallbacks, undefined);
+  assert.equal(baseParams({ model: "claude-sonnet-5-5" }).fallbacks, "default");
+});
+
+test("a 90-second standard call is priced at ₹9", async () => {
+  const { priceCall } = await import("../src/billing.js");
+  const call = { answeredAt: "2026-01-01T10:00:00Z", durationSec: 90, usage: { claudeInr: 1.2, ttsChars: 600, sttSeconds: 40 } };
+  const b = priceCall(call, { plan: "standard" });
+  assert.equal(b.price, 9);
+  assert.equal(b.ratePerMin, 6);
+  assert.ok(b.estCost > 0 && b.estCost < b.price);
+  assert.equal(b.margin, Math.round((b.price - b.estCost) * 100) / 100);
+  assert.equal(priceCall({ durationSec: 0 }, { plan: "basic" }).price, 0); // unanswered calls are free
+});

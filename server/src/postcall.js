@@ -1,6 +1,7 @@
 // After a call: Claude writes the summary and outcome, then it goes to your webhook / CRM.
 import { z } from "zod";
-import { jsonCall } from "./claude.js";
+import { jsonCall, modelFor } from "./claude.js";
+import { addClaudeUsage, priceCall } from "./billing.js";
 import { calls } from "./store.js";
 import { postWebhook } from "./actions.js";
 
@@ -44,6 +45,9 @@ export async function finishCall(call, agent) {
           `Booking made: ${call.booking ? JSON.stringify(call.booking) : "none"}\nCaller asked not to be called: ${call.doNotCall ? "yes" : "no"}\n\nTranscript:\n${transcript}`,
         schema,
         zodSchema,
+        model: modelFor(agent),
+        effort: "low",
+        onUsage: (model, usage) => addClaudeUsage(call, model, usage),
       });
       const fields = { ...call.fields };
       for (const d of result.details) if (!(d.field in fields)) fields[d.field] = d.value;
@@ -59,13 +63,15 @@ export async function finishCall(call, agent) {
     }
   }
 
+  calls.update(call.id, { billing: priceCall(call, agent) });
+
   try {
     await postWebhook(agent, {
       event: "call.completed",
       call: {
         id: call.id, direction: call.direction, phone: call.phone, name: call.name, outcome: call.outcome,
         summary: call.summary, fields: call.fields, booking: call.booking || null, callbackAt: call.callbackAt || null,
-        durationSec: call.durationSec, startedAt: call.createdAt, endedAt: call.endedAt, campaignId: call.campaignId || null,
+        durationSec: call.durationSec, billing: call.billing, startedAt: call.createdAt, endedAt: call.endedAt, campaignId: call.campaignId || null,
         source: call.source, transcript: call.transcript,
       },
     });

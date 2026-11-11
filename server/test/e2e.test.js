@@ -93,7 +93,7 @@ test("a full outbound call", { timeout: 60000 }, async (t) => {
   for (let i = 0; i < 50 && !out.includes("voice server on"); i++) await sleep(100);
 
   const api = (p, opts = {}) => fetch(`http://127.0.0.1:${port}/api${p}`, { ...opts, headers: { authorization: "Bearer admin", "content-type": "application/json" } }).then((r) => r.json());
-  const agent = await api("/agents", { method: "POST", body: JSON.stringify({ business: "Nest Realty", persona: "Meera", goal: "Book a site visit", language: "hi", fieldsToCollect: ["budget"] }) });
+  const agent = await api("/agents", { method: "POST", body: JSON.stringify({ business: "Nest Realty", persona: "Meera", goal: "Book a site visit", language: "hi", plan: "premium", fieldsToCollect: ["budget"] }) });
   assert.equal(agent.slug, "nest-realty");
 
   const call = await api(`/agents/${agent.id}/call`, { method: "POST", body: JSON.stringify({ phone: "9876543210", name: "Rahul" }) });
@@ -138,6 +138,12 @@ test("a full outbound call", { timeout: 60000 }, async (t) => {
   // Greeting is spoken sentence by sentence (3), then the caller, then the reply.
   assert.deepEqual(done.transcript.map((x) => x.role), ["agent", "agent", "agent", "caller", "agent"]);
   assert.equal(done.transcript[3].text, "हाँ जी, बोलिए");
+
+  // Billing: premium plan at ₹8/min, connected for a few seconds.
+  assert.equal(done.billing.plan, "premium");
+  assert.equal(done.billing.ratePerMin, 8);
+  assert.ok(done.billing.seconds >= 1 && done.billing.price > 0, JSON.stringify(done.billing));
+  assert.ok(done.billing.estCostBreakdown.ai > 0 && done.billing.estCostBreakdown.voice > 0);
 
   // Claude requests used the right settings.
   const first = log.claude[0];

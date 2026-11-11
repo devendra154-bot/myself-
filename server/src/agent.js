@@ -2,7 +2,7 @@
 // says next, calling tools (save details, WhatsApp, booking, transfer, hang up) mid-call.
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { client, baseParams } from "./claude.js";
+import { client, baseParams, modelFor } from "./claude.js";
 import { LANGUAGES, config } from "./config.js";
 
 const SCRIPTS = { hi: "Devanagari", mr: "Devanagari", te: "Telugu", ta: "Tamil", kn: "Kannada", ml: "Malayalam", en: "Latin" };
@@ -142,7 +142,7 @@ class SentenceSplitter {
 export class Conversation {
   /**
    * @param agent agent config
-   * @param handlers { onSentence(text), runTool(name, input) => Promise<string> }
+   * @param handlers { onSentence(text), runTool(name, input) => Promise<string>, onUsage(model, usage) }
    */
   constructor(agent, handlers) {
     this.agent = agent;
@@ -162,7 +162,7 @@ export class Conversation {
     for (let step = 0; step < 5; step++) {
       const splitter = new SentenceSplitter((s) => { said += (said ? " " : "") + s; this.handlers.onSentence(s); });
       const stream = client.beta.messages.stream({
-        ...baseParams(),
+        ...baseParams({ model: modelFor(this.agent) }),
         max_tokens: 4096,
         system: this.system,
         tools: this.tools,
@@ -173,6 +173,7 @@ export class Conversation {
       let message;
       try {
         message = await stream.finalMessage();
+        this.handlers.onUsage?.(message.model, message.usage);
         jsonRetries = 0;
       } catch (err) {
         if (err instanceof Anthropic.APIError || jsonRetries++ >= 2) throw err;

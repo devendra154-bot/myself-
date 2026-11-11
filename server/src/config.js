@@ -23,6 +23,29 @@ export const config = {
   twilio: { accountSid: env("TWILIO_ACCOUNT_SID"), authToken: env("TWILIO_AUTH_TOKEN") },
   plivo: { authId: env("PLIVO_AUTH_ID"), authToken: env("PLIVO_AUTH_TOKEN") },
 
+  // What you charge customers, per connected minute (billed per second), excluding GST.
+  // Each plan uses a different Claude model; the voice and phone line are the same.
+  plans: {
+    basic: { name: "Basic", pricePerMin: num("PRICE_BASIC", 4.5), model: env("CLAUDE_MODEL_BASIC", "claude-haiku-5-5") },
+    standard: { name: "Standard", pricePerMin: num("PRICE_STANDARD", 6), model: env("CLAUDE_MODEL_STANDARD", "claude-sonnet-5-5") },
+    premium: { name: "Premium", pricePerMin: num("PRICE_PREMIUM", 8), model: env("CLAUDE_MODEL", "claude-opus-5-5") },
+  },
+
+  // Your own costs, used to estimate cost and margin per call. Defaults are rough
+  // estimates: replace them with the rates on your invoices.
+  costs: {
+    usdToInr: num("USD_INR", 88),
+    phonePerMinInr: num("COST_PHONE_PER_MIN_INR", 0.6),
+    ttsUsdPer1kChars: num("COST_TTS_USD_PER_1K_CHARS", 0.05),
+    sttUsdPerHour: num("COST_STT_USD_PER_HOUR", 0.4),
+    // USD per million tokens: input, output, cache read
+    claude: {
+      "claude-opus-5-5": [4, 20, 0.2],
+      "claude-sonnet-5-5": [2, 10, 0.1],
+      "claude-haiku-5-5": [0.1, 0.5, 0.01],
+    },
+  },
+
   claude: {
     model: env("CLAUDE_MODEL", "claude-opus-5-5"),
     // Phone calls need quick replies; "low" keeps latency down. Raise if quality needs it.
