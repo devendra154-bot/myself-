@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevInventor | AI telecalling software | India's most natural-sounding voice agents</title>
+<meta name="description" content="DevInventor AI telecallers call every new lead in 30 seconds, work through your lists and answer your number 24/7, in 7 Indian languages.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='36' fill='none' stroke='%237a50dc' stroke-width='14'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500&family=Noto+Sans+Telugu:wght@400;500&family=Noto+Sans+Tamil:wght@400;500&family=Noto+Sans+Kannada:wght@400;500&family=Noto+Sans+Malayalam:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<!-- ============ NAV ============ -->
+<header class="nav-wrap">
+  <nav class="nav">
+    <a href="#" class="logo" aria-label="DevInventor home">DEVINVENT<span>O</span>R</a>
+    <ul class="nav-links" id="navLinks">
+      <li class="has-menu">
+        <button class="nav-btn">Product <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="menu">
+          <a href="#employee" data-tab="0"><b>Instant leads</b><small>Call every enquiry in 30s</small></a>
+          <a href="#employee" data-tab="1"><b>Bulk campaigns</b><small>Work through your lists</small></a>
+          <a href="#employee" data-tab="2"><b>Inbound</b><small>Answer your number 24/7</small></a>
+        </div>
+      </li>
+      <li><a href="#voices">Voices</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="#developers">Docs</a></li>
+      <li><a href="#developers">API</a></li>
+    </ul>
+    <div class="nav-right">
+      <a href="../request.html" class="signin">Sign in</a>
+      <a href="#build" class="btn btn-brand">Start free <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <button class="burger" id="burger" aria-label="Menu"><span></span><span></span></button>
+    </div>
+  </nav>
+</header>
+
+<main>
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="grid-bg"></div>
+  <div class="container hero-inner">
+    <div class="hero-pill reveal">
+      <span class="pill-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span>
+      <span class="bars"><i></i><i></i><i></i><i></i><i></i></span>
+      <b id="greet">नमस्ते</b>
+      <span class="sep"></span>
+      <span class="muted">Speaks 7 Indian languages</span>
+      <span class="sep"></span>
+      <a href="#how" class="hear">▶ Hear a call</a>
+    </div>
+    <h1 class="reveal">AI telecalling software.</h1>
+    <p class="hero-sub reveal">India's most <span class="grad">natural-sounding</span> voice agents.</p>
+
+    <div class="hero-feats reveal">
+      <div class="feat"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></span><div><b>Instant leads</b><small>Calls new enquiries within 30 seconds</small></div></div>
+      <div class="feat"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span><div><b>Bulk campaigns</b><small>Works through lists, many calls at once</small></div></div>
+      <div class="feat"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 2v6h6M22 2l-6 6"/><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span><div><b>Inbound</b><small>Answers your number, day and night</small></div></div>
+    </div>
+
+    <div class="builder reveal" id="build">
+      <div class="builder-head">
+        <h3>What should your AI telecaller do?</h3>
+        <div class="lang-select">
+          <span>in</span>
+          <button id="langBtn">Hindi <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+          <div class="lang-menu" id="langMenu"></div>
+        </div>
+      </div>
+      <textarea id="task" placeholder=""></textarea>
+      <div class="chips">
+        <span class="try">Try:</span>
+        <button class="chip" data-t="Remind customers whose policy renews this month, and note who wants to renew.">🛡 Remind about renewals</button>
+        <button class="chip" data-t="Call every new property lead, ask budget and purpose, and book a site visit.">🏢 Call new property leads</button>
+        <button class="chip" data-t="Remind patients about tomorrow's appointment and reschedule if needed.">🩺 Remind patients</button>
+        <button class="chip" data-t="Call last year's enquiries, share our festive offer and find who is still interested.">📋 Wake up an old list</button>
+        <button class="chip" data-t="Follow up car enquiries and book a test drive at the nearest showroom.">🚗 Book test drives</button>
+      </div>
+      <div class="builder-foot">
+        <button class="voice-btn" id="voiceBtn">
+          <span class="mic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg></span>
+          <span><b>Describe it by voice</b><small>Speak in your language. We'll write it up.</small></span>
+        </button>
+        <button class="btn btn-white" id="buildBtn">Build my employee <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+
+    <div class="trust reveal">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#149e6a" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg>
+      50 free credits · No card required · From ₹5 per minute
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="how" id="how">
+  <div class="container">
+    <h2 class="center reveal">How it works</h2>
+    <div class="tabs center-tabs reveal" id="howTabs"></div>
+
+    <div class="how-grid reveal">
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="status"><span>9:41</span><span class="island"></span><span class="sig">▂▄▆ ▭</span></div>
+          <div class="caller">
+            <div class="avatar-ring">NR</div>
+            <b>Nest Realty</b>
+            <small><span class="mono" id="callTime">0:00</span> · 📍 Noida</small>
+            <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="chat" id="chat"></div>
+          <div class="call-ctrls">
+            <span>🎙</span><span>▦</span><span>🔊</span><span class="end">✆</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-bar">
+          <i></i><i></i><i></i>
+          <span class="logo sm">DEVINVENT<span>O</span>R</span><span class="slash">/</span><span>Conversations</span>
+          <span class="status-dot" id="callStatus"><em></em> On call · 0:00</span>
+        </div>
+        <div class="panel-body">
+          <div class="lead">
+            <span class="av">AV</span>
+            <div><b>Aman Verma</b><small class="mono">+91 98••• ••210 · Meta ad · Noida</small></div>
+            <span class="tag" id="langTag">Hindi + English</span>
+          </div>
+          <div class="fields">
+            <div><small>Looking for</small><p data-f="0">2BHK, Sector 150</p></div>
+            <div><small>Purpose</small><p data-f="1">To live in</p></div>
+            <div><small>Budget</small><p data-f="2">~₹90L</p></div>
+            <div><small>Site visit</small><p data-f="3">Sat, 11:00 AM</p></div>
+          </div>
+          <p class="summary" id="summary">Summary is written the moment the call ends.</p>
+          <div class="integr">
+            <div data-i="0"><span>💬</span><div><b>WhatsApp</b><small>Waiting</small></div></div>
+            <div data-i="1"><span>📊</span><div><b>Google Sheets</b><small>After the call</small></div></div>
+            <div data-i="2"><span>🔗</span><div><b>Your CRM</b><small>After the call</small></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flows reveal">
+      <div class="flow"><span class="flow-label">Leads from</span>
+        <span class="fchip">Meta Lead Ads</span><span class="fchip">Google Sheets</span><span class="fchip">Website forms</span><span class="fchip">Webhooks &amp; Pabbly</span><span class="fchip">Custom API</span>
+      </div>
+      <div class="flow"><span class="flow-label">Outcomes to</span>
+        <span class="fchip">WhatsApp</span><span class="fchip">Google Calendar</span><span class="fchip">Sheets &amp; CRM</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VOICES ============ -->
+<section class="voices" id="voices">
+  <div class="container">
+    <h2 class="reveal">Hear our voices</h2>
+    <div class="tabs reveal" id="voiceTabs"></div>
+    <div class="voice-grid" id="voiceGrid"></div>
+    <p class="fun reveal">✨ <b>Fun fact:</b> both sides of these calls are AI. The “customer” is a DevInventor voice too.</p>
+    <p class="center reveal"><a class="link" href="#voices">Browse all voices →</a></p>
+  </div>
+</section>
+
+<!-- ============ SAME EMPLOYEE ============ -->
+<section class="employee" id="employee">
+  <div class="container">
+    <p class="eyebrow reveal"><i></i>One DevInventor employee, every channel</p>
+    <h2 class="reveal">New leads, old lists, incoming calls. <span class="dim">Same employee.</span></h2>
+    <div class="emp-tabs reveal" id="empTabs">
+      <button><span class="ico">⚡</span><div><b>Instant leads</b><small>Call every enquiry in 30s</small></div></button>
+      <button class="active"><span class="ico">📣</span><div><b>Bulk campaigns</b><small>Work through your lists</small></div></button>
+      <button><span class="ico">📞</span><div><b>Inbound</b><small>Answer your number 24/7</small></div></button>
+    </div>
+    <div class="emp-body reveal" id="empBody"></div>
+  </div>
+</section>
+
+<!-- ============ AGENTIC ============ -->
+<section class="agentic">
+  <div class="container">
+    <div class="agentic-card reveal">
+      <div class="agentic-text">
+        <p class="eyebrow"><i></i>Agentic, not just talking</p>
+        <h2>India's best voices.<br><span class="grad">Now with hands.</span></h2>
+        <p class="lead-p">While she talks, she works: books, sends, looks things up and hands over, mid-call.</p>
+      </div>
+      <div class="hub">
+        <svg class="hub-lines" viewBox="0 0 600 420" preserveAspectRatio="none">
+          <path d="M300 170 L170 60"/><path d="M300 170 L300 30"/><path d="M300 170 L470 60"/>
+          <path d="M300 170 L150 250"/><path d="M300 170 L470 250"/><path d="M300 170 L310 350"/>
+        </svg>
+        <div class="core"><div class="core-in">🎙<span class="bars w"><i></i><i></i><i></i><i></i><i></i></span></div><b>Meera</b><small>on a call, in Hindi</small></div>
+        <div class="node n1"><span class="ni g">💬</span><div><small>WhatsApp</small><b>Location sent</b></div></div>
+        <div class="node n2"><span class="ni">📅</span><div><small>Google Calendar</small><b>Booked Sat, 11:00</b></div></div>
+        <div class="node n3"><span class="ni">🔗</span><div><small>Your CRM</small><b>Lead fetched</b></div></div>
+        <div class="node n4"><span class="ni p">↺</span><div><small>Caller memory</small><b>Remembered Rahul</b></div></div>
+        <div class="node n5"><span class="ni d">{ }</span><div><small>Custom API</small><b>EMI ₹1.04L/mo</b></div></div>
+        <div class="node n6"><span class="ni g2">⇄</span><div><small>Call transfer</small><b>Sent to your team</b></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BUILT IN ============ -->
+<section class="built">
+  <div class="container">
+    <p class="eyebrow reveal"><i></i>Built in</p>
+    <h2 class="reveal">Built in, <span class="dim">so you don't have to.</span></h2>
+    <div class="bento">
+      <div class="bcard wide reveal">
+        <div class="btext"><h4>Numbers in 5 mins</h4><p>Complete digital KYC and get an IVRS-ready business number.</p><div><span class="badge ok">✓ KYC done</span><span class="badge">IVRS-ready</span></div></div>
+        <div class="numbers">
+          <div class="num active"><span>1</span>+91 88521 •••••<em>✓</em></div>
+          <div class="num"><span>2</span>+91 90758 •••••</div>
+          <div class="num"><span>3</span>+91 70412 •••••</div>
+        </div>
+      </div>
+      <div class="bcard tall reveal">
+        <h4>Auto-retries</h4><p>Busy, no answer or “call me later”: handled on its own.</p>
+        <div class="timeline">
+          <div class="tl"><span class="tdot r">✆</span><div><b>10:00 AM · Call 1</b><small>Busy</small></div></div>
+          <div class="tl mid"><small>Auto-scheduled for 5:00 PM</small></div>
+          <div class="tl"><span class="tdot g">✆</span><div><b class="okc">5:00 PM · Call 2</b><small>Connected · site visit booked</small></div></div>
+        </div>
+      </div>
+      <div class="bcard reveal">
+        <div class="shield">🛡</div>
+        <h4>Trust &amp; compliance</h4><p>DLT-registered numbers and consent checks, built in.</p>
+      </div>
+      <div class="bcard reveal">
+        <h4>Never drops the ball</h4>
+        <ul class="ticks">
+          <li><span>↻</span>Recovers mid-call</li>
+          <li><span>🔒</span>Never calls anyone twice</li>
+          <li><span>◔</span>Steady under load</li>
+          <li><span>⏸</span>Auto-pause on carrier refusals</li>
+          <li><span>₹</span>Spend floor on every call</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEVELOPERS ============ -->
+<section class="dev" id="developers">
+  <div class="container">
+    <div class="dev-card reveal">
+      <div class="dev-text">
+        <p class="eyebrow"><span class="mono">{}</span> For developers</p>
+        <h2>Build on DevInventor with our API.</h2>
+        <p>Send leads in with one request, get every call's outcome back by webhook.</p>
+        <a href="#contact" class="btn btn-dark">Read the API docs →</a>
+      </div>
+      <pre class="code"><span class="c">⚇ Send a lead</span>
+
+<span class="k">POST</span> /lead-intake/<span class="v">{slug}</span>
+<span class="c">X-DevInventor-Lead-Secret:</span> ••••••
+
+{
+  <span class="s">"phone"</span>: <span class="v">"+9198•••••210"</span>,
+  <span class="s">"name"</span>: <span class="v">"Rahul"</span>
+}
+
+<span class="c">→ 202 Accepted · calling in 30s</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <p class="eyebrow center reveal"><i></i>Pricing</p>
+    <h2 class="center reveal">Pay for talk time. Nothing else.</h2>
+    <p class="center sub reveal">One credit is one rupee. Pick a voice per employee, top up when you need to, and your credits never expire.</p>
+    <div class="plans">
+      <div class="plan featured reveal"><span class="ribbon">Most chosen</span><h4>Standard</h4><div class="price">₹5<small>/ min</small></div><p>More expressive voices for everyday sales and support.</p></div>
+      <div class="plan reveal"><h4>Premium</h4><div class="price">₹6.8<small>/ min</small></div><p>Our most lifelike voices, for calls where the voice is the brand.</p></div>
+      <div class="plan reveal"><h4>Custom</h4><small class="aslow">as low as</small><div class="price">₹3.5<small>/ min</small></div><p>For high call volumes, with setup help from our team.</p><a href="#contact" class="link">Talk to us →</a></div>
+    </div>
+    <div class="perks reveal"><span>50 free credits, no card</span><span>No setup or base fee</span><span>Business number ₹649/month</span><span>Prices exclude GST</span></div>
+    <p class="center reveal"><a href="#contact" class="btn btn-dark">See full pricing →</a></p>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta-sec" id="contact">
+  <div class="container">
+    <div class="cta reveal">
+      <h2>Your first employee can<br>be calling leads today.</h2>
+      <p>Start with 50 free credits. No card, no setup fee. Pay per minute after that.</p>
+      <div class="cta-btns">
+        <a href="#build" class="btn btn-white">Start free</a>
+        <a href="mailto:2465devendra@gmail.com" class="btn btn-ghost">Talk to us</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#" class="logo">DEVINVENT<span>O</span>R</a>
+        <p>AI employees that make your business calls: every lead, every list, in seven Indian languages.</p>
+        <a href="mailto:2465devendra@gmail.com" class="mail">2465devendra@gmail.com</a>
+      </div>
+      <div><h5>Product</h5><a href="#employee">Instant leads</a><a href="#employee">Bulk campaigns</a><a href="#employee">Inbound</a><a href="#voices">Voices</a><a href="#pricing">Pricing</a></div>
+      <div><h5>Industries</h5><a href="#voices">BFSI</a><a href="#voices">Real estate</a><a href="#voices">Healthcare</a><a href="#voices">Education</a><a href="#voices">Automotive</a><a href="#voices">E-commerce</a><a href="#voices">All industries</a></div>
+      <div><h5>By language</h5><a href="#voices">Tamil AI voice agents</a><a href="#voices">Telugu AI voice agents</a><a href="#voices">Kannada AI voice agents</a><a href="#voices">Malayalam AI voice agents</a><a href="#voices">Hindi AI voice agents</a><a href="#voices">Marathi AI voice agents</a><a href="#build">Free AI voice agent</a></div>
+      <div><h5>Resources</h5><a href="#developers">Docs</a><a href="#">Blog</a><a href="#">Glossary</a><a href="#">Comparisons</a></div>
+      <div><h5>Company</h5><a href="#contact">Contact</a><a href="https://instagram.com/devinventor2010" target="_blank" rel="noopener">Instagram</a><a href="../index.html">Project services</a></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <span id="yr">2026</span> DevInventor</span><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Refunds</a>
+    </div>
+  </div>
+  <div class="wordmark">DEVINVENT<span>O</span>R</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
