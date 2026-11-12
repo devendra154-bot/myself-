@@ -1,6 +1,6 @@
 # 📡 Ultrasonic Sensor (HC-SR04): Self Introduction & Uses
 
-93-second, 9:16 vertical (1080×1920), 2D cinematic cartoon video. The HC-SR04 introduces itself with a **Telugu voice-over** and **English captions**.
+60-second, 9:16 vertical (1080×1920), 2D cinematic cartoon video. The HC-SR04 introduces itself with a natural **English voice-over** (no captions).
 
 - **`ultrasonic-sensor.mp4`**: the finished video
 - **`index.html`**: the same animation, playable in a browser
@@ -15,17 +15,17 @@
 | 5 Where I Work | Parking sensor, robot, water tank, smart stick for the blind, smart dustbin |
 | 6 Finale | Thumbs-up, ripples, confetti, end title |
 
-The mouth is lip-synced to the voice. Captions, sonar pings, and the music bed are timed from `assets/timeline.json`.
+The mouth is lip-synced to the voice. Sonar pings and the music bed are timed from `assets/timeline.json`.
 
 ## Voice
-The current voice is an **offline espeak-ng Telugu guide voice**, which sounds robotic. To use a real voice artist or ElevenLabs recording:
-1. Record the Telugu lines from `scenes.json` so that each line starts at its `start` time in `assets/timeline.json`. Save the recording as `assets/voice.wav`.
-2. Run `python3 build_audio.py --keep-voice`, then `node render.js`.
+Generated with **Kokoro-82M** (`af_heart` voice), an offline neural TTS model. `build_audio.py` synthesises each line separately and fits the whole script into exactly 60 s.
 
-## Rebuild
-Needs `espeak-ng`, `ffmpeg`, `fonts-noto-core`, Node + Playwright.
 ```
-python3 build_audio.py     # edit dialogue/captions in scenes.json first
-node render.js             # -> ultrasonic-sensor.mp4
-node render.js --preview 5 30 60   # stills in ./preview
+pip install kokoro-onnx soundfile
+# put kokoro-v1.0.onnx + voices-v1.0.bin (github.com/thewh1teagle/kokoro-onnx releases) in models/
+python3 build_audio.py --engine kokoro --voice af_heart   # or am_puck, am_michael, af_bella ...
+python3 build_audio.py --engine elevenlabs --voice <id>   # needs ElevenLabs credits
+python3 build_audio.py --engine files                     # your own recordings: models/lines/01.wav ...
+node render.js                                            # -> ultrasonic-sensor.mp4
 ```
+Edit the lines in `scenes.json`. Keep each scene's line count, because the animation is keyed to it.

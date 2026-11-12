@@ -465,7 +465,7 @@ function render(t) {
   ctx.save(); ctx.clearRect(0, 0, W, H);
   SC[sc.id](t, sc, mouthAt(t));
   chapter(sc, t);
-  caption(sc, t);
+
   // cinematic finish: vignette + grain + fades
   const v = ctx.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, H * .75); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)');
   ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
