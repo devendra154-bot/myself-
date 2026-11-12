@@ -10,181 +10,112 @@
   .deck { display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0; }
   body.export .deck { padding: 0; gap: 0; }
 
-  .slide {
-    width: 1080px; height: 1350px; position: relative; overflow: hidden;
-    background-size: cover; background-position: center; background-color: #111;
-  }
-  .slide::before { content: ""; position: absolute; inset: 0; background: var(--shade); }
-  .inner { position: absolute; inset: 0; padding: 80px 76px; display: flex; flex-direction: column; }
+  .slide { width: 1080px; height: 1350px; position: relative; overflow: hidden;
+           background-size: cover; background-position: center; background-color: #111; }
+  /* Photo stays clear on top; only the bottom ~30% darkens for text */
+  .slide::before { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 14%, rgba(0,0,0,0) 58%, rgba(0,0,0,.85) 76%, #000 100%); }
+  .inner { position: absolute; inset: 0; padding: 70px 72px; display: flex; flex-direction: column; }
 
-  .tag { display: inline-block; align-self: flex-start; font-size: 26px; font-weight: 700; letter-spacing: 3px;
-         text-transform: uppercase; padding: 12px 24px; border-radius: 999px; background: var(--accent); color: #0b0b0f; }
-  h1 { font-size: 104px; line-height: .98; font-weight: 900; letter-spacing: -2px; margin-top: 28px; }
-  h2 { font-size: 78px; line-height: 1.02; font-weight: 900; letter-spacing: -1.5px; margin-top: 24px; }
+  .tag { align-self: flex-start; font-size: 26px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+         padding: 12px 24px; border-radius: 999px; background: var(--accent); color: #0b0b0f; }
+  .bottom { margin-top: auto; }
+  h1 { font-size: 100px; line-height: 1; font-weight: 900; letter-spacing: -2px; }
+  h2 { font-size: 76px; line-height: 1.02; font-weight: 900; letter-spacing: -1.5px; }
   .accent { color: var(--accent); }
-  .sub { font-size: 36px; line-height: 1.35; color: #e6e6ea; margin-top: 24px; max-width: 880px; }
+  .sub { font-size: 34px; color: #e6e6ea; margin-top: 18px; }
 
-  .card { background: rgba(10,10,14,.78); border: 1.5px solid rgba(255,255,255,.14); border-radius: 28px;
-          padding: 36px 40px; backdrop-filter: blur(8px); }
-  .card h3 { font-size: 30px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; }
-  .card ul { list-style: none; }
-  .card li { font-size: 32px; line-height: 1.35; padding: 8px 0 8px 44px; position: relative; }
-  .card li::before { content: "✦"; position: absolute; left: 0; color: var(--accent); }
-  .prompt { font-family: "JetBrains Mono", Consolas, monospace; font-size: 27px; line-height: 1.5; color: #f3f3f6;
-            background: rgba(255,255,255,.07); border-left: 6px solid var(--accent); border-radius: 12px; padding: 22px 26px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 26px; }
+  .chips span { font-size: 30px; font-weight: 700; padding: 14px 24px; border-radius: 999px;
+                background: rgba(255,255,255,.1); border: 2px solid var(--accent); }
+  .chips b { color: var(--accent); margin-right: 8px; }
 
-  .footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center;
-            font-size: 26px; color: #cfcfd6; font-weight: 600; }
+  .footer { margin-top: 36px; display: flex; justify-content: space-between; align-items: center;
+            font-size: 26px; font-weight: 700; }
   .dots { display: flex; gap: 10px; }
   .dots i { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,.35); }
   .dots i.on { background: var(--accent); width: 40px; border-radius: 999px; }
-  .swipe { color: var(--accent); font-weight: 800; }
-
-  .formula { display: grid; grid-template-columns: 1fr; gap: 14px; }
-  .step { display: flex; align-items: center; gap: 24px; background: rgba(10,10,14,.78);
-          border: 1.5px solid rgba(255,255,255,.14); border-radius: 22px; padding: 20px 28px; }
-  .step b { font-size: 34px; min-width: 64px; height: 64px; border-radius: 16px; display: grid; place-items: center;
-            background: var(--accent); color: #0b0b0f; }
-  .step span { font-size: 31px; line-height: 1.3; }
-  .step span strong { color: var(--accent); }
-
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  .cat { background: rgba(10,10,14,.82); border: 1.5px solid rgba(255,255,255,.14); border-radius: 22px; padding: 24px 26px; }
-  .cat .k { font-size: 24px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); font-weight: 800; }
-  .cat .v { font-size: 30px; font-weight: 700; margin-top: 8px; line-height: 1.3; }
+  .swipe { color: var(--accent); }
 </style>
 </head>
 <body>
 <div class="deck">
 
   <!-- 1 · COVER -->
-  <section class="slide" style="background-image:url(images/1.jpg); --accent:#ffb53d;
-    --shade:linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.1) 40%, rgba(0,0,0,.88) 72%, #000 100%);">
+  <section class="slide" style="background-image:url(images/1.jpg); --accent:#ffb53d;">
     <div class="inner">
       <span class="tag">AI Playbook 2026</span>
-      <div style="margin-top:auto">
+      <div class="bottom">
         <h1>Prompt like a <span class="accent">Pro.</span></h1>
-        <p class="sub">The prompting formula that works everywhere, plus which AI to use for what: <b>Claude, ChatGPT & Gemini</b>.</p>
+        <p class="sub">Claude · ChatGPT · Gemini</p>
       </div>
-      <div class="footer" style="margin-top:48px">
-        <div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
-        <span class="swipe">Swipe →</span>
-      </div>
+      <div class="footer"><div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div><span class="swipe">Swipe →</span></div>
     </div>
   </section>
 
   <!-- 2 · FORMULA -->
-  <section class="slide" style="background-image:url(images/2.jpg); --accent:#7cf0c5;
-    --shade:linear-gradient(180deg, rgba(0,0,0,.82) 0%, rgba(0,0,0,.55) 35%, rgba(0,0,0,.35) 55%, rgba(0,0,0,.9) 100%);">
+  <section class="slide" style="background-image:url(images/2.jpg); background-position:center 30%; --accent:#7cf0c5;">
     <div class="inner">
       <span class="tag">Skill #1</span>
-      <h2>The 5-part <span class="accent">prompt formula</span></h2>
-      <div class="formula" style="margin-top:auto">
-        <div class="step"><b>1</b><span><strong>Role</strong>: "Act as a senior marketer…"</span></div>
-        <div class="step"><b>2</b><span><strong>Task</strong>: say exactly what you want done</span></div>
-        <div class="step"><b>3</b><span><strong>Context</strong>: audience, goal, background</span></div>
-        <div class="step"><b>4</b><span><strong>Format</strong>: table, bullets, 100 words…</span></div>
-        <div class="step"><b>5</b><span><strong>Constraints</strong>: tone, dos & don'ts, examples</span></div>
+      <div class="bottom">
+        <h2>The <span class="accent">prompt formula</span></h2>
+        <div class="chips">
+          <span><b>1</b>Role</span><span><b>2</b>Task</span><span><b>3</b>Context</span>
+          <span><b>4</b>Format</span><span><b>5</b>Rules</span>
+        </div>
       </div>
-      <div class="footer" style="margin-top:36px">
-        <div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
-        <span>Vague in = vague out</span>
-      </div>
+      <div class="footer"><div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div><span class="swipe">Vague in = vague out</span></div>
     </div>
   </section>
 
   <!-- 3 · CLAUDE -->
-  <section class="slide" style="background-image:url(images/3.jpg); background-position: 30% center; --accent:#e8946a;
-    --shade:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.2) 35%, rgba(0,0,0,.85) 100%), linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.92) 100%);">
+  <section class="slide" style="background-image:url(images/3.jpg); background-position:center 15%; --accent:#e8946a;">
     <div class="inner">
-      <span class="tag" style="align-self:flex-end">Tool · Claude</span>
-      <h2 style="text-align:right">Use <span class="accent">Claude</span> for<br>deep work</h2>
-      <div style="margin-top:auto; display:flex; flex-direction:column; gap:22px">
-        <div class="card">
-          <h3>Best for</h3>
-          <ul>
-            <li>Writing, editing & a natural tone</li>
-            <li>Coding & debugging (Claude Code)</li>
-            <li>Long PDFs, contracts & reports</li>
-          </ul>
-        </div>
-        <div class="prompt">Pro tip: wrap your inputs in tags.<br>"Summarise &lt;report&gt;…&lt;/report&gt; in 5 bullets for a CEO."</div>
+      <span class="tag">Tool · Claude</span>
+      <div class="bottom">
+        <h2><span class="accent">Claude</span> = deep work</h2>
+        <div class="chips"><span>✍️ Writing</span><span>💻 Coding</span><span>📄 Long docs</span></div>
       </div>
-      <div class="footer" style="margin-top:32px">
-        <div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
-        <span class="swipe">Next: ChatGPT →</span>
-      </div>
+      <div class="footer"><div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div><span class="swipe">Next →</span></div>
     </div>
   </section>
 
   <!-- 4 · CHATGPT -->
-  <section class="slide" style="background-image:url(images/4.jpg); background-size:1080px auto; background-position:center top; --accent:#5be3a0;
-    --shade:linear-gradient(180deg, rgba(0,0,0,.8) 0%, rgba(0,0,0,.35) 30%, rgba(0,0,0,.45) 50%, rgba(0,0,0,.95) 100%);">
+  <section class="slide" style="background-image:url(images/4.jpg); background-size:1080px auto; background-position:center top; --accent:#5be3a0;">
     <div class="inner">
       <span class="tag">Tool · ChatGPT</span>
-      <h2>Use <span class="accent">ChatGPT</span> for<br>creative firepower</h2>
-      <div style="margin-top:auto; display:flex; flex-direction:column; gap:22px">
-        <div class="card">
-          <h3>Best for</h3>
-          <ul>
-            <li>Brainstorming & content ideas</li>
-            <li>Image generation & editing</li>
-            <li>Voice chats & custom GPTs</li>
-          </ul>
-        </div>
-        <div class="prompt">Pro tip: ask for options, then refine.<br>"Give 10 hooks for a reel on X. Rate each 1–10 &amp; improve the top 3."</div>
+      <div class="bottom">
+        <h2><span class="accent">ChatGPT</span> = creativity</h2>
+        <div class="chips"><span>💡 Ideas</span><span>🎨 Images</span><span>🎙️ Voice</span></div>
       </div>
-      <div class="footer" style="margin-top:32px">
-        <div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div>
-        <span class="swipe">Next: Gemini →</span>
-      </div>
+      <div class="footer"><div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div><span class="swipe">Next →</span></div>
     </div>
   </section>
 
   <!-- 5 · GEMINI -->
-  <section class="slide" style="background-image:url(images/5.jpg); background-size:1080px auto; background-position:center -130px; --accent:#7fb2ff;
-    --shade:linear-gradient(180deg, rgba(0,0,0,.7) 0%, rgba(0,0,0,.1) 28%, rgba(0,0,0,.25) 48%, rgba(0,0,0,.95) 82%);">
+  <section class="slide" style="background-image:url(images/5.jpg); background-size:1080px auto; background-position:center -60px; --accent:#7fb2ff;">
     <div class="inner">
       <span class="tag">Tool · Gemini</span>
-      <h2>Use <span class="accent">Gemini</span> for<br>research & Google</h2>
-      <div style="margin-top:auto; display:flex; flex-direction:column; gap:22px">
-        <div class="card">
-          <h3>Best for</h3>
-          <ul>
-            <li>Live web research (Deep Research)</li>
-            <li>Gmail, Docs, Sheets & Drive</li>
-            <li>YouTube & video understanding</li>
-          </ul>
-        </div>
-        <div class="prompt">Pro tip: point it at your sources.<br>"Using @Gmail, list every deadline from this week as a table."</div>
+      <div class="bottom">
+        <h2><span class="accent">Gemini</span> = research</h2>
+        <div class="chips"><span>🔎 Web</span><span>📧 Gmail & Docs</span><span>▶️ YouTube</span></div>
       </div>
-      <div class="footer" style="margin-top:32px">
-        <div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
-        <span class="swipe">Cheat sheet →</span>
-      </div>
+      <div class="footer"><div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div><span class="swipe">Next →</span></div>
     </div>
   </section>
 
   <!-- 6 · CHEAT SHEET + CTA -->
-  <section class="slide" style="background-image:url(images/6.jpg); background-position: center top; background-size: auto 62%; background-repeat:no-repeat; --accent:#ffd84d;
-    --shade:linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.05) 18%, rgba(0,0,0,.2) 38%, #0b0b0f 58%);">
+  <section class="slide" style="background-image:url(images/6.jpg); background-size:auto 1350px; background-position:center top; --accent:#ffd84d;">
     <div class="inner">
       <span class="tag">Save this</span>
-      <h2 style="margin-top:auto">The right AI for <span class="accent">every job</span></h2>
-      <div class="grid" style="margin-top:32px">
-        <div class="cat"><div class="k">✍️ Writing</div><div class="v">Claude</div></div>
-        <div class="cat"><div class="k">💻 Coding</div><div class="v">Claude Code · ChatGPT</div></div>
-        <div class="cat"><div class="k">🔎 Research</div><div class="v">Gemini · Perplexity</div></div>
-        <div class="cat"><div class="k">🎨 Images</div><div class="v">ChatGPT · Midjourney</div></div>
-        <div class="cat"><div class="k">🎬 Video</div><div class="v">Veo (Gemini) · Runway</div></div>
-        <div class="cat"><div class="k">📊 Slides</div><div class="v">Gamma · Claude</div></div>
-        <div class="cat"><div class="k">📧 Email & Docs</div><div class="v">Gemini in Workspace</div></div>
-        <div class="cat"><div class="k">💡 Ideas</div><div class="v">ChatGPT</div></div>
+      <div class="bottom">
+        <h2>Right AI, <span class="accent">right job</span></h2>
+        <div class="chips">
+          <span><b>Write</b>Claude</span><span><b>Ideas</b>ChatGPT</span>
+          <span><b>Research</b>Gemini</span><span><b>Video</b>Veo · Runway</span>
+        </div>
       </div>
-      <div class="footer" style="margin-top:36px">
-        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i></div>
-        <span class="swipe">♻ Share · 💾 Save · ➕ Follow</span>
-      </div>
+      <div class="footer"><div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i></div><span class="swipe">💾 Save · ➕ Follow</span></div>
     </div>
   </section>
 
