@@ -18,12 +18,12 @@
 The mouth is lip-synced to the voice. Sonar pings and the music bed are timed from `assets/timeline.json`.
 
 ## Voice
-Generated with **Kokoro-82M** (`af_heart` voice), an offline neural TTS model. `build_audio.py` synthesises each line separately and fits the whole script into exactly 60 s.
+Generated with **Kokoro-82M** (`am_puck` male voice), an offline neural TTS model. `build_audio.py` synthesises each line separately and fits the whole script into exactly 60 s.
 
 ```
 pip install kokoro-onnx soundfile
 # put kokoro-v1.0.onnx + voices-v1.0.bin (github.com/thewh1teagle/kokoro-onnx releases) in models/
-python3 build_audio.py --engine kokoro --voice af_heart   # or am_puck, am_michael, af_bella ...
+python3 build_audio.py --engine kokoro --voice am_puck    # or af_heart, am_michael, af_bella ...
 python3 build_audio.py --engine elevenlabs --voice <id>   # needs ElevenLabs credits
 python3 build_audio.py --engine files                     # your own recordings: models/lines/01.wav ...
 node render.js                                            # -> ultrasonic-sensor.mp4
