@@ -1,0 +1,37 @@
+{
+  "fps": 30,
+  "scenes": [
+    {"id": 1, "title": "Introduction", "lines": [
+      {"te": "హాయ్ ఫ్రెండ్స్! నా పేరు అల్ట్రాసోనిక్ సెన్సార్.", "en": "Hi friends! My name is Ultrasonic Sensor."},
+      {"te": "నన్ను హెచ్ సి ఎస్ ఆర్ జీరో ఫోర్ అని కూడా పిలుస్తారు.", "en": "People also call me HC-SR04."},
+      {"te": "నా ఈ రెండు కళ్లు నిజానికి కళ్లు కావు. ఒకటి నా నోరు, ఇంకొకటి నా చెవి!", "en": "These two eyes aren't really eyes. One is my mouth, the other is my ear!"}
+    ]},
+    {"id": 2, "title": "How I Work", "lines": [
+      {"te": "నేను మనుషులకు వినిపించని అల్ట్రాసోనిక్ శబ్ద తరంగాలను పంపిస్తాను.", "en": "I send out ultrasonic sound waves that humans cannot hear."},
+      {"te": "ఆ శబ్దం వస్తువుకు తగిలి, ప్రతిధ్వనిలా తిరిగి వస్తుంది.", "en": "The sound hits an object and bounces back as an echo."},
+      {"te": "అది తిరిగి రావడానికి పట్టిన సమయంతో, దూరాన్ని లెక్కిస్తాను.", "en": "From the time it takes to return, I calculate the distance."},
+      {"te": "గబ్బిలాలు కూడా ఇదే పద్ధతిలో దారి కనుక్కుంటాయి!", "en": "Bats find their way using the same trick!"}
+    ]},
+    {"id": 3, "title": "The Formula", "lines": [
+      {"te": "దూరం సమానం, శబ్ద వేగం గుణించి సమయం, భాగించి రెండు.", "en": "Distance = (Speed of sound × Time) ÷ 2"},
+      {"te": "శబ్దం వెళ్లి మళ్లీ తిరిగి వస్తుంది. అందుకే రెండుతో భాగిస్తాం!", "en": "Sound goes there and comes back, so we divide by two!"}
+    ]},
+    {"id": 4, "title": "My Specs", "lines": [
+      {"te": "నేను రెండు సెంటీమీటర్ల నుండి నాలుగు మీటర్ల వరకు దూరం కొలవగలను.", "en": "I can measure distances from 2 cm up to 4 metres."},
+      {"te": "నాకు ఐదు వోల్టుల కరెంట్ చాలు.", "en": "I only need 5 volts of power."},
+      {"te": "నా నాలుగు పిన్నులు: వి సి సి, ట్రిగ్, ఎకో, జి ఎన్ డి. ఆర్డ్యూనో నా బెస్ట్ ఫ్రెండ్!", "en": "My four pins: VCC, Trig, Echo, GND. Arduino is my best friend!"}
+    ]},
+    {"id": 5, "title": "Where I Work", "lines": [
+      {"te": "కార్ పార్కింగ్‌లో, వెనుక గోడను గుర్తించి హెచ్చరిస్తాను.", "en": "In car parking, I detect the wall behind and warn the driver."},
+      {"te": "రోబోలు అడ్డంకులకు గుద్దుకోకుండా దారి చూపిస్తాను.", "en": "I guide robots so they don't crash into obstacles."},
+      {"te": "వాటర్ ట్యాంక్‌లో నీటి మట్టాన్ని కొలుస్తాను.", "en": "I measure the water level in tanks."},
+      {"te": "అంధుల స్మార్ట్ కర్రలో, ఎదురుగా ఉన్న అడ్డంకిని హెచ్చరిస్తాను.", "en": "In a smart stick, I warn blind people about obstacles ahead."},
+      {"te": "స్మార్ట్ డస్ట్‌బిన్‌లు, ఆటోమేటిక్ డోర్లలో కూడా పని చేస్తాను.", "en": "I also work in smart dustbins and automatic doors."}
+    ]},
+    {"id": 6, "title": "Finale", "lines": [
+      {"te": "నేను చిన్నదాన్నే, కానీ నా పని చాలా పెద్దది!", "en": "I'm small, but my job is big!"},
+      {"te": "మీ తదుపరి సైన్స్ ప్రాజెక్ట్‌లో నన్ను తప్పకుండా వాడండి!", "en": "Use me in your next science project!"},
+      {"te": "అల్ట్రాసోనిక్ సెన్సార్. దూరాన్ని కొలిచే స్మార్ట్ ఫ్రెండ్!", "en": "Ultrasonic Sensor: the smart friend that measures distance!"}
+    ]}
+  ]
+}
