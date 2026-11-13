@@ -1,6 +1,6 @@
 /* DevInventor Notes: text -> realistic handwritten A4 pages (canvas), PNG and PDF export.
  * Supports: # heading, ## sub-heading, - bullets, 1. steps, = formula lines,
- * | tables |, Q: question lines and [[diagram:id]] (verified circuit diagrams).
+ * | tables | and Q: question lines.
  * The complete text is always written: nothing is shortened.
  */
 (function (root) {
@@ -63,7 +63,7 @@
       const t = l.trim();
       if (!t) { out.push({ kind: "blank" }); continue; }
       const dg = t.match(/^\[\[diagram:([a-z0-9_]+)\]\]$/i);
-      if (dg) { out.push({ kind: "diagram", id: dg[1] }); continue; }
+      if (dg) continue; // diagrams are not drawn
       if (/^\|.*\|$/.test(t)) {
         const rows = [];
         while (i < lines.length && /^\|.*\|$/.test(lines[i].trim())) {

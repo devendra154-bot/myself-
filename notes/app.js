@@ -3,7 +3,7 @@
   "use strict";
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-  const E = window.NotesEngine, V = window.NotesVisual, H = window.NotesHandwrite, C = window.NotesCircuits;
+  const E = window.NotesEngine, V = window.NotesVisual, H = window.NotesHandwrite;
   const L = window.NotesLibrary, X = window.NotesExam, P = window.NotesProgress, AI = window.NotesAI;
   const esc0 = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const esc = esc0;
@@ -48,7 +48,7 @@
     { id: "ask", label: "Ask & answers", icon: "chat", sub: "2, 5, 8 and 10-mark answers", chapters: true },
     { id: "exam", label: "Quiz & exam", icon: "check", sub: "Practice or timed exam with report", chapters: true },
     { id: "visual", label: "Mind maps", icon: "map", sub: "Mind maps, flowcharts, chapter breakdown", chapters: true },
-    { id: "library", label: "Circuit library", icon: "cpu", sub: "Verified circuit diagrams and answers (English + తెలుగు)" },
+    { id: "library", label: "Topic library", icon: "cpu", sub: "Verified 2/5/8/10-mark answers (English + తెలుగు)" },
     { id: "revise", label: "Quick revision", icon: "zap", sub: "Revision cards, formula sheet, flashcards", chapters: true },
     { id: "handwrite", label: "Handwritten", icon: "pen", sub: "Realistic handwritten A4 pages (PDF / PNG)" },
     { id: "progress", label: "Progress", icon: "chart", sub: "Chapter-wise learning progress" },
@@ -92,16 +92,6 @@
   // ---------------- shared UI helpers ----------------
   const marksBadge = (m) => `<span class="marks m${m}">${m}M</span>`;
 
-  function diagramHTML(id, { caption = true } = {}) {
-    const d = C.list().find((x) => x.id === id);
-    if (!d) return "";
-    return `<figure class="diagram" data-zoom="${id}">
-      <div class="stage"><div>${C.render(id)}</div></div>
-      <div class="tools"><button data-z="out" title="Zoom out" aria-label="Zoom out">−</button><button data-z="in" title="Zoom in" aria-label="Zoom in">+</button><button data-z="fit" title="Fit" aria-label="Fit">⤢</button><button data-z="png" title="Download PNG" aria-label="Download PNG">⬇</button></div>
-      ${caption ? `<figcaption class="cap"><span>${esc(d.title)}</span><span class="verified">✓ Verified diagram</span></figcaption>` : ""}
-    </figure>`;
-  }
-
   /** Zoom (+/−/fit, ctrl+wheel), drag-to-pan and download for any [data-zoom] block. */
   function bindZoom(root) {
     $$("[data-zoom]", root).forEach((fig) => {
@@ -134,7 +124,7 @@
     });
   }
 
-  /** Small safe Markdown renderer for AI output. Diagrams are replaced by verified ones. */
+  /** Small safe Markdown renderer for AI output. */
   function md(text) {
     const inline = (s) => s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>");
     let html = "", list = null;
@@ -145,9 +135,7 @@
       if (!l) { close(); continue; }
       if ((m = l.match(/^\[\[diagram:\s*(.+?)\]\]$/i))) {
         close();
-        const t = L.match(m[1]) || L.get(m[1].trim());
-        html += t ? diagramHTML(t.diagrams[0]) : `<p class="muted small">📐 Diagram: ${m[1]}. Not in the verified library yet, so draw it from your textbook.</p>`;
-        continue;
+        continue; // diagrams are not shown
       }
       if ((m = l.match(/^(#{1,3})\s+(.*)/))) { close(); html += `<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`; continue; }
       if ((m = l.match(/^=\s+(.*)/))) { close(); html += `<code class="f">${m[1]}</code>`; continue; }
@@ -170,7 +158,6 @@
       else if (b.type === "list") body = `<ul${te}>${b.data.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
       else if (b.type === "steps") body = `<ol${te}>${b.data.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>`;
       else if (b.type === "formula") body = b.data.map((f) => `<code class="f">${esc(f)}</code>`).join("");
-      else if (b.type === "diagram") body = b.data.map((id) => diagramHTML(id)).join("");
       else if (b.type === "example") body = `<div class="box example"><p${te}><b>Q.</b> ${esc(b.data.q)}</p>${b.data.steps.map((s) => `<code class="f">${esc(s)}</code>`).join("")}</div>`;
       return `<div class="blk"><h4${te}>${esc(b.heading)}</h4>${body}</div>`;
     }).join("");
@@ -186,7 +173,7 @@
     location.hash = "#handwrite";
   }
 
-  const needNotes = (what = "this") => `<div class="empty-state"><b>Add your notes first</b><p>Paste or upload your notes in <b>Exam notes</b> to use ${what}, or try the verified circuit library.</p><div class="row" style="justify-content:center"><a class="btn btn-brand" href="#notes">${icon("upload")} Add notes</a><a class="btn btn-ghost" href="#library">${icon("cpu")} Circuit library</a></div></div>`;
+  const needNotes = (what = "this") => `<div class="empty-state"><b>Add your notes first</b><p>Paste or upload your notes in <b>Exam notes</b> to use ${what}, or try the verified circuit library.</p><div class="row" style="justify-content:center"><a class="btn btn-brand" href="#notes">${icon("upload")} Add notes</a><a class="btn btn-ghost" href="#library">${icon("cpu")} Topic library</a></div></div>`;
 
   // ---------------- views ----------------
   const views = {};
@@ -202,12 +189,12 @@
     const featured = ["zener", "bridge", "npn", "thevenin"].map((id) => L.get(id));
     el.innerHTML = `
       <div class="hello">
-        <div><h2>${greet}! Ready to <span>score</span>?</h2><p>Exam notes, answers, verified circuit diagrams, quizzes and handwritten notes. Free, private and made for engineering students.</p></div>
+        <div><h2>${greet}! Ready to <span>score</span>?</h2><p>Exam notes, verified answers, quizzes and handwritten notes. Free, private and made for engineering students.</p></div>
         <a class="btn btn-brand big" href="#notes">${icon("upload")} ${state.notes.trim() ? "Open my notes" : "Add my notes"}</a>
       </div>
       <div class="grid g4">
         <a class="card action" href="#notes"><span class="ico">${icon("file")}</span><b>Exam notes</b><p>Short, medium or detailed notes with formulas and important questions.</p></a>
-        <a class="card action" href="#library"><span class="ico">${icon("cpu")}</span><b>Circuit library</b><p>15 verified ECE topics with diagrams and 2/5/8/10-mark answers in English &amp; తెలుగు.</p></a>
+        <a class="card action" href="#library"><span class="ico">${icon("cpu")}</span><b>Topic library</b><p>15 verified ECE topics with 2/5/8/10-mark answers, formulas and examples in English &amp; తెలుగు.</p></a>
         <a class="card action" href="#exam"><span class="ico">${icon("check")}</span><b>Quiz &amp; exam</b><p>MCQs with explanations, timer, exam mode and a performance report.</p></a>
         <a class="card action" href="#handwrite"><span class="ico">${icon("pen")}</span><b>Handwritten notes</b><p>Turn any answer into realistic handwritten A4 pages: PDF or PNG.</p></a>
       </div>
@@ -223,10 +210,10 @@
         </div>
         <div class="card">
           <div class="card-h"><h3>Popular verified topics</h3><a class="btn btn-ghost sm" href="#library">See all 15</a></div>
-          <div class="grid g2">${featured.map((t) => `<a class="topic" href="#library/${t.id}" style="padding:0"><div class="thumb">${C.render(t.diagrams[0])}</div><b>${esc(t.title)}</b></a>`).join("")}</div>
+          <div class="grid g2">${featured.map((t) => `<a class="topic card" href="#library/${t.id}"><b>${esc(t.title)}</b><small class="te">${esc(t.title_te)}</small><small>${esc(t.unit)}</small></a>`).join("")}</div>
         </div>
       </div>
-      <div class="trust-line"><span>🔒 Notes never leave your device</span><span>✓ Circuit diagrams checked by hand</span><span>₹0, no login</span><span>${AI.ready() ? "✨ Smart AI on" : "✨ Optional Smart AI (your free key)"}</span></div>`;
+      <div class="trust-line"><span>🔒 Notes never leave your device</span><span>✓ Library answers checked by hand</span><span>₹0, no login</span><span>${AI.ready() ? "✨ Smart AI on" : "✨ Optional Smart AI (your free key)"}</span></div>`;
     const s = $("#homeSample", el);
     if (s) s.onclick = () => { setNotes(window.SAMPLE_NOTES); location.hash = "#notes"; };
   };
@@ -287,7 +274,7 @@
       out.innerHTML = `
         <div class="row between" style="margin-top:16px"><span class="muted small">📄 ${s.stats.words} → ${s.stats.summaryWords} words · <b style="color:var(--ok)">${s.stats.saved}% shorter</b></span>
           <div class="row"><button class="btn btn-ghost sm" id="cp">${icon("copy")} Copy</button><button class="btn sm" id="hw">${icon("pen")} Handwritten</button></div></div>
-        ${hits.length ? `<div class="box def"><h4>✓ Verified diagrams &amp; answers for your notes</h4><div class="chips">${hits.map((h) => `<a class="chip on" href="#library/${h.id}">${esc(h.title)}</a>`).join("")}</div></div>` : ""}
+        ${hits.length ? `<div class="box def"><h4>✓ Verified answers for topics in your notes</h4><div class="chips">${hits.map((h) => `<a class="chip on" href="#library/${h.id}">${esc(h.title)}</a>`).join("")}</div></div>` : ""}
         <h3 class="out-title">${esc(s.title)}</h3>
         ${s.sections.map((sec) => `<div class="sum-sec">${sec.title && E.topicOf(sec.title) !== s.title ? `<h4>${esc(sec.title)}</h4>` : ""}<ul>${sec.points.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>`).join("")}
         ${s.definitions.length ? `<div class="box def"><h4>📌 Definitions</h4><dl>${s.definitions.map((d) => `<dt>${esc(d.term)}</dt><dd>${esc(d.definition)}.</dd>`).join("")}</dl></div>` : ""}
@@ -363,7 +350,7 @@
         const a = L.answer(topic, m, state.lang);
         text = L.answerText(a);
         box.innerHTML = `
-          <div class="ans-head"><div><h3 class="${state.lang === "te" ? "te" : ""}">${esc(a.title)}</h3><span class="badge ok">✓ Verified answer + diagram</span></div><span class="marks m${m}">${m} marks</span></div>
+          <div class="ans-head"><div><h3 class="${state.lang === "te" ? "te" : ""}">${esc(a.title)}</h3><span class="badge ok">✓ Verified answer</span></div><span class="marks m${m}">${m} marks</span></div>
           ${libAnswerHTML(a, state.lang)}
           ${m >= 8 ? '<p class="tip">💡 In the exam: draw the diagram neatly with a pencil, label every part, and underline the formulas.</p>' : ""}`;
       } else if (wordCount(currentText()) >= MIN_WORDS) {
@@ -379,7 +366,7 @@
             ${m >= 8 ? '<p class="tip">💡 For 8–10 marks add a neat diagram, an example and a one-line conclusion.</p>' : ""}`;
         }
       } else {
-        box.innerHTML = `<div class="empty-state"><b>This topic isn't in the verified library yet</b><p>Add your notes in <b>Exam notes</b> to get answers from them${AI.ready() ? ", or use Smart AI below" : ""}.</p><a class="btn btn-ghost" href="#library">Browse the library</a></div>`;
+        box.innerHTML = `<div class="empty-state"><b>This topic isn't in the verified library yet</b><p>Add your notes in <b>Exam notes</b> to get answers from them${AI.ready() ? ", or use Smart AI below" : ""}.</p><a class="btn btn-ghost" href="#library">Browse the topic library</a></div>`;
       }
       box.insertAdjacentHTML("beforeend", `
         <div class="row" style="margin-top:16px">
@@ -412,7 +399,7 @@
     el.innerHTML = `
       <div class="card">
         <div class="row between">
-          <div class="seg" id="src"><button data-v="notes" class="${src === "notes" ? "on" : ""}">From my notes</button><button data-v="library" class="${src === "library" ? "on" : ""}">Circuit library</button></div>
+          <div class="seg" id="src"><button data-v="notes" class="${src === "notes" ? "on" : ""}">From my notes</button><button data-v="library" class="${src === "library" ? "on" : ""}">Topic library</button></div>
           <span class="muted small" id="srcInfo"></span>
         </div>
         <div id="topicPick" style="margin-top:12px"></div>
@@ -434,7 +421,7 @@
         const bank = L.topics.filter((t) => picked.has(t.id)).flatMap((t) => t.mcq.map((q) => ({ ...q, topic: t.title, tid: t.id })));
         $("#srcInfo", el).textContent = `${bank.length} verified questions`;
         state.stopExam = X.mount(box, bank, {
-          title: picked.size === 1 ? L.get([...picked][0]).title : "Circuit library quiz",
+          title: picked.size === 1 ? L.get([...picked][0]).title : "Topic library quiz",
           onFinish: (pct) => { [...picked].forEach((id) => P.recordQuiz("lib:" + L.get(id).title, pct)); },
         });
       }
@@ -489,7 +476,7 @@
     if (arg && L.get(arg)) return topicView(el, L.get(arg));
     const units = [...new Set(L.topics.map((t) => t.unit))];
     el.innerHTML = `
-      <div class="lib-head"><div><p class="muted">Every diagram is drawn from fixed, hand-checked templates: correct symbols, polarity, labels and connections. Answers are written for 2, 5, 8 and 10 marks in English and తెలుగు.</p></div>
+      <div class="lib-head"><div><p class="muted">Hand-checked answers for core ECE/EEE topics, written for 2, 5, 8 and 10 marks with formulas and worked examples, in English and తెలుగు.</p></div>
       <input id="libq" placeholder="Search topics… (e.g. rectifier, zener, KVL)" style="max-width:320px" aria-label="Search topics"></div>
       <div id="libList"></div>`;
     const list = (q = "") => {
@@ -499,7 +486,7 @@
         if (!ts.length) return "";
         return `<h3 class="unit-h">${esc(u)}</h3><div class="grid g4">${ts.map((t) => {
           const p = P.get("lib:" + t.title);
-          return `<a class="card topic" href="#library/${t.id}"><div class="thumb">${C.render(t.diagrams[0])}</div><b>${esc(t.title)}</b><small class="te">${esc(t.title_te)}</small>${p.read || p.quizBest !== null ? `<small>✓ ${p.read ? "Studied" : ""}${p.quizBest !== null ? ` · Quiz ${p.quizBest}%` : ""}</small>` : ""}</a>`;
+          return `<a class="card topic" href="#library/${t.id}"><b>${esc(t.title)}</b><small>${esc(t.en.definition.split(". ")[0].replace(/\.$/, ""))}.</small><small class="te">${esc(t.title_te)}</small>${p.read || p.quizBest !== null ? `<small>✓ ${p.read ? "Studied" : ""}${p.quizBest !== null ? ` · Quiz ${p.quizBest}%` : ""}</small>` : ""}</a>`;
         }).join("")}</div>`;
       }).join("") || `<div class="empty-state"><b>No topics match</b><p>The library covers diodes, rectifiers, transistors, circuit laws and network theorems.</p></div>`;
     };
@@ -526,10 +513,7 @@
       $$("#tm button", el).forEach((b) => b.classList.toggle("on", +b.dataset.v === marks));
       $$("#tl button", el).forEach((b) => b.classList.toggle("on", b.dataset.v === lang));
       const a = L.answer(t, marks, lang);
-      // Always show the diagram, even for 2/5 marks (students need to see it).
-      const hasDiagram = a.blocks.some((b) => b.type === "diagram");
-      $("#ta", el).innerHTML = (hasDiagram ? "" : t.diagrams.map((id) => diagramHTML(id)).join("")) + libAnswerHTML(a, lang);
-      bindZoom($("#ta", el));
+      $("#ta", el).innerHTML = libAnswerHTML(a, lang);
       $("#tc", el).onclick = () => copy(L.answerText(a));
       $("#th", el).onclick = () => sendToHandwriting(L.answerText(a));
     };
@@ -579,7 +563,7 @@
         $("#fh", rv).onclick = () => sendToHandwriting(text);
       } else if (tab === "cards") {
         let src = state.cardSrc || (hasNotes ? "notes" : "library");
-        rv.innerHTML = `<div class="seg" id="cs"><button data-v="notes" class="${src === "notes" ? "on" : ""}">My notes</button><button data-v="library" class="${src === "library" ? "on" : ""}">Circuit library</button></div><div id="cardsOut" style="margin-top:14px;max-width:640px"></div>`;
+        rv.innerHTML = `<div class="seg" id="cs"><button data-v="notes" class="${src === "notes" ? "on" : ""}">My notes</button><button data-v="library" class="${src === "library" ? "on" : ""}">Topic library</button></div><div id="cardsOut" style="margin-top:14px;max-width:640px"></div>`;
         const go = () => {
           const out = $("#cardsOut", rv);
           if (src === "notes" && !hasNotes) { out.innerHTML = needNotes("flashcards"); return; }
@@ -611,8 +595,8 @@
       <div class="split">
         <div class="card hw-controls sticky">
           <label class="lbl">Text <small class="muted"># heading · ## sub · - point · = formula · | table |</small></label>
-          <textarea id="hwText" style="min-height:200px" placeholder="# Zener diode&#10;## Definition&#10;A Zener diode works in reverse breakdown…&#10;= I_Z = I_S − I_L&#10;[[diagram:zener_reg]]">${esc(saved)}</textarea>
-          <div class="row" style="margin-top:8px"><select id="hwDiag" aria-label="Insert circuit diagram"><option value="">+ Insert verified diagram…</option>${C.list().map((d) => `<option value="${d.id}">${esc(d.title)}</option>`).join("")}</select><button class="btn btn-ghost sm" id="hwTable">+ Table</button></div>
+          <textarea id="hwText" style="min-height:200px" placeholder="# Zener diode&#10;## Definition&#10;A Zener diode works in reverse breakdown…&#10;= I_Z = I_S − I_L">${esc(saved)}</textarea>
+          <div class="row" style="margin-top:8px"><button class="btn btn-ghost sm" id="hwTable">+ Table</button></div>
           <div class="two">
             <div><label class="lbl">Handwriting</label><select id="hwFont">${Object.entries(H.FONTS).map(([k, v]) => `<option value="${esc(k)}">${esc(v.label)}</option>`).join("")}</select></div>
             <div><label class="lbl">Paper</label><select id="hwPaper"><option value="ruled">Ruled notebook</option><option value="assignment">Assignment sheet</option><option value="plain">Plain white</option><option value="grid">Grid</option></select></div>
@@ -632,7 +616,6 @@
       </div>`;
     const ta = $("#hwText", el);
     ta.addEventListener("input", () => store.set("dvn_hw", ta.value));
-    $("#hwDiag", el).onchange = (e) => { if (!e.target.value) return; ta.value += `${ta.value && !ta.value.endsWith("\n") ? "\n" : ""}[[diagram:${e.target.value}]]\n`; store.set("dvn_hw", ta.value); e.target.value = ""; toast("Diagram added"); };
     $("#hwTable", el).onclick = () => { ta.value += `${ta.value && !ta.value.endsWith("\n") ? "\n" : ""}| Parameter | Half-wave | Full-wave |\n| V_dc | V_m/π | 2V_m/π |\n| Ripple factor | 1.21 | 0.482 |\n| Efficiency | 40.6 % | 81.2 % |\n`; store.set("dvn_hw", ta.value); };
     const bindOut = (id, out, fmt) => { const i = $(id, el), o = $(out, el); const set = () => (o.textContent = fmt(i.value)); i.addEventListener("input", set); set(); };
     bindOut("#hwSize", "#sizeVal", (v) => v);
@@ -677,7 +660,7 @@
           ${ch.length ? ch.map((c, i) => row(notesRows[i], c.title)).join("") : `<p class="muted">Add notes to track chapter-wise progress.</p>`}
           ${others.length ? `<h4 class="unit-h">Earlier notes</h4>${others.map((p) => row(p, p.title)).join("")}` : ""}
         </div>
-        <div class="card"><div class="card-h"><h3>Circuit library</h3><span class="badge ok">${lib.filter((x) => x.p.read).length}/${lib.length} studied</span></div>
+        <div class="card"><div class="card-h"><h3>Topic library</h3><span class="badge ok">${lib.filter((x) => x.p.read).length}/${lib.length} studied</span></div>
           ${lib.map(({ t, p }) => row(p, t.title, `#library/${t.id}`)).join("")}
         </div>
       </div>

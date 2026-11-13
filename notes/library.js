@@ -1,7 +1,6 @@
 /* DevInventor Notes: verified topic library (English + Telugu).
  * Hand-written, checked content for core ECE / EEE topics. Each topic's
  * 2 / 5 / 8 / 10-mark answers are assembled from these verified parts, and
- * each topic links to a verified circuit diagram in circuits.js.
  */
 (function (root) {
   "use strict";
@@ -807,7 +806,6 @@
     b("p", H.def, L.definition);
     if (marks === 2) { if (E.formulas[0]) b("formula", H.form, [E.formulas[0]]); return out; }
     b("list", H.points, marks >= 8 ? L.points : L.points.slice(0, 4));
-    if (marks >= 8) b("diagram", H.diag, topic.diagrams);
     if (marks >= 8) b("steps", H.work, L.working);
     b("formula", H.form, marks >= 8 ? E.formulas : E.formulas.slice(0, 3));
     if (marks >= 8) b("example", H.ex, L.example);
