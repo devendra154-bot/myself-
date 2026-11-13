@@ -112,7 +112,7 @@
   }
 
   // ---------- flashcards ----------
-  function flashcardsUI(el, cards) {
+  function flashcardsUI(el, cards, opts = {}) {
     let i = 0, known = new Set();
     const draw = () => {
       if (!cards.length) { el.innerHTML = `<p class="empty">No flashcards found. Notes with definitions (“X is …”, “X: …”) work best.</p>`; return; }
@@ -134,6 +134,7 @@
         const a = b.dataset.a;
         if (a === "know") known.add(i);
         if (a === "again") known.delete(i);
+        if (a === "know" || a === "again") opts.onChange?.(known.size, cards.length);
         i = a === "prev" ? (i - 1 + cards.length) % cards.length : (i + 1) % cards.length;
         draw();
       }));

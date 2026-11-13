@@ -197,6 +197,14 @@
     return out;
   }
 
+  function examples(sections) {
+    const out = [];
+    for (const sec of sections) for (const it of sec.items) {
+      if (/\b(for example|for instance|e\.g\.|such as|example:|eg:|ex:)/i.test(it.text) && it.text.length < 260) out.push(it.text);
+    }
+    return [...new Set(out)].slice(0, 8);
+  }
+
   function formulas(sections) {
     const out = [];
     for (const sec of sections) for (const it of sec.items) {
@@ -266,6 +274,7 @@
       keyTerms: terms,
       definitions: defs,
       formulas: formulas(sections),
+      examples: examples(sections),
       examQuestions: examQuestions(sections, defs, terms),
       stats: { words: totalWords, summaryWords, saved: totalWords ? Math.max(0, Math.round((1 - summaryWords / totalWords) * 100)) : 0 },
     };
@@ -315,7 +324,7 @@
     }).filter((d) => d.score > 0);
 
     if (!scored.length) return { found: false, points: [] };
-    const nPoints = marks <= 2 ? 2 : marks <= 5 ? 5 : 9;
+    const nPoints = marks <= 2 ? 2 : marks <= 5 ? 5 : marks <= 8 ? 7 : 9;
     const best = scored.sort((a, b) => b.score - a.score);
     const topic = best[0].section;
     let topDocs = best.slice(0, nPoints);
@@ -373,7 +382,7 @@
       const wrong = shuffle(terms.filter((t) => t.toLowerCase() !== d.term.toLowerCase()), seed++).slice(0, 3);
       if (wrong.length < 2) continue;
       const options = shuffle([d.term, ...wrong], seed++);
-      qs.push({ type: "mcq", question: `Which term matches this definition?\n“${d.definition}”`, options, answer: options.indexOf(d.term) });
+      qs.push({ type: "mcq", question: `Which term matches this definition?\n“${d.definition}”`, options, answer: options.indexOf(d.term), explain: `From your notes: ${d.sentence}` });
     }
     // Fill in the blanks from important sentences that contain a key term.
     const { all } = scoreSentences(sections);
@@ -386,7 +395,7 @@
       const wrong = shuffle(terms.filter((t) => t.toLowerCase() !== term.toLowerCase()), seed++).slice(0, 3);
       if (wrong.length >= 2) {
         const options = shuffle([term, ...wrong], seed++);
-        qs.push({ type: "blank", question: `Fill in the blank:\n${blanked}`, options, answer: options.indexOf(term), source: s.text });
+        qs.push({ type: "blank", question: `Fill in the blank:\n${blanked}`, options, answer: options.indexOf(term), source: s.text, explain: `From your notes: ${s.text}` });
       }
     }
     return shuffle(qs, 3).slice(0, n).map(({ source, ...q }) => q);
@@ -430,7 +439,31 @@
     return null;
   }
 
-  const api = { clean, parse, summarize, summaryToText, answer, flashcards, quiz, mindmap, flowchart };
+  /** Split notes into chapters by Unit / Chapter / Module headings (falls back to one chapter). */
+  function chapters(text) {
+    const lines = clean(text).split("\n");
+    const out = [];
+    let cur = null;
+    for (const line of lines) {
+      const l = line.trim();
+      if (/^(#\s+)?(unit|chapter|module|lesson|part)\s*[-:\dIVX]+/i.test(l) && l.length < 80) {
+        if (cur && cur.text.trim()) out.push(cur);
+        cur = { title: stripHeading(l), text: l + "\n" };
+        continue;
+      }
+      if (!cur) cur = { title: "", text: "" };
+      cur.text += line + "\n";
+    }
+    if (cur && cur.text.trim()) out.push(cur);
+    if (!out.length) return [];
+    if (out.length === 1 || out.every((c) => !c.title)) {
+      const sum = summarize(text, "short");
+      return [{ title: sum ? sum.title : "My notes", text: clean(text) }];
+    }
+    return out.map((c, i) => ({ title: c.title || `Part ${i + 1}`, text: c.text.trim() }));
+  }
+
+  const api = { clean, parse, summarize, summaryToText, answer, flashcards, quiz, mindmap, flowchart, chapters, topicOf };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.NotesEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);

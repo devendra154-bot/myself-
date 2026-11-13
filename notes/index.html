@@ -1,218 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DevInventor Notes | Exam notes summariser + handwritten notes maker for engineering students</title>
-<meta name="description" content="Free for engineering and diploma students: summarise notes for exams, get answers from your notes, mind maps, flashcards, quizzes, and convert notes into realistic handwritten pages (PDF / images). Works in your browser, no login.">
-<meta property="og:title" content="DevInventor Notes: exam notes in minutes">
-<meta property="og:description" content="Summarise, ask, visualise and convert to handwritten notes. Free, no login.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DevInventor Notes | Free exam preparation for engineering students</title>
+<meta name="description" content="Free exam preparation for B.Tech and diploma students: exam notes, 2/5/8/10-mark answers, verified circuit diagrams (diodes, rectifiers, transistors, KCL/KVL, network theorems), quizzes with exam mode, mind maps, flashcards and handwritten notes (PDF/PNG). English and Telugu.">
+<meta name="theme-color" content="#7a50dc">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%237a50dc'/><text x='50' y='68' font-size='54' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>N</text></svg>">
+<script>try{const t=localStorage.getItem("dvn_theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Caveat:wght@400;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=Indie+Flower&family=Shadows+Into+Light&family=Gochi+Hand&family=Homemade+Apple&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Noto+Sans+Telugu:wght@400;500;600&family=Caveat:wght@400;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=Indie+Flower&family=Shadows+Into+Light&family=Gochi+Hand&family=Homemade+Apple&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<header class="nav-wrap">
-  <nav class="nav">
-    <a href="#top" class="logo">DEVINVENT<span>O</span>R <em>Notes</em></a>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="#study">Summarise</a></li>
-      <li><a href="#study" data-tool="mindmap">Visualise</a></li>
-      <li><a href="#handwrite">Handwritten</a></li>
-      <li><a href="#how">How it works</a></li>
-      <li><a href="#faq">FAQ</a></li>
-    </ul>
-    <a href="#study" class="btn btn-brand nav-cta">Start free →</a>
-    <button class="burger" id="burger" aria-label="Menu"><span></span><span></span></button>
-  </nav>
-</header>
-
-<main id="top">
-<!-- ============ HERO ============ -->
-<section class="hero">
-  <div class="container">
-    <p class="pill">🎓 For B.Tech &amp; Diploma students · 100% free · No login</p>
-    <h1>Exam notes in <span class="hand">minutes</span>, not nights.</h1>
-    <p class="sub">Paste or upload your notes. Get a crisp exam summary, answers to your questions, mind maps, flashcards and a quiz. Then turn it all into <span class="hand ink">handwritten notes</span> you can print.</p>
-    <div class="hero-cta">
-      <a href="#study" class="btn btn-brand big">Summarise my notes</a>
-      <a href="#handwrite" class="btn btn-ghost big">✍️ Make handwritten notes</a>
+<div class="app">
+  <!-- sidebar / bottom bar -->
+  <aside class="side" id="side">
+    <a href="#home" class="brand"><span class="brand-mark">N</span><span class="brand-text">DevInventor <em>Notes</em></span></a>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">
+      <button class="side-btn" id="aiPill" title="Smart AI settings"><span class="dot"></span><span id="aiPillText">Smart AI off</span></button>
+      <a class="side-link" href="../index.html">Embedded &amp; IoT projects ↗</a>
     </div>
-    <div class="trust"><span>🔒 Your notes never leave your device</span><span>📄 PDF, Word, photos</span><span>⚡ Works on your phone</span></div>
+  </aside>
 
-    <div class="parts">
-      <a href="#study" class="part">
-        <div class="part-ico">🧠</div>
-        <div><b>Part 1 · Study smarter</b><p>Summary, key terms, definitions, formulas, likely exam questions, Q&amp;A, mind map, flowchart, flashcards &amp; quiz.</p></div>
-      </a>
-      <a href="#handwrite" class="part">
-        <div class="part-ico">✍️</div>
-        <div><b>Part 2 · Handwritten notes</b><p>Realistic handwriting on ruled, plain, grid or assignment paper. Download PDF or images.</p></div>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ============ PART 1: STUDY ============ -->
-<section class="study" id="study">
-  <div class="container">
-    <div class="sec-head">
-      <p class="eyebrow">Part 1</p>
-      <h2>Study smarter</h2>
-      <p class="muted">Step 1: add your notes. Step 2: pick a tool.</p>
-    </div>
-
-    <div class="study-grid">
-      <!-- input -->
-      <div class="card input-card">
-        <div class="card-head">
-          <b>Your notes</b>
-          <span class="muted small" id="wordCount">0 words</span>
-        </div>
-        <label class="drop" id="drop">
-          <input type="file" id="file" accept=".pdf,.docx,.txt,.md,image/*" hidden>
-          <span class="drop-ico">📎</span>
-          <span><b>Upload PDF, Word, text or a photo of notes</b><small>or drag &amp; drop here</small></span>
-        </label>
-        <div class="progress" id="progress" hidden><div class="progress-bar"><i id="progressBar"></i></div><span id="progressText">Reading…</span></div>
-        <textarea id="notes" placeholder="Paste your notes here… (a unit, a chapter, or your class notes)&#10;&#10;Tip: headings on their own line and points starting with - or 1. give the best results."></textarea>
-        <div class="row">
-          <button class="btn btn-ghost sm" id="sample">Try sample notes</button>
-          <button class="btn btn-ghost sm" id="clear">Clear</button>
-        </div>
+  <div class="main">
+    <header class="top">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu"></button>
+      <div class="top-title"><h1 id="viewTitle">Home</h1><span id="viewSub" class="muted small"></span></div>
+      <div class="top-actions">
+        <div class="chapter-pick" id="chapterPick" hidden><label for="chapter" class="muted small">Chapter</label><select id="chapter"></select></div>
+        <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode"></button>
+        <button class="icon-btn" id="settingsBtn" aria-label="Settings"></button>
       </div>
-
-      <!-- tools -->
-      <div class="card tools-card">
-        <div class="tool-tabs" id="toolTabs" role="tablist">
-          <button data-tool="summary" class="active">📋 Summary</button>
-          <button data-tool="ask">❓ Ask</button>
-          <button data-tool="mindmap">🗺️ Mind map</button>
-          <button data-tool="flow">🔀 Flowchart</button>
-          <button data-tool="cards">🃏 Flashcards</button>
-          <button data-tool="quiz">✅ Quiz</button>
-        </div>
-
-        <div class="tool" data-panel="summary">
-          <div class="row between">
-            <div class="seg" id="length"><button data-v="short">Short</button><button data-v="medium" class="active">Medium</button><button data-v="detailed">Detailed</button></div>
-            <div class="row">
-              <button class="btn btn-ghost sm" id="copySummary">Copy</button>
-              <button class="btn sm" id="toHand">✍️ Make handwritten</button>
-            </div>
-          </div>
-          <div id="summaryOut" class="out"><p class="empty">Add your notes on the left, then your summary appears here.</p></div>
-        </div>
-
-        <div class="tool" data-panel="ask" hidden>
-          <form class="ask" id="askForm">
-            <input id="question" placeholder="e.g. What is the convoy effect?" autocomplete="off">
-            <select id="marks" aria-label="Answer length"><option value="2">2 marks</option><option value="5" selected>5 marks</option><option value="10">10 marks</option></select>
-            <button class="btn">Answer</button>
-          </form>
-          <div id="askOut" class="out"><p class="empty">Ask anything from your notes. Answers come only from what you added, so they match your syllabus.</p></div>
-        </div>
-
-        <div class="tool" data-panel="mindmap" hidden>
-          <div class="row between"><span class="muted small">Scroll or pinch to explore.</span><button class="btn btn-ghost sm" id="dlMap">Download PNG</button></div>
-          <div id="mapOut" class="out visual"></div>
-        </div>
-
-        <div class="tool" data-panel="flow" hidden>
-          <div class="row between"><span class="muted small">Made from numbered steps or “first / then / finally” in your notes.</span><button class="btn btn-ghost sm" id="dlFlow">Download PNG</button></div>
-          <div id="flowOut" class="out visual"></div>
-        </div>
-
-        <div class="tool" data-panel="cards" hidden><div id="cardsOut" class="out"></div></div>
-        <div class="tool" data-panel="quiz" hidden><div id="quizOut" class="out"></div></div>
-      </div>
-    </div>
+    </header>
+    <main id="view" class="view" tabindex="-1"></main>
   </div>
-</section>
+</div>
 
-<!-- ============ PART 2: HANDWRITTEN ============ -->
-<section class="handwrite" id="handwrite">
-  <div class="container">
-    <div class="sec-head">
-      <p class="eyebrow">Part 2</p>
-      <h2>Handwritten notes maker</h2>
-      <p class="muted">Type or send your summary here, pick a style and download real-looking handwritten pages.</p>
-    </div>
+<nav class="tabbar" id="tabbar"></nav>
 
-    <div class="hw-grid">
-      <div class="card hw-controls">
-        <label>Text <small class="muted"># Heading · ## Sub-heading · - point</small></label>
-        <textarea id="hwText" placeholder="# Unit 2: CPU Scheduling&#10;## Definition&#10;- CPU scheduling decides which process gets the CPU next."></textarea>
-        <div class="two">
-          <div><label>Handwriting</label><select id="hwFont"></select></div>
-          <div><label>Paper</label><select id="hwPaper"><option value="ruled">Ruled notebook</option><option value="assignment">Assignment sheet</option><option value="plain">Plain white</option><option value="grid">Grid</option></select></div>
-        </div>
-        <div class="two">
-          <div><label>Ink</label><select id="hwInk"><option value="blue">Blue</option><option value="black">Black</option><option value="dark blue">Dark blue</option><option value="green">Green</option></select></div>
-          <div><label>Headings</label><select id="hwHead"><option value="red">Red ink</option><option value="same">Same ink</option></select></div>
-        </div>
-        <label>Text size <output id="sizeVal">36</output></label><input type="range" id="hwSize" min="26" max="50" value="36">
-        <label>Line spacing <output id="spaceVal">1.0</output></label><input type="range" id="hwSpace" min="0.9" max="1.5" step="0.05" value="1">
-        <label>Natural messiness <output id="messVal">50%</output></label><input type="range" id="hwMess" min="0" max="1" step="0.05" value="0.5">
-        <button class="btn big full" id="hwMake">✍️ Make handwritten notes</button>
-        <div class="row">
-          <button class="btn btn-dark sm grow" id="hwPdf" disabled>⬇ Download PDF</button>
-          <button class="btn btn-ghost sm grow" id="hwPng" disabled>⬇ Images (PNG)</button>
-        </div>
-      </div>
-      <div class="hw-preview card" id="hwPreview">
-        <p class="empty">Your handwritten pages will appear here.</p>
-      </div>
-    </div>
-  </div>
-</section>
+<dialog id="settings" class="modal">
+  <form method="dialog" class="modal-body">
+    <div class="modal-head"><h2>Settings</h2><button class="icon-btn" value="close" aria-label="Close">✕</button></div>
+    <section>
+      <h3>Smart AI (optional)</h3>
+      <p class="muted small">Free offline tools work without this. Turn on Smart AI to get <b>simple-English rewrites</b>, <b>Telugu explanations</b> and <b>AI exam answers</b> for your own notes. It uses <b>your own free Google Gemini key</b>, so DevInventor pays nothing and your key stays on this device.</p>
+      <ol class="muted small steps-list">
+        <li>Open <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in with Google.</li>
+        <li>Click <b>Create API key</b> and copy it.</li>
+        <li>Paste it below and switch Smart AI on.</li>
+      </ol>
+      <label class="switch"><input type="checkbox" id="aiEnabled"><span></span> Use Smart AI</label>
+      <label class="field">Gemini API key<input type="password" id="aiKey" placeholder="Paste your key (starts with AIza…)" autocomplete="off"></label>
+      <label class="field">Model<input id="aiModel" placeholder="gemini-2.5-flash"></label>
+      <p class="privacy">🔒 When Smart AI is on, the notes you send to an AI button go to Google Gemini. Everything else stays on your device.</p>
+    </section>
+    <section>
+      <h3>Your data</h3>
+      <p class="muted small">Notes, progress and settings are saved only in this browser.</p>
+      <div class="row"><button type="button" class="btn btn-ghost sm" id="clearData">Clear all my data</button></div>
+    </section>
+    <div class="modal-foot"><button class="btn" value="save" id="saveSettings">Save</button></div>
+  </form>
+</dialog>
 
-<!-- ============ HOW / FAQ ============ -->
-<section class="how" id="how">
-  <div class="container">
-    <div class="sec-head"><p class="eyebrow">How it works</p><h2>Three steps before your exam</h2></div>
-    <div class="steps">
-      <div class="step"><span>1</span><b>Add notes</b><p>Paste text or upload a PDF, Word file or a photo of printed or neat notes.</p></div>
-      <div class="step"><span>2</span><b>Revise smart</b><p>Read the summary, test yourself with flashcards and the quiz, see the mind map.</p></div>
-      <div class="step"><span>3</span><b>Make it yours</b><p>Turn the summary into handwritten pages and print or save them for last-minute revision.</p></div>
-    </div>
-  </div>
-</section>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<section class="faq" id="faq">
-  <div class="container narrow">
-    <div class="sec-head"><p class="eyebrow">FAQ</p><h2>Questions students ask</h2></div>
-    <details><summary>Is it really free?</summary><p>Yes. Everything runs inside your browser, so there is no server cost and no login. Smarter AI summaries will come later as an optional upgrade.</p></details>
-    <details><summary>How are summaries made? Is it AI?</summary><p>The summariser picks the most important sentences in your notes and organises them into points, definitions, formulas and likely exam questions. It does not invent anything, so it never goes outside your syllabus. Always read through it once before your exam.</p></details>
-    <details><summary>Are my notes uploaded anywhere?</summary><p>No. Files are read on your own device. Only the free reading tools (for PDF, Word and photos) are downloaded the first time you use them.</p></details>
-    <details><summary>Photo of my handwritten notes isn't read correctly</summary><p>Photo reading works best on printed text or very neat handwriting, in good light, held flat. Check the text it finds and correct it before summarising.</p></details>
-    <details><summary>Can I submit the handwritten pages as my assignment?</summary><p>They are made for your own revision. Many colleges require assignments in your own handwriting, so check your college rules.</p></details>
-    <details><summary>Which subjects work best?</summary><p>Theory subjects with definitions, types, advantages and steps (OS, DBMS, CN, DSA theory, EDC, Machines, Surveying…). Long derivations and numericals are kept as-is in the summary.</p></details>
-  </div>
-</section>
-</main>
-
-<footer class="footer">
-  <div class="container foot">
-    <div><a href="#top" class="logo">DEVINVENT<span>O</span>R <em>Notes</em></a><p class="muted">Made for engineering &amp; diploma students in India.</p></div>
-    <div class="foot-links">
-      <a href="../index.html">Embedded &amp; IoT projects</a>
-      <a href="../ai/">AI telecalling</a>
-      <a href="https://instagram.com/devinventor2010" target="_blank" rel="noopener">Instagram</a>
-      <a href="mailto:2465devendra@gmail.com">2465devendra@gmail.com</a>
-    </div>
-  </div>
-  <p class="copy">© <span id="yr">2026</span> DevInventor</p>
-</footer>
-
-<div class="toast" id="toast"></div>
 <script src="config.js"></script>
 <script src="sample.js"></script>
 <script src="engine.js"></script>
+<script src="circuits.js"></script>
+<script src="library.js"></script>
 <script src="visual.js"></script>
+<script src="exam.js"></script>
+<script src="progress.js"></script>
+<script src="ai.js"></script>
 <script src="handwrite.js"></script>
 <script src="app.js"></script>
 </body>
