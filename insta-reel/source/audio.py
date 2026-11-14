@@ -56,11 +56,15 @@ for l in tl["lines"]:
         n=min(hl2,N-hi); sfx[hi:hi+n]+=hit[:n]*0.4
     prev=l["scene"]
 # voice
-voice=np.zeros(N)
-for l in tl["lines"]:
-    sr,d=wavfile.read(l["file"]); d=d.astype(np.float32)
-    if d.ndim>1: d=d.mean(1)
-    d/=32768; i=int(l["start"]*SR); n=min(len(d),N-i); voice[i:i+n]+=d[:n]
+if tl.get('user'):
+    sr_,d=wavfile.read('voice.wav'); d=d.astype(np.float32)/32768
+    voice=np.zeros(N); n=min(len(d),N); voice[:n]=d[:n]
+else:
+    voice=np.zeros(N)
+    for l in tl["lines"]:
+        sr,d=wavfile.read(l["file"]); d=d.astype(np.float32)
+        if d.ndim>1: d=d.mean(1)
+        d/=32768; i=int(l["start"]*SR); n=min(len(d),N-i); voice[i:i+n]+=d[:n]
 voice=voice/np.max(np.abs(voice))*0.9
 # ducking
 env=np.convolve(np.abs(voice),np.ones(4800)/4800,'same'); duck=1-0.55*np.clip(env*8,0,1)
