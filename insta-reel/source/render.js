@@ -2,7 +2,7 @@ const {chromium}=require('playwright');const fs=require('fs');const {spawn}=requ
 const [mode,a,b,out,handle]=process.argv.slice(2);
 (async()=>{
  const tl=fs.readFileSync('timeline.json','utf8');
- fs.writeFileSync('page.html',fs.readFileSync('index.html','utf8').replace('__TIMELINE__',tl));
+ fs.writeFileSync('page.html',fs.readFileSync(process.env.SRC||'index.html','utf8').replace('__TIMELINE__',tl));
  const br=await chromium.launch();const pg=await br.newPage({viewport:{width:1080,height:1920},deviceScaleFactor:1});
  pg.on('pageerror',e=>console.error('PAGEERR',e.message));
  await pg.goto('file://'+process.cwd()+'/page.html?h='+encodeURIComponent(handle||'@your_handle'));

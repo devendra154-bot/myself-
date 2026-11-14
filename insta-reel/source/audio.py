@@ -5,7 +5,7 @@ SR=48000; tl=json.load(open("timeline.json")); T=tl["total"]; N=int(T*SR)
 t=np.arange(N)/SR
 def note(m): return 440*2**((m-69)/12)
 # cinematic pad: Am - F - C - G, 4s each chord
-chords=[[57,60,64,69],[53,57,60,65],[48,52,55,60],[55,59,62,67]]
+chords=[[50,57,62,65],[46,53,58,62],[53,57,60,65],[48,55,60,64]]
 pad=np.zeros(N)
 seg=4.0
 for k in range(int(T/seg)+1):
@@ -19,9 +19,16 @@ for k in range(int(T/seg)+1):
         pad[s:e]+=w*env*0.05
     # bass
     pad[s:e]+=np.sin(2*np.pi*note(chords[k%4][0]-12)*tt)*env*0.09
-b,a=butter(2,2200/(SR/2)); pad=lfilter(b,a,pad)
+b,a=butter(2,1800/(SR/2)); pad=lfilter(b,a,pad)*0.8
+# arpeggio pluck, 16th notes at 92bpm
+step=60/92/4; k=0; x=0.0
+while x<T-1:
+    ch=chords[int(x/seg)%4]; m=ch[[0,1,2,3,2,1,3,2][k%8]]+12
+    i=int(x*SR); L=int(0.4*SR); n=min(L,N-i); tt=np.arange(n)/SR
+    f=note(m); pl=(np.sign(np.sin(2*np.pi*f*tt))*0.3+np.sin(2*np.pi*f*tt))*np.exp(-tt*9)
+    pad[i:i+n]+=pl*0.028; x+=step; k+=1
 # beat at 100bpm: kick on beats, hat offbeats, starts after hook
-beat=60/100; drums=np.zeros(N)
+beat=60/92; drums=np.zeros(N)
 kl=int(0.35*SR); kt=np.arange(kl)/SR
 kick=np.sin(2*np.pi*(45+90*np.exp(-kt*28))*kt)*np.exp(-kt*9)
 hl=int(0.06*SR); hat=np.random.randn(hl)*np.exp(-np.arange(hl)/SR*70)
