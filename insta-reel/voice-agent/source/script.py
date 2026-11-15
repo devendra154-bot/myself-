@@ -1,0 +1,21 @@
+M="te-IN-MohanNeural"; F="te-IN-ShrutiNeural"
+LINES = [
+("hook","నిన్న ప్రామిస్ చేశా కదా — వాయిస్ ఏజెంట్ రివీల్!","Ninna promise chesa kada — *voice agent* reveal!"),
+("problem","మీ వాయిస్ బాలేదా? రికార్డ్ చేయడానికి సిగ్గా?","Mee voice baaleda? Record cheyyadaniki *siggaa*?"),
+("two","ఇవి రెండు వాయిస్ ఏజెంట్స్.","Ivi *rendu* voice agents."),
+("ms","నంబర్ వన్: మైక్రోసాఫ్ట్ న్యూరల్ వాయిస్.","Number 1: *Microsoft neural voice*."),
+("ms","తెలుగు లో మేల్ వాయిస్ మోహన్, ఫీమేల్ వాయిస్ శ్రుతి.","Telugu lo male voice *Mohan*, female voice *Shruti*."),
+("ms","ఫ్రీ — ఎడ్జ్ బ్రౌజర్ లో రీడ్ అలౌడ్ లో ఉంటుంది.","*Free* — Edge browser lo Read aloud lo untundi."),
+("ms","ఇదిగో డెమో వినండి.","Idigo *demo* vinandi."),
+("ms",[(M,"నమస్కారం, నేను మోహన్."),(F,"నేను శ్రుతి, మీ తెలుగు ఏ ఐ వాయిస్!")],"🔊 \"Namaskaram, nenu *Mohan*.\" \"Nenu *Shruti*!\""),
+("ms","క్లాడ్ నా గైడ్ వాయిస్ కి ఇదే వాడింది.","Claude naa *guide voice* ki ide vaadindi."),
+("el","నంబర్ టూ: ఎలెవెన్ ల్యాబ్స్.","Number 2: *ElevenLabs*."),
+("el","రియల్ హ్యూమన్ లాంటి వాయిస్, ఎమోషన్ తో.","Real human laanti voice, *emotion* tho."),
+("el","మీ సొంత వాయిస్ ని క్లోన్ కూడా చెయ్యొచ్చు.","Mee sontha voice ni *clone* kuda cheyyochu."),
+("el","ఫ్రీ ప్లాన్ ఉంది, క్లోనింగ్ కి పెయిడ్ ప్లాన్.","*Free plan* undi, cloning ki paid plan."),
+("vs","ఏది బెస్ట్? ఫ్రీ కావాలంటే మైక్రోసాఫ్ట్.","Edi best? Free kavalante *Microsoft*."),
+("vs","ప్రో క్వాలిటీ కావాలంటే ఎలెవెన్ ల్యాబ్స్.","Pro quality kavalante *ElevenLabs*."),
+("yours","కానీ నా సలహా: మీ సొంత వాయిస్ ఏ బెస్ట్.","Kaani naa salaha: mee *sontha voice* ey best."),
+("cta","ఏ వాయిస్ కావాలి? కామెంట్ లో వన్ ఆర్ టూ అని చెప్పండి.","Ye voice kavali? Comment lo *1 or 2* ani cheppandi."),
+("follow","ఇలాంటి కంటెంట్ కోసం, ఫాలో చెయ్యండి!","Ilanti content kosam, *follow* cheyyandi!"),
+]
