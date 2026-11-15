@@ -61,3 +61,49 @@ Claude నా గైడ్ వాయిస్ కి ఇదే వాడిం�
 
 ## Small note
 Since this reel's voice comes from ElevenLabs, you could say so in the post caption ("ee reel voice ElevenLabs tho chesanu 👀"). It works as a live demo of Agent 02.
+
+---
+
+## Tenglish version (Telugu in English letters)
+
+### Part A
+```
+Ninna promise chesa kada... voice agent reveal!
+
+Mee voice baaleda? Record cheyyadaniki siggaa?
+
+Ivi rendu voice agents.
+
+Number one: Microsoft neural voice.
+
+Telugu lo male voice Mohan, female voice Shruti.
+
+Free... Edge browser lo Read aloud lo untundi.
+
+Idigo demo vinandi.
+```
+
+### Part B
+```
+Claude naa guide voice ki ide vaadindi.
+
+Number two: ElevenLabs.
+
+Real human laanti voice, emotion tho.
+
+Mee sontha voice ni clone kuda cheyyochu.
+
+Free plan undi, cloning ki paid plan.
+
+Edi best? Free kavalante Microsoft.
+
+Pro quality kavalante ElevenLabs.
+
+Kaani naa salaha: mee sontha voice ey best.
+
+Ye voice kavali? Comment lo one or two ani cheppandi.
+
+Ilanti content kosam, follow cheyyandi!
+```
+
+Tip: Tenglish text can come out with an English accent. If it does, use the Telugu-script version above for those lines.
