@@ -143,8 +143,8 @@ function bigNo(s,n,t){const e=add(s.el,`<div class="abs D" style="right:60px;top
 /* FOLLOW — poster */
 (()=>{const s=mk('follow');
  const yb=add(s.el,`<div class="blk" style="left:60px;top:200px;width:960px;height:1220px;background:var(--y)"></div>`);blockIn(yb,s.start+.1,'Y',.5);
- txt(s.el,'FOL',{x:90,y:240,size:330,t:s.start+.3});
- txt(s.el,'LOW',{x:90,y:540,size:330,t:s.start+.4});
+ txt(s.el,'FOLLOW',{x:60,y:310,size:205,w:960,align:'center',t:s.start+.3});
+ txt(s.el,'<span style="background:var(--k);color:var(--y);padding:0 16px">for more</span>',{x:60,y:580,size:120,w:960,align:'center',t:s.start+.45});
  const bx=add(s.el,`<div class="blk" style="left:90px;top:900px;width:900px;height:200px;background:var(--k);color:var(--w);display:flex;align-items:center;gap:34px;padding:0 40px"><div style="width:130px;height:130px;background:var(--r);display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:64px;color:#fff">DI</div><div><div class="D" style="font-size:72px;letter-spacing:-2px">${NAME}</div><div class="mono" style="font-size:24px;color:var(--y);margin-top:12px;letter-spacing:2px">CLAUDE · AI HACKS · TELUGU</div></div></div>`);
  blockIn(bx,L(s,0)+.1,'X',.5);
  const btn=add(s.el,`<div class="blk" style="left:90px;top:1140px;width:900px;height:200px;background:var(--r);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:110px;letter-spacing:-3px"><span class="a">FOLLOW ▸</span><span class="b abs" style="opacity:0;display:flex;align-items:center;gap:20px">FOLLOWING ${check('#fff',90)}</span></div>`);
