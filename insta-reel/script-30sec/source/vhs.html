@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--m:#ff2a6d;--c:#05d9e8;--y:#f9f871;--w:#f2efe6;--bg:#0d0b14;--g:#7cff9b}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif;color:var(--w)}
+#stage{position:absolute;inset:0;overflow:hidden}
+.glow{position:absolute;left:50%;top:40%;width:1500px;height:1500px;margin:-750px 0 0 -750px;border-radius:50%;background:radial-gradient(circle,rgba(255,42,109,.16),rgba(5,217,232,.08) 35%,transparent 62%)}
+.scan{position:absolute;inset:0;pointer-events:none;z-index:40;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 2px,transparent 2px 5px)}
+.noise{position:absolute;inset:-60px;pointer-events:none;z-index:41;opacity:.10;background-image:radial-gradient(#fff 1px,transparent 1.4px),radial-gradient(#fff 1px,transparent 1.2px);background-size:7px 7px,11px 11px;background-position:0 0,3px 5px}
+.track{position:absolute;left:0;right:0;height:46px;z-index:42;pointer-events:none;background:linear-gradient(transparent,rgba(255,255,255,.18) 40%,rgba(255,255,255,.05) 60%,transparent);mix-blend-mode:screen}
+.vig{position:absolute;inset:0;z-index:43;pointer-events:none;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.85));border-radius:40px;box-shadow:inset 0 0 120px rgba(0,0,0,.9)}
+.scene{position:absolute;inset:0;opacity:0}
+.abs{position:absolute}
+.mono{font-family:'JetBrains Mono',monospace}
+.osd{font-family:'JetBrains Mono';font-weight:800;color:#fff;text-shadow:0 0 8px rgba(255,255,255,.7),2px 0 0 rgba(255,42,109,.7),-2px 0 0 rgba(5,217,232,.7);letter-spacing:3px}
+.D{font-family:'Inter Display';font-weight:900;letter-spacing:-.03em;line-height:.9;text-shadow:-6px 0 0 rgba(255,42,109,.85),6px 0 0 rgba(5,217,232,.85),0 0 30px rgba(255,255,255,.25)}
+.win{position:absolute;background:rgba(18,16,30,.92);border:3px solid rgba(255,255,255,.5);box-shadow:8px 8px 0 rgba(255,42,109,.6),-8px -8px 0 rgba(5,217,232,.4)}
+.win .bar{height:54px;background:linear-gradient(90deg,var(--m),#7b2cbf 60%,var(--c));display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-family:'JetBrains Mono';font-weight:800;font-size:24px;letter-spacing:2px;color:#fff}
+.tape{position:absolute;background:#1a1a1f;border-radius:16px;border:3px solid #333;box-shadow:0 20px 40px rgba(0,0,0,.6)}
+.tape .label{position:absolute;left:40px;right:40px;top:30px;height:120px;background:var(--w);color:#111;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:56px;letter-spacing:-1px;border-top:14px solid var(--m)}
+.tape .reel{position:absolute;top:180px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,#ddd 0 16%,#222 17% 40%,#555 41% 46%,#222 47%);border:4px solid #444}
+#capbar{position:absolute;left:70px;right:70px;top:1480px;min-height:210px;background:rgba(0,0,0,.78);padding:36px 44px;z-index:30}
+#capbar .tg{position:absolute;left:44px;top:-40px;font-family:'JetBrains Mono';font-weight:800;font-size:22px;letter-spacing:3px;color:var(--y);text-shadow:0 0 10px rgba(249,248,113,.6)}
+.cap{position:absolute;left:44px;right:44px;top:36px;font-family:'Inter Display';font-weight:900;font-size:58px;line-height:1.18;letter-spacing:-1px;opacity:0}
+.cap .w{display:inline-block;margin-right:15px;opacity:.28}
+.cap .hl{color:#111;background:var(--y);padding:0 10px;box-shadow:-4px 0 0 var(--m),4px 0 0 var(--c)}
+#glitch{position:absolute;inset:0;z-index:45;pointer-events:none}
+#glitch div{position:absolute;left:0;right:0;opacity:0}
+#static{position:absolute;inset:-80px;z-index:44;pointer-events:none;opacity:0;background-image:radial-gradient(#fff 1.4px,transparent 1.6px),radial-gradient(#999 1.2px,transparent 1.4px);background-size:5px 5px,8px 8px}
+svg{overflow:visible}
+</style></head>
+<body><div id="stage">
+<div class="glow"></div>
+<div id="scenes"></div>
+<div class="abs osd" id="play" style="left:70px;top:80px;font-size:44px">PLAY ▶</div>
+<div class="abs osd" id="sp" style="right:70px;top:84px;font-size:32px">SP</div>
+<div class="abs osd" id="tc" style="right:70px;top:1395px;font-size:30px;width:340px;height:40px;text-align:right"></div>
+<div class="abs osd" style="left:70px;top:1395px;font-size:24px;color:#ffb3c7">DEV INVENTOR · SCRIPT.VHS</div>
+<div id="capbar"><div class="tg">● TENGLISH CC</div></div>
+<div id="static"></div><div id="glitch"></div>
+<div class="scan"></div><div class="noise" id="noise"></div><div class="track" id="trk"></div><div class="vig"></div>
+</div>
+<script>
+const TL=__TIMELINE__;const NAME='Dev Inventor';
+const E={out:'cubic-bezier(.16,1,.3,1)',back:'cubic-bezier(.34,1.56,.64,1)',io:'cubic-bezier(.65,0,.35,1)'};
+const A=(el,kf,st,du,ea=E.out,fill='both',x={})=>el.animate(kf,Object.assign({delay:st*1000,duration:du*1000,fill,easing:ea},x));
+const H=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
+const add=(p,h)=>{const e=H(h);p.appendChild(e);return e};
+const fadeTo=(el,t,kf,d=.3)=>A(el,kf,t,d,E.io,'forwards');
+// glitch-in: rgb jitter + slice
+const gIn=(el,t,d=.5)=>A(el,[{opacity:0,transform:'translateX(-40px) skewX(20deg)',filter:'blur(6px)'},{opacity:1,transform:'translateX(30px) skewX(-10deg)',offset:.25},{opacity:.6,transform:'translateX(-12px)',offset:.45},{opacity:1,transform:'translateX(6px)',offset:.7},{opacity:1,transform:'none',filter:'blur(0)'}],t,d,'steps(8,end)');
+const pop=(el,t,d=.35)=>A(el,[{opacity:0,transform:'scale(1.6)',filter:'blur(8px)'},{opacity:1,transform:'scale(1)',filter:'blur(0)'}],t,d,'steps(5,end)');
+const typeOn=(el,t,d=.5)=>A(el,[{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0 0 0)'}],t,d,'steps(12,end)');
+function jitter(el,t0,t1){const kf=[];for(let i=0;i<8;i++)kf.push({transform:`translate(${Math.sin(i*9.1)*3}px,${Math.cos(i*5.7)*1.5}px)`});A(el,kf,t0,.4,'steps(8,end)','none',{iterations:Math.max(1,Math.floor((t1-t0)/.4)),composite:'add'});}
+
+// ambient VHS fx
+const T=TL.total;
+A(document.getElementById('noise'),[{transform:'translate(0,0)'},{transform:'translate(-30px,20px)'},{transform:'translate(20px,-10px)'},{transform:'translate(-10px,30px)'}],0,.2,'steps(4)','none',{iterations:Math.ceil(T/.2)});
+A(document.getElementById('trk'),[{top:'-60px'},{top:'1980px'}],0,3.7,'linear','none',{iterations:Math.ceil(T/3.7)});
+A(document.getElementById('play'),[{opacity:1},{opacity:1,offset:.7},{opacity:0,offset:.71},{opacity:0}],0,1.2,'linear','none',{iterations:3});
+A(document.getElementById('play'),[{opacity:1},{opacity:1}],3.6,1,'linear','forwards');
+// timecode
+const tc=document.getElementById('tc');
+for(let s=0;s<Math.ceil(T);s++){const e=add(tc,`<span class="abs" style="right:0;top:0">0:00:${String(s).padStart(2,'0')}</span>`);A(e,[{opacity:0},{opacity:1}],s,.01,'linear');A(e,[{opacity:1},{opacity:0}],s+1,.01,'linear','forwards');}
+// rec dot
+const rd=add(document.getElementById('stage'),`<div class="abs" style="left:330px;top:94px;width:26px;height:26px;border-radius:50%;background:#ff2a6d;box-shadow:0 0 16px #ff2a6d;z-index:46"></div>`);A(rd,[{opacity:1},{opacity:.15},{opacity:1}],0,1,'steps(2)','none',{iterations:Math.ceil(T)});
+
+// timings
+const lines=TL.lines,sc={},order=[];
+lines.forEach(l=>{if(!sc[l.scene]){sc[l.scene]={lines:[]};order.push(l.scene)}sc[l.scene].lines.push(l)});
+order.forEach((k,i)=>sc[k].start=i?sc[k].lines[0].start-.4:0);
+order.forEach((k,i)=>sc[k].end=i<order.length-1?sc[order[i+1]].start:TL.total);
+const L=(s,i)=>s.lines[i].start, Le=(s,i)=>s.lines[i].end;
+const S=document.getElementById('scenes'),GL=document.getElementById('glitch'),ST=document.getElementById('static');
+function glitchBurst(t){A(ST,[{opacity:0},{opacity:.55},{opacity:.2},{opacity:.6},{opacity:0}],t,.35,'steps(5,end)','none');
+ for(let i=0;i<9;i++){const y=(Math.abs(Math.sin(i*7.77+t))*1800)|0,h=30+((i*37)%120),dx=((i%2?1:-1)*(60+(i*53)%220));const c=['rgba(255,42,109,.55)','rgba(5,217,232,.55)','rgba(255,255,255,.35)'][i%3];
+  const b=add(GL,`<div style="top:${y}px;height:${h}px;background:${c};mix-blend-mode:screen"></div>`);
+  A(b,[{opacity:0,transform:'translateX(0)'},{opacity:1,transform:`translateX(${dx}px)`},{opacity:.7,transform:`translateX(${-dx/2}px)`},{opacity:0,transform:'translateX(0)'}],t+(i%4)*.03,.3,'steps(4,end)','none');}}
+function mk(k){const s=sc[k];s.el=add(S,`<div class="scene"></div>`);
+ if(s.start>0){glitchBurst(s.start-.12);
+  A(s.el,[{opacity:0,transform:'translateX(40px) skewX(-8deg)',filter:'hue-rotate(90deg)'},{opacity:1,transform:'translateX(-20px)',offset:.5},{opacity:1,transform:'none',filter:'hue-rotate(0)'}],s.start+.05,.3,'steps(6,end)');
+ }else A(s.el,[{opacity:0,transform:'scaleY(.02)'},{opacity:1,transform:'scaleY(1)'}],.05,.4,'cubic-bezier(.2,.9,.3,1)');
+ if(k!=='follow')A(s.el,[{opacity:1},{opacity:0}],s.end-.05,.01,'linear','forwards');
+ return s;}
+function big(s,html,{x=70,y=200,size=150,t,center=false,w=940}){const e=add(s.el,`<div class="abs D" style="left:${x}px;top:${y}px;width:${w}px;font-size:${size}px;${center?'text-align:center':''}">${html}</div>`);gIn(e,t);jitter(e,t+.5,s.end);return e;}
+
+/* HOOK */
+(()=>{const s=mk('hook');
+ big(s,'SCRIPT<br><span style="color:var(--m)">RAADA?</span>',{y:220,size:200,t:.35});
+ const tn=add(s.el,`<div class="abs osd" style="left:70px;top:640px;font-size:44px;color:var(--g)">&gt; TENSION VADDU_</div>`);typeOn(tn,L(s,0)+1.6,.6);
+ const tp=add(s.el,`<div class="tape" style="left:190px;top:790px;width:700px;height:330px"><div class="label">SCRIPT.VHS · 30s</div><div class="reel r1" style="left:150px"></div><div class="reel r2" style="right:150px"></div></div>`);
+ A(tp,[{opacity:0,transform:'translateY(500px) rotate(-8deg)'},{opacity:1,transform:'translateY(0) rotate(0)'}],L(s,1)-.1,.6,E.back);
+ tp.querySelectorAll('.reel').forEach(r=>A(r,[{transform:'rotate(0)'},{transform:'rotate(-1080deg)'}],L(s,1)+.4,s.end-L(s,1),'linear','none'));
+ const rdy=add(s.el,`<div class="abs D" style="left:0;width:1080px;text-align:center;top:1170px;font-size:120px;color:var(--y)">30 SEC ✓</div>`);pop(rdy,L(s,1)+1.2);
+})();
+
+/* PROMPT — retro terminal window */
+(()=>{const s=mk('prompt');
+ big(s,'Ila <span style="color:var(--c)">adugu</span>',{y:200,size:170,t:s.start+.1});
+ const w=add(s.el,`<div class="win" style="left:70px;top:460px;width:940px;height:840px"><div class="bar"><span>CLAUDE.EXE</span><span>_ ▢ ✕</span></div><div class="ty mono" style="padding:40px;font-size:44px;line-height:1.55;font-weight:700;color:var(--g);text-shadow:0 0 10px rgba(124,255,155,.5)"></div></div>`);
+ A(w,[{opacity:0,transform:'scale(.2,.02)'},{opacity:1,transform:'scale(1,.02)',offset:.5},{opacity:1,transform:'scale(1,1)'}],L(s,0)+.1,.5,'cubic-bezier(.2,.9,.3,1)');
+ const txt='C:\\> "Ee topic ki 30 sec Telugu reel script raayi — hook, 3 points, CTA."';
+ const ty=w.querySelector('.ty');const chars=[...txt];const span=(Le(s,1)-L(s,1))*.85;
+ chars.forEach((ch,i)=>{const e=add(ty,`<span>${ch===' '?' ':ch}</span>`);A(e,[{opacity:0},{opacity:1}],L(s,1)+.1+span*i/chars.length,.01,'linear');});
+ const cu=add(ty,`<span style="display:inline-block;width:26px;height:50px;background:var(--g);vertical-align:middle"></span>`);A(cu,[{opacity:1},{opacity:0},{opacity:1}],L(s,0),.6,'steps(2)','none',{iterations:14});
+})();
+
+/* PARTS — tape timeline */
+(()=>{const s=mk('parts');
+ big(s,'<span style="color:var(--y)">3</span> PARTS',{y:200,size:190,t:s.start+.1});
+ const tl=add(s.el,`<div class="abs" style="left:70px;top:470px;width:940px;height:80px;border:3px solid rgba(255,255,255,.6)"></div>`);gIn(tl,L(s,0)+.2);
+ const segs=[['HOOK','0–3s',.15,'var(--m)'],['VALUE','3–25s',.6,'var(--c)'],['CTA','25–30s',.25,'var(--y)']];let x=0;
+ const head=add(tl,`<div class="abs" style="left:0;top:-20px;width:8px;height:120px;background:#fff;box-shadow:0 0 14px #fff;z-index:3"></div>`);
+ segs.forEach(([n,tm,f,c],i)=>{const w=f*934;const b=add(tl,`<div class="abs" style="left:${x}px;top:0;width:${w}px;height:74px;background:${c};opacity:.25"></div>`);
+  const t=L(s,i+1);A(b,[{opacity:.25},{opacity:1}],t,.2,'steps(3)','forwards');
+  const card=add(s.el,`<div class="win" style="left:70px;top:${610+i*270}px;width:940px;height:240px"><div class="bar" style="background:${c};color:#111"><span>${String(i+1).padStart(2,'0')} · ${n}</span><span>${tm}</span></div><div class="mono" style="padding:30px 36px;font-size:40px;font-weight:700">${['Ee 5 prompts save chesko!','Prompt 1… 2… 3…','Follow · Comment · Save'][i]}</div></div>`);
+  gIn(card,t-.05,.45);x+=w;});
+ A(head,[{left:'0px'},{left:'930px'}],L(s,1),Le(s,3)-L(s,1),'linear','forwards');
+})();
+
+/* TIPS */
+(()=>{const s=mk('tips');
+ big(s,'PRO <span style="color:var(--m)">TIP</span>',{y:200,size:190,t:s.start+.1});
+ const lg=add(s.el,`<div class="win" style="left:70px;top:460px;width:940px;height:230px"><div class="bar"><span>LONG LINE ✕</span><span></span></div><div class="mono" style="padding:24px 34px;font-size:32px;line-height:1.45;color:#ffb3c7">"Claude tho reels cheyyadam chala easy endukante prompts tho anni automatic ga vastayi…"</div></div>`);
+ gIn(lg,L(s,0)+.2);
+ const cutT=L(s,0)+1.4;
+ const sc2=add(s.el,`<div class="abs D" style="left:900px;top:430px;font-size:90px;color:var(--y)">✂</div>`);pop(sc2,cutT-.2);
+ fadeTo(lg,cutT+.3,[{opacity:1},{opacity:.3}]);
+ ['"Claude tho reels easy."','"Prompts tho automatic."','"Try cheyyandi!"'].forEach((t,i)=>{const e=add(s.el,`<div class="win" style="left:${70+i*30}px;top:${730+i*150}px;width:${880-i*30}px;height:120px;display:flex;align-items:center;gap:24px;padding:0 30px"><span class="osd" style="font-size:30px;color:var(--y)">${i+1}</span><span class="mono" style="font-size:38px;font-weight:700">${t}</span><span class="osd" style="margin-left:auto;font-size:22px;color:var(--c)">= 1 CC</span></div>`);
+  gIn(e,cutT+.4+i*.25,.4);});
+ const ez=add(s.el,`<div class="abs D" style="left:640px;top:1190px;font-size:90px;color:var(--g);transform:rotate(-6deg)">EASY!</div>`);pop(ez,L(s,1)+1.6);
+ const tp=add(s.el,`<div class="tape" style="left:150px;top:1180px;width:420px;height:200px"><div class="label" style="font-size:34px;height:80px;top:20px;left:24px;right:24px">MY OLD SCRIPT</div><div class="reel" style="left:70px;top:112px;width:70px;height:70px"></div><div class="reel" style="right:70px;top:112px;width:70px;height:70px"></div></div>`);
+ A(tp,[{opacity:0,transform:'translateX(-500px) rotate(-10deg)'},{opacity:1,transform:'rotate(-3deg)'}],L(s,2)+.3,.5,E.back);
+ fadeTo(ez,L(s,2)+.2,[{opacity:1},{opacity:0}]);
+})();
+
+/* CTA */
+(()=>{const s=mk('cta');
+ big(s,'Comment<br><span style="color:var(--y)">SCRIPT</span>',{y:200,size:170,t:s.start+.1});
+ const w=add(s.el,`<div class="win" style="left:70px;top:620px;width:940px;height:680px"><div class="bar"><span>COMMENTS.TXT</span><span>_ ▢ ✕</span></div><div class="lst" style="padding:30px 36px"></div></div>`);
+ A(w,[{opacity:0,transform:'scale(1,.02)'},{opacity:1,transform:'scale(1,1)'}],s.start+.3,.35,'cubic-bezier(.2,.9,.3,1)');
+ const lst=w.querySelector('.lst');
+ [['@friend1','bro super'],['@friend2','naku kavali']].forEach(([u,t])=>add(lst,`<div class="mono" style="font-size:36px;margin-bottom:24px"><span style="color:var(--c)">${u}</span> ${t}</div>`));
+ const nc=add(lst,`<div class="mono" style="font-size:44px;font-weight:800;color:var(--y);opacity:0"><span style="color:var(--m)">@you</span> SCRIPT</div>`);
+ const inp=add(w,`<div style="position:absolute;left:36px;right:36px;bottom:36px;height:110px;border:3px solid var(--g);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div class="ty mono" style="font-size:46px;font-weight:800;color:var(--g)"></div><div class="snd osd" style="font-size:30px;padding:12px 20px;border:3px solid #fff">SEND ▶</div></div>`);
+ const ty=inp.querySelector('.ty');[...'> SCRIPT'].forEach((ch,i)=>{const e=add(ty,`<span>${ch===' '?' ':ch}</span>`);A(e,[{opacity:0},{opacity:1}],L(s,0)+1.2+i*.1,.01,'linear');});
+ const tap=L(s,0)+2.4;A(inp.querySelector('.snd'),[{background:'transparent',color:'#fff'},{background:'#ff2a6d',color:'#fff'}],tap,.15,'steps(2)','forwards');
+ A(ty,[{opacity:1},{opacity:0}],tap+.1,.1,'linear','forwards');A(nc,[{opacity:0},{opacity:1}],tap+.15,.2,'steps(3)','forwards');
+})();
+
+/* FOLLOW — one-line FOLLOW */
+(()=>{const s=mk('follow');
+ big(s,'FOLLOW',{x:0,w:1080,y:250,size:230,t:s.start+.15,center:true});
+ const fm=add(s.el,`<div class="abs osd" style="left:0;width:1080px;text-align:center;top:500px;font-size:46px;color:var(--y)">▶▶ FOR MORE CONTENT</div>`);typeOn(fm,s.start+.6,.6);
+ const tp=add(s.el,`<div class="tape" style="left:140px;top:620px;width:800px;height:360px"><div class="label" style="font-size:66px;height:130px">${NAME}</div><div class="reel" style="left:170px;top:190px;width:130px;height:130px"></div><div class="reel" style="right:170px;top:190px;width:130px;height:130px"></div></div>`);
+ A(tp,[{opacity:0,transform:'translateY(600px)'},{opacity:1,transform:'none'}],s.start+.4,.55,E.back);
+ tp.querySelectorAll('.reel').forEach(r=>A(r,[{transform:'rotate(0)'},{transform:'rotate(-1440deg)'}],s.start+.8,TL.total-s.start,'linear','none'));
+ const btn=add(s.el,`<div class="abs" style="left:190px;top:1050px;width:700px;height:170px;background:var(--m);border:4px solid #fff;box-shadow:8px 8px 0 var(--c);display:flex;align-items:center;justify-content:center"><span class="a D" style="font-size:96px;text-shadow:none">FOLLOW ▶</span><span class="b abs D" style="opacity:0;font-size:86px;text-shadow:none;color:#111">FOLLOWING ✓</span></div>`);
+ pop(btn,L(s,0)+.3,.4);
+ const tap=Le(s,0)+.1;
+ const cur=add(s.el,`<div class="abs" style="left:900px;top:1430px;width:64px;height:64px;z-index:9"><svg width="64" height="64" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke="#000" stroke-width="1.4"/></svg></div>`);
+ A(cur,[{opacity:0,transform:'translate(0,0)'},{opacity:1,transform:'translate(-300px,-290px)'}],tap-.7,.6,E.out);
+ A(cur,[{transform:'translate(-300px,-290px) scale(1)'},{transform:'translate(-300px,-290px) scale(.75)'},{transform:'translate(-300px,-290px) scale(1)'}],tap,.25,E.io,'forwards');
+ A(btn,[{background:'#ff2a6d',boxShadow:'8px 8px 0 #05d9e8',transform:'translate(0,0)'},{background:'#f9f871',boxShadow:'0 0 0 #05d9e8',transform:'translate(8px,8px)'}],tap+.03,.15,'steps(3)','forwards');
+ A(btn.querySelector('.a'),[{opacity:1},{opacity:0}],tap,.1,'linear','forwards');A(btn.querySelector('.b'),[{opacity:0},{opacity:1}],tap+.1,.2,'steps(3)','forwards');
+ glitchBurst(tap);
+})();
+
+/* CAPTIONS */
+const CB=document.getElementById('capbar');A(CB,[{opacity:0,transform:'scaleY(.02)'},{opacity:1,transform:'scaleY(1)'}],.4,.3,'cubic-bezier(.2,.9,.3,1)');
+lines.forEach((l,idx)=>{
+ const ws=l.cap.replace(/\*([^*]+)\*/g,(m,g)=>g.split(' ').map(w=>'§'+w).join(' ')).split(' ');
+ const plain=l.cap.replace(/\*/g,'');const fs=plain.length>62?46:plain.length>46?52:58;
+ const el=add(CB,`<div class="cap" style="font-size:${fs}px"></div>`);const dur=(l.end-l.start)*.92;
+ ws.forEach((w,i)=>{const hl=w.startsWith('§');const e=add(el,`<span class="w${hl?' hl':''}">${w.replace('§','')}</span>`);
+  const t=l.start+dur*i/ws.length;A(e,[{opacity:.28},{opacity:1}],t,.08,'linear');
+  if(hl)A(e,[{transform:'translateX(-8px)'},{transform:'translateX(5px)'},{transform:'none'}],t,.18,'steps(3,end)','forwards');});
+ const nxt=idx<lines.length-1?lines[idx+1].start:TL.total;
+ A(el,[{opacity:0,transform:'translateX(-20px)'},{opacity:1,transform:'none'}],l.start-.15,.15,'steps(3,end)');
+ A(el,[{opacity:1},{opacity:0}],Math.min(nxt-.15,l.end+.7),.1,'linear','forwards');
+});
+window.seek=t=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+seek(0);window.READY=true;
+</script></body></html>
