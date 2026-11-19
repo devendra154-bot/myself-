@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--y:#ffde21;--r:#ff3b30;--b:#1e6fff;--c:#3fd0ff;--k:#111;--w:#fffdf5;--p:#ff6fb5}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--y);font-family:'Inter',sans-serif;color:var(--k)}
+#stage{position:absolute;inset:0;overflow:hidden}
+.dots{position:absolute;inset:-40px;background-image:radial-gradient(rgba(255,59,48,.35) 30%,transparent 32%);background-size:22px 22px}
+.scene{position:absolute;inset:0;opacity:0}
+.abs{position:absolute}
+.mono{font-family:'JetBrains Mono',monospace}
+.hand{font-family:'Comic Neue','Inter',sans-serif;font-weight:700}
+.panel{position:absolute;background:var(--w);border:9px solid var(--k);box-shadow:12px 12px 0 var(--k);overflow:hidden}
+.panel .ht{position:absolute;inset:0;background-image:radial-gradient(rgba(30,111,255,.22) 30%,transparent 33%);background-size:16px 16px}
+.title{font-family:'Inter Display';font-weight:900;font-style:italic;letter-spacing:-.02em;line-height:.9;-webkit-text-stroke:5px var(--k);paint-order:stroke fill;text-shadow:9px 9px 0 var(--k)}
+.bub{position:absolute;background:#fff;border:6px solid var(--k);border-radius:46px;padding:26px 34px;font-family:'Comic Neue';font-weight:700;font-size:44px;line-height:1.15;box-shadow:7px 7px 0 var(--k)}
+.bub::after{content:'';position:absolute;bottom:-34px;left:60px;border:18px solid transparent;border-top:22px solid var(--k);border-left:8px solid transparent}
+.bub.r::after{left:auto;right:60px}
+.burst{position:absolute;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-style:italic;text-align:center;line-height:.9;-webkit-text-stroke:4px var(--k);paint-order:stroke fill}
+.burst svg{position:absolute;inset:0;width:100%;height:100%}
+.burst span{position:relative}
+.cap-box{position:absolute;background:var(--y);border:6px solid var(--k);padding:10px 22px;font-family:'Inter Display';font-weight:900;font-size:30px;letter-spacing:1px;box-shadow:6px 6px 0 var(--k)}
+#hud{position:absolute;top:56px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center}
+#hud .a{background:var(--k);color:var(--y);font-family:'Inter Display';font-weight:900;font-style:italic;font-size:34px;padding:10px 22px;transform:rotate(-2deg)}
+#hud .b{background:var(--r);color:#fff;border:5px solid var(--k);font-family:'Inter Display';font-weight:900;font-size:26px;padding:8px 18px;transform:rotate(2deg);box-shadow:5px 5px 0 var(--k)}
+#capbar{position:absolute;left:50px;right:50px;top:1470px;min-height:230px;background:#fff;border:8px solid var(--k);box-shadow:12px 12px 0 var(--k);padding:36px 40px}
+#capbar .tg{position:absolute;left:30px;top:-30px;background:var(--b);color:#fff;border:5px solid var(--k);padding:4px 14px;font-family:'Inter Display';font-weight:900;font-size:22px}
+.cap{position:absolute;left:40px;right:40px;top:36px;font-family:'Inter Display';font-weight:900;font-size:58px;line-height:1.18;letter-spacing:-1px;opacity:0}
+.cap .w{display:inline-block;margin-right:15px;opacity:.25}
+.cap .hl{background:var(--r);color:#fff;padding:0 12px;border:4px solid var(--k);transform:rotate(-2deg)}
+#tr{position:absolute;left:540px;top:900px;width:0;height:0;z-index:60;pointer-events:none}
+#speed{position:absolute;left:540px;top:820px;width:0;height:0;pointer-events:none}
+svg{overflow:visible}
+</style></head>
+<body><div id="stage">
+<div class="dots" id="dots"></div>
+<div id="speed"></div>
+<div id="hud"><div class="a">DEV INVENTOR COMICS</div><div class="b">REPLY HERO!</div></div>
+<div id="scenes"></div>
+<div id="capbar"><div class="tg">TENGLISH CC</div></div>
+<div id="tr"></div>
+</div>
+<script>
+const TL=__TIMELINE__;const NAME='Dev Inventor';
+const E={out:'cubic-bezier(.16,1,.3,1)',back:'cubic-bezier(.34,1.7,.64,1)',io:'cubic-bezier(.65,0,.35,1)'};
+const A=(el,kf,st,du,ea=E.out,fill='both',x={})=>el.animate(kf,Object.assign({delay:st*1000,duration:du*1000,fill,easing:ea},x));
+const H=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
+const add=(p,h)=>{const e=H(h);p.appendChild(e);return e};
+const fadeTo=(el,t,kf,d=.3)=>A(el,kf,t,d,E.io,'forwards');
+const slam=(el,t,rot=0,d=.45)=>A(el,[{opacity:0,transform:`scale(2.2) rotate(${rot-10}deg)`},{opacity:1,transform:`scale(.92) rotate(${rot+2}deg)`,offset:.6},{opacity:1,transform:`scale(1) rotate(${rot}deg)`}],t,d,'cubic-bezier(.2,.9,.3,1)');
+const pop=(el,t,d=.45,base='')=>A(el,[{opacity:0,transform:`${base} scale(.2)`},{opacity:1,transform:`${base} scale(1)`}],t,d,E.back);
+const panelIn=(el,t,dir=1,rot=0)=>A(el,[{opacity:0,transform:`translateX(${dir*700}px) rotate(${dir*8}deg)`},{opacity:1,transform:`rotate(${rot}deg)`}],t,.5,E.back);
+const T=TL.total;const stage=document.getElementById('stage');
+function shake(t,amp=14){const kf=[];for(let i=0;i<7;i++)kf.push({transform:`translate(${(i%2?1:-1)*amp*(1-i/7)}px,${(i%3-1)*amp*.6*(1-i/7)}px)`});kf.push({transform:'translate(0,0)'});A(stage,kf,t,.35,'linear','none',{composite:'add'});}
+function starPts(n,ro,ri,cx,cy){let p=[];for(let i=0;i<n*2;i++){const r=i%2?ri:ro,a=Math.PI*i/n-Math.PI/2;p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));}return p.join(' ');}
+function burst(par,txt,{x,y,w=420,h=320,fill='#ff3b30',col='#fff',fs=90,rot=-8,t,pts=14}){const b=add(par,`<div class="burst" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;font-size:${fs}px;color:${col};transform:rotate(${rot}deg)"><svg viewBox="0 0 ${w} ${h}"><polygon points="${starPts(pts,w/2-6,w/2*.68,w/2,h/2).split(' ').map(s=>{const [a,b]=s.split(',');return a+','+(h/2+(b-h/2)*(h/w))}).join(' ')}" fill="${fill}" stroke="#111" stroke-width="8" stroke-linejoin="round"/></svg><span>${txt}</span></div>`);slam(b,t,rot);shake(t+.08,10);return b;}
+function title(par,html,{x=60,y=190,size=130,color='#fff',t,rot=-2,w=960,align='left'}){const e=add(par,`<div class="abs title" style="left:${x}px;top:${y}px;width:${w}px;font-size:${size}px;color:${color};transform:rotate(${rot}deg);text-align:${align}">${html}</div>`);slam(e,t,rot,.5);return e;}
+// background dots drift + speed lines
+A(document.getElementById('dots'),[{transform:'translate(0,0)'},{transform:'translate(-22px,22px)'}],0,1.2,'linear','none',{iterations:Math.ceil(T/1.2)});
+const SP=document.getElementById('speed');
+for(let i=0;i<36;i++){const a=i*10,len=900+(i*97)%500;const l=add(SP,`<div class="abs" style="left:0;top:-6px;width:${len}px;height:${6+(i%3)*4}px;background:rgba(255,255,255,${.35+(i%4)*.1});transform-origin:0 50%;transform:rotate(${a}deg) translateX(260px)"></div>`);}
+A(SP,[{transform:'rotate(0) scale(1)'},{transform:'rotate(10deg) scale(1.05)'}],0,.8,'ease-in-out','none',{iterations:Math.ceil(T/.8),direction:'alternate'});
+A(document.getElementById('hud'),[{opacity:0,transform:'translateY(-60px)'},{opacity:1,transform:'none'}],.2,.5,E.back);
+
+// timings
+const lines=TL.lines,sc={},order=[];
+lines.forEach(l=>{if(!sc[l.scene]){sc[l.scene]={lines:[]};order.push(l.scene)}sc[l.scene].lines.push(l)});
+order.forEach((k,i)=>sc[k].start=i?sc[k].lines[0].start-.45:0);
+order.forEach((k,i)=>sc[k].end=i<order.length-1?sc[order[i+1]].start:TL.total);
+const L=(s,i)=>s.lines[i].start, Le=(s,i)=>s.lines[i].end;
+const S=document.getElementById('scenes'),TR=document.getElementById('tr');
+const trCols=['#1e6fff','#ff3b30','#ffffff','#3fd0ff','#ff6fb5'];let ti=0;
+function starWipe(t){const c=trCols[ti++%trCols.length];const w=600,h=600;const s=add(TR,`<div class="abs" style="left:-300px;top:-300px;width:600px;height:600px;transform:scale(0)"><svg viewBox="0 0 600 600" style="width:100%;height:100%"><polygon points="${starPts(16,296,210,300,300)}" fill="${c}" stroke="#111" stroke-width="10" stroke-linejoin="round"/></svg></div>`);
+ A(s,[{transform:'scale(0) rotate(0)'},{transform:'scale(5.2) rotate(70deg)',offset:.5},{transform:'scale(5.2) rotate(80deg)',offset:.55},{transform:'scale(5.6) rotate(90deg)',opacity:0}],t,.6,'cubic-bezier(.6,0,.3,1)','none');}
+function mk(k){const s=sc[k];s.el=add(S,`<div class="scene"></div>`);
+ if(s.start>0){starWipe(s.start-.3);A(s.el,[{opacity:0},{opacity:1}],s.start,.01,'linear');}
+ else A(s.el,[{opacity:0},{opacity:1}],0,.01,'linear');
+ if(k!=='follow')A(s.el,[{opacity:1},{opacity:0}],s.end,.01,'linear','forwards');
+ return s;}
+const check=(c,sz=40)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="${c}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+/* HOOK */
+(()=>{const s=mk('hook');
+ title(s.el,'TIME<br><span style="color:var(--r)">LEDA?!</span>',{y:180,size:190,t:.25});
+ const ph=add(s.el,`<div class="panel" style="left:560px;top:520px;width:420px;height:760px;border-radius:50px;background:#1b1b22"><div class="ht" style="opacity:.3"></div><div class="lst abs" style="left:24px;right:24px;top:30px"></div></div>`);panelIn(ph,.5,1,4);
+ const lst=ph.querySelector('.lst');
+ ['super bro!','prompt kavali','ela chesav??','next video?','tutorial pls','naku kuda!','bro reply!!','amazing','DM chesa','link?','wow!!'].forEach((c,i)=>{const e=add(lst,`<div style="background:#fff;border:4px solid #111;border-radius:24px;padding:12px 18px;margin-bottom:12px;font-family:'Comic Neue';font-weight:700;font-size:30px">${c}</div>`);A(e,[{opacity:0,transform:'translateX(80px)'},{opacity:1,transform:'none'}],.7+i*.15,.25,E.back);});
+ A(lst,[{transform:'translateY(0)'},{transform:'translateY(-380px)'}],1.8,1.4,'cubic-bezier(.4,0,.6,1)','forwards');
+ const cnt=add(s.el,`<div class="abs" style="left:880px;top:480px;width:150px;height:150px;border-radius:50%;background:var(--r);border:7px solid #111;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:46px;color:#fff;z-index:3">999+</div>`);pop(cnt,1.2,.4);
+ A(cnt,[{transform:'scale(1)'},{transform:'scale(1.15)'},{transform:'scale(1)'}],1.7,.4,E.io,'none',{iterations:3});
+ burst(s.el,'2 MINS!',{x:60,y:780,w:500,h:420,fs:100,fill:'#1e6fff',t:L(s,1)+.1,rot:-10});
+ const cl=add(s.el,`<div class="abs hand" style="left:70px;top:1320px;font-size:46px;transform:rotate(-3deg)">Claude tho annitiki reply!</div>`);pop(cl,L(s,1)+.6,.4);
+})();
+
+/* WHY */
+(()=>{const s=mk('why');
+ title(s.el,'WHY<br><span style="color:var(--b)">REPLY?</span>',{y:180,size:170,t:s.start+.1});
+ const p=add(s.el,`<div class="panel" style="left:60px;top:560px;width:960px;height:780px"><div class="ht"></div></div>`);panelIn(p,L(s,0)-.15,-1,-1);
+ const g=add(p,`<svg class="abs" style="left:60px;top:80px;width:560px;height:560px" viewBox="0 0 560 560"><path d="M20 520 H540 M20 520 V20" stroke="#111" stroke-width="8" fill="none"/><path class="ln" d="M40 480 L160 420 L260 440 L360 300 L460 200 L530 60" stroke="#ff3b30" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+ const ln=g.querySelector('.ln');const len=ln.getTotalLength();ln.style.strokeDasharray=len;A(ln,[{strokeDashoffset:len},{strokeDashoffset:0}],L(s,0)+.3,1,'ease-in-out');
+ burst(p,'REACH ↑',{x:520,y:60,w:400,h:300,fs:72,fill:'#ffde21',col:'#111',t:L(s,0)+1.1,rot:8});
+ const hearts=add(p,`<div class="abs" style="left:600px;top:420px;width:320px;height:300px"></div>`);
+ for(let i=0;i<6;i++){const e=add(hearts,`<div class="abs" style="left:${(i%3)*100}px;top:${Math.floor(i/2)*90}px;font-size:80px;color:#ff3b30;-webkit-text-stroke:3px #111">♥</div>`);A(e,[{opacity:0,transform:'translateY(60px) scale(.3)'},{opacity:1,transform:'none'}],L(s,0)+1.6+i*.12,.4,E.back);}
+ const fb=add(s.el,`<div class="bub" style="left:120px;top:1230px;width:640px">Followers daggara avutharu!</div>`);pop(fb,L(s,0)+2.3,.4);
+})();
+
+/* STEP 1 copy/paste */
+(()=>{const s=mk('s1');
+ title(s.el,'STEP 1:<br><span style="color:var(--r)">COPY</span>',{y:180,size:170,t:s.start+.1});
+ const a=add(s.el,`<div class="panel" style="left:60px;top:580px;width:440px;height:640px;padding:30px"><div class="mono" style="font-size:22px;font-weight:800">COMMENTS</div></div>`);panelIn(a,L(s,0)-.1,-1,-2);
+ ['super bro!','prompt kavali','ela chesav??','next video?'].forEach((c,i)=>{const e=add(a,`<div style="margin-top:18px;background:#e9f1ff;border:4px solid #111;border-radius:20px;padding:12px 16px;font-family:'Comic Neue';font-weight:700;font-size:32px">${c}</div>`);A(e,[{background:'#e9f1ff'},{background:'#ffde21'}],L(s,0)+.8+i*.1,.15,'steps(1)','forwards');});
+ const b=add(s.el,`<div class="panel" style="left:580px;top:580px;width:440px;height:640px;padding:30px;background:#14141c;color:#fff"><div class="mono" style="font-size:22px;font-weight:800;color:var(--c)">CLAUDE</div><div class="pst abs" style="left:30px;right:30px;top:90px;opacity:0"></div></div>`);panelIn(b,L(s,0)+.1,1,2);
+ const pst=b.querySelector('.pst');['super bro!','prompt kavali','ela chesav??','next video?'].forEach(c=>add(pst,`<div style="margin-bottom:14px;font-family:'JetBrains Mono';font-size:26px">&gt; ${c}</div>`));
+ A(pst,[{opacity:0,transform:'translateY(30px)'},{opacity:1,transform:'none'}],L(s,0)+2.2,.35,E.back,'forwards');
+ burst(s.el,'CTRL+C',{x:120,y:1150,w:380,h:260,fs:58,fill:'#3fd0ff',col:'#111',t:L(s,0)+1.1,rot:-8});
+ burst(s.el,'CTRL+V',{x:600,y:1150,w:380,h:260,fs:58,fill:'#ff6fb5',col:'#111',t:L(s,0)+2.0,rot:8});
+})();
+
+/* STEP 2 prompt */
+(()=>{const s=mk('s2');
+ title(s.el,'STEP 2:<br><span style="color:var(--b)">ASK!</span>',{y:180,size:170,t:s.start+.1});
+ const bub=add(s.el,`<div class="bub" style="left:70px;top:590px;width:940px;min-height:520px;padding:50px 54px;font-size:56px;line-height:1.25"><div class="ty"></div></div>`);pop(bub,L(s,0)+.1,.5);
+ const txt='"Prathi comment ki friendly Tenglish reply ivvu, chinnaga."';const ty=bub.querySelector('.ty');const chars=[...txt];const span=(Le(s,0)-L(s,0))*.8;
+ chars.forEach((ch,i)=>{const e=add(ty,`<span>${ch===' '?' ':ch}</span>`);A(e,[{opacity:0},{opacity:1}],L(s,0)+.4+span*i/chars.length,.01,'linear');});
+ burst(s.el,'ZAP!',{x:640,y:1120,w:360,h:300,fs:96,fill:'#ffde21',col:'#ff3b30',t:Le(s,0)-.3,rot:10});
+})();
+
+/* EXAMPLES — comment -> reply */
+(()=>{const s=mk('ex');
+ title(s.el,'REPLIES<br><span style="color:var(--r)">READY!</span>',{y:180,size:160,t:s.start+.1});
+ const rows=[['Super bro','Thanks bro! Next video inka baguntundi!',[0,1]],['Prompt kavali','DM chesa, check cheyyandi!',[2,2]]];
+ rows.forEach(([c,r,[ci,ri]],i)=>{const y=560+i*430;
+  const cb=add(s.el,`<div class="bub" style="left:60px;top:${y}px;max-width:520px;background:#e9e9ef">"${c}"</div>`);pop(cb,L(s,ci)+.05,.4);
+  const rb=add(s.el,`<div class="bub r" style="left:330px;top:${y+150}px;width:690px;background:#1e6fff;color:#fff">${r} <span style="display:inline-block;vertical-align:middle">${check('#ffde21',44)}</span></div>`);pop(rb,L(s,ri)+(i==0?.1:1.3),.45);});
+ const pw=burst(s.el,'POW!',{x:640,y:380,w:360,h:280,fs:90,fill:'#ff3b30',col:'#ffde21',t:L(s,1)+.2,rot:12});
+})();
+
+/* TIP */
+(()=>{const s=mk('tip');
+ burst(s.el,'PRO TIP!',{x:60,y:170,w:620,h:380,fs:104,fill:'#ff3b30',col:'#fff',t:s.start+.1,rot:-6,pts:16});
+ const p=add(s.el,`<div class="panel" style="left:60px;top:600px;width:960px;height:330px;padding:36px"><div class="mono" style="font-size:22px;font-weight:800">REPLY + QUESTION</div><div class="hand" style="margin-top:20px;font-size:50px;line-height:1.2">"Thanks bro! <span class="q" style="background:#ffde21;padding:0 10px;border:4px solid #111">Meeku edi nachindi?</span>"</div></div>`);panelIn(p,L(s,0)+.3,-1,-1);
+ A(p.querySelector('.q'),[{background:'#fffdf5'},{background:'#ffde21'}],L(s,0)+1.4,.15,'steps(1)','forwards');
+ const lp=add(s.el,`<div class="abs hand" style="left:640px;top:950px;font-size:40px;transform:rotate(-5deg)">= conversation continues ↻</div>`);pop(lp,L(s,0)+2,.4);
+ const p2=add(s.el,`<div class="panel" style="left:60px;top:1030px;width:960px;height:330px;padding:36px;background:#fff6c7"><div class="mono" style="font-size:22px;font-weight:800;color:#ff3b30">⚠ BEFORE POSTING</div><div style="display:flex;gap:30px;margin-top:26px;font-family:'Inter Display';font-weight:900;font-size:52px"><span class="s1">1. READ ✓</span><span class="s2">2. ADD YOUR TOUCH ✎</span></div></div>`);panelIn(p2,L(s,1)-.1,1,1);
+ A(p2.querySelector('.s1'),[{opacity:0,transform:'scale(.4)'},{opacity:1,transform:'scale(1)'}],L(s,1)+1,.35,E.back);A(p2.querySelector('.s2'),[{opacity:0,transform:'scale(.4)'},{opacity:1,transform:'scale(1)'}],L(s,1)+1.8,.35,E.back);
+})();
+
+/* CTA */
+(()=>{const s=mk('cta');
+ title(s.el,'COMMENT<br><span style="color:var(--r)">REPLY!</span>',{y:180,size:160,t:s.start+.1});
+ const p=add(s.el,`<div class="panel" style="left:60px;top:580px;width:960px;height:760px;padding:40px"><div class="mono" style="font-size:24px;font-weight:800">COMMENTS</div><div class="lst" style="margin-top:20px"></div></div>`);panelIn(p,s.start+.3,1,0);
+ const lst=p.querySelector('.lst');[['@friend1','super idea!'],['@friend2','naku kavali']].forEach(([u,t])=>add(lst,`<div class="bub" style="position:relative;margin:0 0 50px;display:inline-block;font-size:40px;padding:18px 28px"><span class="mono" style="font-size:22px;color:#1e6fff">${u}</span> ${t}</div><br>`));
+ const nc=add(lst,`<div class="bub" style="position:relative;display:inline-block;background:#ff3b30;color:#fff;font-family:'Inter Display';font-weight:900;font-size:56px;padding:16px 30px;opacity:0">REPLY!</div>`);
+ const inp=add(p,`<div style="position:absolute;left:40px;right:40px;bottom:40px;height:110px;border:6px solid #111;border-radius:60px;display:flex;align-items:center;justify-content:space-between;padding:0 14px 0 34px;background:#fff"><div class="ty mono" style="font-size:44px;font-weight:800"></div><div class="snd" style="width:84px;height:84px;border-radius:50%;background:#1e6fff;border:5px solid #111;display:flex;align-items:center;justify-content:center"><svg width="38" height="38" viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/></svg></div></div>`);
+ const ty=inp.querySelector('.ty');[...'REPLY'].forEach((ch,i)=>{const e=add(ty,`<span>${ch}</span>`);A(e,[{opacity:0},{opacity:1}],L(s,0)+1.3+i*.12,.01,'linear');});
+ const tap=L(s,0)+2.3;A(inp.querySelector('.snd'),[{transform:'scale(1)'},{transform:'scale(.8)'},{transform:'scale(1.1)'},{transform:'scale(1)'}],tap,.35,E.io,'forwards');
+ A(ty,[{opacity:1},{opacity:0}],tap+.1,.15,E.io,'forwards');A(nc,[{opacity:0,transform:'scale(.3) rotate(-10deg)'},{opacity:1,transform:'scale(1) rotate(-3deg)'}],tap+.15,.45,E.back,'forwards');shake(tap+.2,8);
+})();
+
+/* FOLLOW */
+(()=>{const s=mk('follow');
+ title(s.el,'FOLLOW',{x:0,w:1080,y:220,size:220,align:'center',t:s.start+.15,rot:-3});
+ const sub=add(s.el,`<div class="cap-box" style="left:300px;top:470px;transform:rotate(2deg)">FOR MORE CONTENT!</div>`);slam(sub,s.start+.5,2);
+ const p=add(s.el,`<div class="panel" style="left:140px;top:590px;width:800px;height:470px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px"><div class="ht"></div><div style="position:relative;width:200px;height:200px;border-radius:50%;background:#ffde21;border:8px solid #111;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-style:italic;font-size:96px">DI</div><div class="title" style="position:relative;font-size:84px;color:#fff;-webkit-text-stroke:4px #111;text-shadow:6px 6px 0 #111">${NAME}</div></div>`);panelIn(p,s.start+.4,-1,-1);
+ const btn=add(s.el,`<div class="abs" style="left:190px;top:1120px;width:700px;height:170px;border-radius:30px;background:var(--r);border:9px solid #111;box-shadow:12px 12px 0 #111;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-style:italic;font-size:96px;color:#fff"><span class="a">FOLLOW!</span><span class="b abs" style="opacity:0;color:#111">FOLLOWING ✓</span></div>`);
+ slam(btn,L(s,0)+.25,0);
+ const tap=Le(s,0)+.1;
+ const cur=add(s.el,`<div class="abs" style="left:900px;top:1500px;width:70px;height:70px;z-index:9"><svg width="70" height="70" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg></div>`);
+ A(cur,[{opacity:0,transform:'translate(0,0)'},{opacity:1,transform:'translate(-300px,-300px)'}],tap-.7,.6,E.out);
+ A(cur,[{transform:'translate(-300px,-300px) scale(1)'},{transform:'translate(-300px,-300px) scale(.75)'},{transform:'translate(-300px,-300px) scale(1)'}],tap,.25,E.io,'forwards');
+ A(btn,[{background:'#ff3b30',boxShadow:'12px 12px 0 #111',transform:'translate(0,0)'},{background:'#ffde21',boxShadow:'0 0 0 #111',transform:'translate(12px,12px)'}],tap+.03,.15,'steps(2)','forwards');
+ A(btn.querySelector('.a'),[{opacity:1},{opacity:0}],tap,.1,'linear','forwards');A(btn.querySelector('.b'),[{opacity:0,transform:'scale(.5)'},{opacity:1,transform:'scale(1)'}],tap+.1,.35,E.back);
+ burst(s.el,'BAM!',{x:700,y:960,w:320,h:250,fs:80,fill:'#1e6fff',col:'#ffde21',t:tap+.2,rot:12});
+})();
+
+/* CAPTIONS */
+const CB=document.getElementById('capbar');A(CB,[{opacity:0,transform:'translateY(300px) rotate(-4deg)'},{opacity:1,transform:'none'}],.3,.55,E.back);
+lines.forEach((l,idx)=>{
+ const ws=l.cap.replace(/\*([^*]+)\*/g,(m,g)=>g.split(' ').map(w=>'§'+w).join(' ')).split(' ');
+ const plain=l.cap.replace(/\*/g,'');const fs=plain.length>62?46:plain.length>46?52:58;
+ const el=add(CB,`<div class="cap" style="font-size:${fs}px"></div>`);const dur=(l.end-l.start)*.92;
+ ws.forEach((w,i)=>{const hl=w.startsWith('§');const e=add(el,`<span class="w${hl?' hl':''}">${w.replace('§','')}</span>`);
+  const t=l.start+dur*i/ws.length;A(e,[{opacity:.25},{opacity:1}],t,.08,'linear');
+  if(hl)A(e,[{transform:'scale(.3) rotate(-10deg)'},{transform:'scale(1.15) rotate(-2deg)',offset:.6},{transform:'scale(1) rotate(-2deg)'}],t,.35,E.back,'forwards');});
+ const nxt=idx<lines.length-1?lines[idx+1].start:TL.total;
+ A(el,[{opacity:0,transform:'translateY(20px)'},{opacity:1,transform:'none'}],l.start-.15,.18,E.back);
+ A(el,[{opacity:1},{opacity:0}],Math.min(nxt-.15,l.end+.7),.1,'linear','forwards');
+});
+window.seek=t=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+seek(0);window.READY=true;
+</script></body></html>
