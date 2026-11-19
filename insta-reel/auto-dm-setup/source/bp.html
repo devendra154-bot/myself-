@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bp:#0b3d91;--bp2:#0a3380;--ln:#e8f1ff;--dim:rgba(232,241,255,.55);--or:#ffb347;--gr:#7dffb0}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bp);font-family:'JetBrains Mono',monospace;color:var(--ln)}
+#stage{position:absolute;inset:0;overflow:hidden}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(232,241,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(232,241,255,.07) 1px,transparent 1px),linear-gradient(rgba(232,241,255,.16) 2px,transparent 2px),linear-gradient(90deg,rgba(232,241,255,.16) 2px,transparent 2px);background-size:30px 30px,30px 30px,150px 150px,150px 150px}
+.vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 45%,rgba(3,15,45,.65));pointer-events:none}
+.border{position:absolute;left:30px;right:30px;top:30px;bottom:30px;border:3px solid var(--dim);pointer-events:none}
+.scene{position:absolute;inset:0;opacity:0}
+.abs{position:absolute}
+.D{font-family:'Inter Display';font-weight:900;letter-spacing:-.03em;line-height:.92}
+.out{color:transparent;-webkit-text-stroke:3px var(--ln)}
+.node{position:absolute;border:3px solid var(--ln);background:rgba(11,61,145,.85);padding:22px 26px}
+.node .k{font-size:20px;letter-spacing:3px;color:var(--dim)}
+.node .v{font-family:'Inter Display';font-weight:900;font-size:40px;margin-top:8px;letter-spacing:-.5px}
+.lbl{position:absolute;font-size:22px;letter-spacing:3px;color:var(--dim)}
+.step{position:absolute;left:60px;top:170px;display:flex;align-items:center;gap:22px}
+.step .c{width:110px;height:110px;border:4px solid var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:60px;color:var(--or)}
+.step .t{font-size:24px;letter-spacing:5px;color:var(--or)}
+#hud{position:absolute;top:56px;left:60px;right:60px;display:flex;justify-content:space-between;font-size:22px;letter-spacing:4px;color:var(--dim)}
+#tblock{position:absolute;right:60px;top:1330px;width:430px;border:3px solid var(--dim);font-size:16px;letter-spacing:2px;color:var(--dim)}
+#tblock div{display:flex;justify-content:space-between;padding:6px 10px;border-bottom:2px solid var(--dim)}
+#tblock div:last-child{border-bottom:none}
+#capbar{position:absolute;left:60px;right:60px;top:1470px;min-height:220px;border:3px solid var(--ln);background:rgba(8,40,100,.92);padding:36px 40px}
+#capbar .tg{position:absolute;left:24px;top:-16px;background:var(--bp);padding:0 10px;font-size:20px;letter-spacing:3px;color:var(--or)}
+.cap{position:absolute;left:40px;right:40px;top:36px;font-family:'Inter Display';font-weight:900;font-size:58px;line-height:1.18;letter-spacing:-1px;opacity:0}
+.cap .w{display:inline-block;margin-right:15px;opacity:.28}
+.cap .hl{color:var(--bp);background:var(--or);padding:0 10px}
+#scan{position:absolute;left:0;right:0;height:6px;top:0;z-index:50;background:#fff;box-shadow:0 0 30px 8px rgba(160,210,255,.9);opacity:0;pointer-events:none}
+svg{overflow:visible}
+</style></head>
+<body><div id="stage">
+<div class="grid"></div><div class="vig"></div><div class="border"></div>
+<div id="hud"><span>DEV INVENTOR · BLUEPRINT</span><span id="sheet"></span></div>
+<div id="scenes"></div>
+<div id="tblock"><div><span>DWG</span><span>AUTO-DM FLOW</span></div><div><span>TOOL</span><span>MANYCHAT + IG</span></div><div><span>BY</span><span>DEV INVENTOR</span></div></div>
+<div id="capbar"><div class="tg">TENGLISH CC</div></div>
+<div id="scan"></div>
+</div>
+<script>
+const TL=__TIMELINE__;const NAME='Dev Inventor';
+const E={out:'cubic-bezier(.16,1,.3,1)',back:'cubic-bezier(.34,1.56,.64,1)',io:'cubic-bezier(.65,0,.35,1)'};
+const A=(el,kf,st,du,ea=E.out,fill='both',x={})=>el.animate(kf,Object.assign({delay:st*1000,duration:du*1000,fill,easing:ea},x));
+const H=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
+const add=(p,h)=>{const e=H(h);p.appendChild(e);return e};
+const fadeTo=(el,t,kf,d=.3)=>A(el,kf,t,d,E.io,'forwards');
+const T=TL.total;
+// draw any svg's paths
+function svg(par,inner,{x,y,w,h,t,dur=.8,stroke='#e8f1ff',sw=4,dash=false}){const s=add(par,`<svg class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px" viewBox="0 0 ${w} ${h}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`);
+ s.querySelectorAll('path,rect,circle,line,polyline').forEach((p,i,arr)=>{const L=p.getTotalLength?p.getTotalLength():400;p.style.strokeDasharray=dash?'14 12':L;if(dash){A(p,[{opacity:0},{opacity:1}],t+i*dur/arr.length,.2,'linear');}else A(p,[{strokeDashoffset:L},{strokeDashoffset:0}],t+i*(dur*.6)/arr.length,dur*.7,'ease-in-out');});return s;}
+const boxIn=(el,t,d=.5)=>A(el,[{clipPath:'inset(0 100% 100% 0)',opacity:1},{clipPath:'inset(0 0 0 0)',opacity:1}],t,d,E.io);
+const pop=(el,t,d=.4)=>A(el,[{opacity:0,transform:'scale(.5)'},{opacity:1,transform:'scale(1)'}],t,d,E.back);
+const rise=(el,t,d=.45,dy=30)=>A(el,[{opacity:0,transform:`translateY(${dy}px)`},{opacity:1,transform:'none'}],t,d,E.out);
+function typeIn(el,txt,t,span){const chars=[...txt];chars.forEach((ch,i)=>{const e=add(el,`<span>${ch===' '?' ':ch}</span>`);A(e,[{opacity:0},{opacity:1}],t+span*i/chars.length,.01,'linear');});}
+// arrow between points (with head), drawn
+function arrow(par,x1,y1,x2,y2,t,col='#e8f1ff',dash=false){const minx=Math.min(x1,x2)-30,miny=Math.min(y1,y2)-30,w=Math.abs(x2-x1)+60,h=Math.abs(y2-y1)+60;const ax=x1-minx,ay=y1-miny,bx=x2-minx,by=y2-miny;const ang=Math.atan2(by-ay,bx-ax);const hx1=bx-22*Math.cos(ang-.45),hy1=by-22*Math.sin(ang-.45),hx2=bx-22*Math.cos(ang+.45),hy2=by-22*Math.sin(ang+.45);
+ return svg(par,`<path d="M${ax} ${ay} L${bx} ${by}" ${dash?'stroke-dasharray="12 10"':''}/><path d="M${hx1} ${hy1} L${bx} ${by} L${hx2} ${hy2}"/>`,{x:minx,y:miny,w,h,t,dur:.5,stroke:col});}
+// dimension callout
+function dim(par,x,y,w,txt,t){const g=add(par,`<div class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:40px"></div>`);svg(g,`<path d="M0 8 V32 M${w} 8 V32 M0 20 H${w}"/>`,{x:0,y:0,w,h:40,t,dur:.5,stroke:'#ffb347',sw:3});const l=add(g,`<div class="abs" style="left:0;width:${w}px;top:-30px;text-align:center;font-size:20px;letter-spacing:2px;color:#ffb347">${txt}</div>`);A(l,[{opacity:0},{opacity:1}],t+.4,.2,'linear');}
+
+A(document.getElementById('hud'),[{opacity:0},{opacity:1}],.1,.4,'linear');
+A(document.getElementById('tblock'),[{clipPath:'inset(0 0 100% 0)'},{clipPath:'inset(0 0 0 0)'}],.4,.6,E.io);
+
+// timings
+const lines=TL.lines,sc={},order=[];
+lines.forEach(l=>{if(!sc[l.scene]){sc[l.scene]={lines:[]};order.push(l.scene)}sc[l.scene].lines.push(l)});
+order.forEach((k,i)=>sc[k].start=i?sc[k].lines[0].start-.45:0);
+order.forEach((k,i)=>sc[k].end=i<order.length-1?sc[order[i+1]].start:TL.total);
+const L=(s,i)=>s.lines[i].start, Le=(s,i)=>s.lines[i].end;
+const S=document.getElementById('scenes'),SC=document.getElementById('scan'),SH=document.getElementById('sheet');
+// sheet number label
+order.forEach((k,i)=>{const e=add(SH,`<span class="abs" style="right:0;top:0;white-space:nowrap">SHEET ${String(i+1).padStart(2,'0')}/${String(order.length).padStart(2,'0')}</span>`);A(e,[{opacity:0},{opacity:1}],sc[k].start,.01,'linear');if(i<order.length-1)A(e,[{opacity:1},{opacity:0}],sc[k].end,.01,'linear','forwards');});
+SH.style.position='relative';SH.style.display='inline-block';SH.style.width='300px';SH.style.height='30px';
+function mk(k){const s=sc[k];s.el=add(S,`<div class="scene"></div>`);
+ if(s.start>0){ // laser scan: new sheet revealed top-to-bottom
+  A(SC,[{top:'0px',opacity:1},{top:'1920px',opacity:1}],s.start-.05,.5,'cubic-bezier(.5,0,.5,1)','none');
+  A(s.el,[{opacity:1,clipPath:'inset(0 0 100% 0)'},{opacity:1,clipPath:'inset(0 0 0% 0)'}],s.start-.05,.5,'cubic-bezier(.5,0,.5,1)');
+ }else A(s.el,[{opacity:0},{opacity:1}],0,.3,'linear');
+ if(k!=='follow')A(s.el,[{opacity:1},{opacity:0}],s.end+.4,.01,'linear','forwards');
+ return s;}
+function step(s,n,txt){const e=add(s.el,`<div class="step"><div class="c">${n}</div><div><div class="t">STEP ${n} / 5</div><div class="D" style="font-size:66px;margin-top:6px">${txt}</div></div></div>`);
+ A(e.querySelector('.c'),[{opacity:0,transform:'rotate(-180deg) scale(.3)'},{opacity:1,transform:'none'}],s.start+.4,.5,E.back);rise(e.querySelector('div:last-child'),s.start+.55);return e;}
+const phonePath=(w,h)=>`<rect x="2" y="2" width="${w-4}" height="${h-4}" rx="44"/><path d="M${w/2-50} 26 H${w/2+50}"/>`;
+
+A(document.getElementById('tblock'),[{opacity:1},{opacity:0}],sc.hook.end-.1,.2,E.io,'forwards');
+A(document.getElementById('tblock'),[{opacity:0},{opacity:1}],sc.follow.start+1.2,.3,E.io,'forwards');
+/* HOOK */
+(()=>{const s=mk('hook');
+ const t1=add(s.el,`<div class="abs D out" style="left:60px;top:190px;font-size:190px">AUTO</div>`),t2=add(s.el,`<div class="abs D" style="left:60px;top:370px;font-size:190px;color:var(--or)">DM</div>`);
+ A(t1,[{opacity:0,clipPath:'inset(0 100% 0 0)'},{opacity:1,clipPath:'inset(0 0 0 0)'}],.3,.6,E.io);A(t2,[{opacity:0,clipPath:'inset(0 100% 0 0)'},{opacity:1,clipPath:'inset(0 0 0 0)'}],.6,.6,E.io);
+ const lb=add(s.el,`<div class="lbl" style="left:460px;top:440px;font-size:28px;color:var(--ln)">// BLUEPRINT<br>// COMMENT → DM</div>`);rise(lb,.9);
+ // comment bubble -> gear -> envelope
+ svg(s.el,`<path d="M20 20 H240 a20 20 0 0 1 20 20 V140 a20 20 0 0 1 -20 20 H90 L50 200 V160 H40 a20 20 0 0 1 -20 -20 Z"/><path d="M60 70 H220 M60 110 H180"/>`,{x:60,y:640,w:280,h:220,t:1});
+ const kw=add(s.el,`<div class="abs D" style="left:100px;top:880px;font-size:40px;color:var(--or)">"PROMPT"</div>`);rise(kw,1.6);
+ const gear=svg(s.el,`<circle cx="110" cy="110" r="48"/><circle cx="110" cy="110" r="18"/>${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<path d="M${110+58*Math.cos(r)} ${110+58*Math.sin(r)} L${110+82*Math.cos(r)} ${110+82*Math.sin(r)}"/>`}).join('')}`,{x:430,y:640,w:220,h:220,t:L(s,0)+.6,stroke:'#ffb347',sw:6});
+ A(gear,[{transform:'rotate(0)'},{transform:'rotate(360deg)'}],L(s,0)+.8,4,'linear','none',{iterations:3});
+ svg(s.el,`<rect x="10" y="40" width="240" height="160" rx="10"/><path d="M10 50 L130 130 L250 50"/>`,{x:760,y:640,w:260,h:220,t:L(s,0)+1.2});
+ arrow(s.el,350,750,420,750,L(s,0)+.9,'#e8f1ff',true);arrow(s.el,665,750,750,750,L(s,0)+1.4,'#e8f1ff',true);
+ [['COMMENT',120],['MANYCHAT',470],['AUTO DM',820]].forEach(([t,x],i)=>{const e=add(s.el,`<div class="lbl" style="left:${x}px;top:890px">${t}</div>`);rise(e,i?L(s,0)+1.2+i*.2:1.4);});
+ const five=add(s.el,`<div class="abs" style="left:60px;top:1010px;width:960px;height:280px;border:3px dashed var(--or);display:flex;align-items:center;justify-content:center;gap:24px"></div>`);boxIn(five,L(s,1)-.1);
+ for(let i=1;i<=5;i++){const c=add(five,`<div style="width:130px;height:130px;border:4px solid var(--ln);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:64px">${i}</div>`);pop(c,L(s,1)+.2+i*.12);}
+})();
+
+/* S1 professional account */
+(()=>{const s=mk('s1');step(s,1,'Professional<br>account');
+ svg(s.el,phonePath(420,760),{x:330,y:470,w:420,h:760,t:L(s,0)+.2,dur:1});
+ const rows=['Settings','Account type','Professional ●'];rows.forEach((r,i)=>{const e=add(s.el,`<div class="abs" style="left:370px;top:${560+i*110}px;width:340px;height:86px;border:2px solid var(--dim);display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:26px">${r.replace(' ●','')}<span>${i<2?'›':''}</span></div>`);boxIn(e,L(s,0)+.6+i*.25,.35);});
+ const tg=add(s.el,`<div class="abs" style="left:610px;top:803px;width:84px;height:44px;border:3px solid var(--ln);border-radius:22px"><div class="k abs" style="left:4px;top:4px;width:30px;height:30px;border-radius:50%;background:var(--ln)"></div></div>`);A(tg,[{opacity:0},{opacity:1}],L(s,0)+1.2,.2,'linear');
+ const tt=L(s,0)+1.9;A(tg.querySelector('.k'),[{left:'4px',background:'#e8f1ff'},{left:'46px',background:'#7dffb0'}],tt,.3,E.back,'forwards');A(tg,[{borderColor:'#e8f1ff'},{borderColor:'#7dffb0'}],tt,.3,E.io,'forwards');
+ arrow(s.el,880,1000,720,830,L(s,0)+1.5,'#ffb347');
+ const cl=add(s.el,`<div class="lbl" style="left:780px;top:1010px;color:#ffb347;line-height:1.5">CREATOR or<br>BUSINESS</div>`);rise(cl,L(s,0)+1.9);
+ dim(s.el,330,1290,420,'SETTINGS → ACCOUNT TYPE',L(s,0)+2.2);
+})();
+
+/* S2 ManyChat connect */
+(()=>{const s=mk('s2');step(s,2,'Connect<br>ManyChat');
+ const a=add(s.el,`<div class="node" style="left:60px;top:560px;width:400px;height:240px"><div class="k">TOOL</div><div class="v" style="font-size:56px">ManyChat</div><div class="k" style="margin-top:14px">sign up ✓</div></div>`);boxIn(a,L(s,0)+.3);
+ const b=add(s.el,`<div class="node" style="left:620px;top:560px;width:400px;height:240px"><div class="k">ACCOUNT</div><div class="v" style="font-size:56px">Instagram</div><div class="k" style="margin-top:14px">professional ✓</div></div>`);boxIn(b,L(s,0)+.6);
+ svg(s.el,`<path d="M10 40 H70 M110 40 H170"/><rect x="62" y="22" width="56" height="36" rx="18"/>`,{x:450,y:640,w:180,h:80,t:L(s,0)+1.5,stroke:'#ffb347',sw:6});
+ const ok=add(s.el,`<div class="abs D" style="left:0;width:1080px;text-align:center;top:880px;font-size:84px;color:var(--gr)">CONNECTED ✓</div>`);pop(ok,L(s,0)+2.4,.45);
+ const nt=add(s.el,`<div class="lbl" style="left:60px;top:1040px;line-height:1.6">// manychat.com → Sign up → Instagram<br>// Facebook page link adagavachu — follow the steps</div>`);rise(nt,L(s,0)+2.8);
+})();
+
+/* S3 trigger + keyword (flowchart) */
+(()=>{const s=mk('s3');step(s,3,'Trigger +<br>keyword');
+ const n1=add(s.el,`<div class="node" style="left:60px;top:520px;width:960px;height:170px"><div class="k">TRIGGER</div><div class="v">User comments on post or reel</div></div>`);boxIn(n1,L(s,0)+.4);
+ arrow(s.el,540,700,540,770,L(s,0)+1.4);
+ const n2=add(s.el,`<div class="node" style="left:60px;top:780px;width:440px;height:200px"><div class="k">POST / REEL</div><div class="v">▶ select reel</div></div>`);boxIn(n2,L(s,1)-.1);
+ const n3=add(s.el,`<div class="node" style="left:580px;top:780px;width:440px;height:200px;border-color:var(--or)"><div class="k" style="color:var(--or)">KEYWORD</div><div class="v ty" style="color:var(--or);font-family:'JetBrains Mono';font-size:48px"></div></div>`);boxIn(n3,L(s,1)+.3);
+ typeIn(n3.querySelector('.ty'),'PROMPT',L(s,1)+1.4,.8);
+ arrow(s.el,500,880,575,880,L(s,1)+.6,'#ffb347');
+ dim(s.el,580,1000,440,'EXACT WORD MATCH',L(s,1)+2.2);
+})();
+
+/* S4 actions */
+(()=>{const s=mk('s4');step(s,4,'Reply +<br>DM message');
+ const n1=add(s.el,`<div class="node" style="left:60px;top:520px;width:960px;height:220px"><div class="k">ACTION 1 · PUBLIC COMMENT REPLY</div><div class="v" style="font-family:'Comic Neue','Inter';font-size:50px">"DM chesa, check cheyyandi!"</div></div>`);boxIn(n1,L(s,0)+.3);
+ arrow(s.el,540,750,540,820,L(s,1)-.3);
+ const n2=add(s.el,`<div class="node" style="left:60px;top:830px;width:960px;height:300px;border-color:var(--gr)"><div class="k" style="color:var(--gr)">ACTION 2 · DM MESSAGE</div><div class="v" style="font-size:46px;line-height:1.3">"Idigo mee prompt 👇"<br><span style="font-family:'JetBrains Mono';font-size:30px;color:var(--dim)">[ your prompt / link ]</span></div></div>`);boxIn(n2,L(s,1)+.1);
+ n2.querySelector('.v').innerHTML='"Idigo mee prompt ↓"<br><span style="font-family:\'JetBrains Mono\';font-size:30px;color:rgba(232,241,255,.55)">[ your prompt / link ]</span>';
+ svg(s.el,`<rect x="10" y="20" width="150" height="100" rx="8"/><path d="M10 28 L85 80 L160 28"/>`,{x:830,y:950,w:180,h:140,t:L(s,1)+.7,stroke:'#7dffb0',sw:5});
+})();
+
+/* S5 test + live */
+(()=>{const s=mk('s5');step(s,5,'Test →<br>Go live');
+ svg(s.el,phonePath(320,560),{x:60,y:520,w:320,h:560,t:L(s,0)+.2});svg(s.el,phonePath(320,560),{x:700,y:520,w:320,h:560,t:L(s,0)+.4});
+ const la=add(s.el,`<div class="lbl" style="left:60px;top:1095px">TEST ACCOUNT</div>`),lb=add(s.el,`<div class="lbl" style="left:700px;top:1095px">YOUR INBOX ↔</div>`);rise(la,L(s,0)+.6);rise(lb,L(s,0)+.8);
+ const cm=add(s.el,`<div class="abs" style="left:90px;top:640px;width:260px;padding:16px;border:2px solid var(--ln);font-family:'Inter Display';font-weight:900;font-size:40px">"PROMPT"</div>`);pop(cm,L(s,0)+.9);
+ const pk=add(s.el,`<div class="abs" style="left:400px;top:700px;font-size:46px;color:var(--or)">✉</div>`);A(pk,[{opacity:0,transform:'translateX(0)'},{opacity:1,transform:'translateX(60px)',offset:.2},{opacity:1,transform:'translateX(260px)',offset:.8},{opacity:0,transform:'translateX(300px)'}],L(s,0)+1.4,1,E.io);
+ const dmb=add(s.el,`<div class="abs" style="left:730px;top:640px;width:260px;padding:16px;border:2px solid var(--gr);color:var(--gr);font-family:'Inter Display';font-weight:900;font-size:34px">DM received ✓</div>`);pop(dmb,L(s,0)+2.3);
+ const sw=add(s.el,`<div class="abs" style="left:340px;top:1150px;width:400px;height:140px;border:4px solid var(--ln);border-radius:70px"><div class="k abs" style="left:10px;top:10px;width:112px;height:112px;border-radius:50%;background:var(--ln)"></div><div class="tx abs D" style="right:40px;top:36px;font-size:58px;color:var(--dim)">OFF</div></div>`);boxIn(sw,L(s,0)+2.4,.3);
+ const tt=L(s,0)+3.1;A(sw.querySelector('.k'),[{left:'10px',background:'#e8f1ff'},{left:'270px',background:'#7dffb0'}],tt,.35,E.back,'forwards');A(sw,[{borderColor:'#e8f1ff',boxShadow:'0 0 0 transparent'},{borderColor:'#7dffb0',boxShadow:'0 0 40px rgba(125,255,176,.6)'}],tt,.35,E.io,'forwards');
+ const tx=sw.querySelector('.tx');A(tx,[{opacity:1},{opacity:0}],tt,.1,'linear','forwards');const lv=add(sw,`<div class="abs D" style="left:40px;top:36px;font-size:58px;color:var(--gr);opacity:0">LIVE</div>`);A(lv,[{opacity:0},{opacity:1}],tt+.1,.2,'linear','forwards');
+})();
+
+/* DONE — full flow pulse + pro tip */
+(()=>{const s=mk('done');
+ const t=add(s.el,`<div class="abs D" style="left:60px;top:180px;font-size:150px">ANTHE!<span style="color:var(--gr)"> ✓</span></div>`);A(t,[{opacity:0,clipPath:'inset(0 100% 0 0)'},{opacity:1,clipPath:'inset(0 0 0 0)'}],s.start+.1,.5,E.io);
+ const nodes=[['COMMENT','"PROMPT"',380],['MANYCHAT','keyword match',600],['REPLY','DM chesa…',820],['DM','prompt sent ✓',1040]];
+ nodes.forEach(([k,v,y],i)=>{const n=add(s.el,`<div class="node" style="left:${i%2?340:140}px;top:${y-40}px;width:600px;height:150px"><div class="k">${String(i+1).padStart(2,'0')} · ${k}</div><div class="v">${v}</div></div>`);boxIn(n,L(s,0)+.2+i*.2,.35);
+  A(n,[{borderColor:'#e8f1ff',boxShadow:'0 0 0 transparent'},{borderColor:'#ffb347',boxShadow:'0 0 40px rgba(255,179,71,.6)'},{borderColor:'#e8f1ff',boxShadow:'0 0 0 transparent'}],L(s,0)+1.4+i*.35,.6,E.io,'none',{iterations:2});
+  if(i<3)arrow(s.el,i%2?640:440,y+115,i%2?440:640,y+175,L(s,0)+.4+i*.2,'#ffb347',true);});
+ // pro tip
+ const pt=add(s.el,`<div class="node" style="left:60px;top:1230px;width:620px;height:200px;border-color:var(--or);border-style:dashed"><div class="k" style="color:var(--or)">PRO TIP</div><div class="v" style="font-size:36px;line-height:1.3">Reel + caption lo<br>"Comment <span style="color:var(--or)">PROMPT</span>" clear ga</div></div>`);boxIn(pt,L(s,1)+.1);
+})();
+
+/* CTA */
+(()=>{const s=mk('cta');
+ const t=add(s.el,`<div class="abs D" style="left:60px;top:180px;font-size:140px">Comment<br><span style="color:var(--or)">AUTO</span></div>`);A(t,[{opacity:0,clipPath:'inset(0 100% 0 0)'},{opacity:1,clipPath:'inset(0 0 0 0)'}],s.start+.1,.6,E.io);
+ svg(s.el,phonePath(560,760),{x:260,y:500,w:560,h:760,t:s.start+.3,dur:1});
+ [['@friend1','super useful!'],['@friend2','naku kavali']].forEach(([u,c],i)=>{const e=add(s.el,`<div class="abs" style="left:310px;top:${600+i*110}px;width:460px;padding:16px 20px;border:2px solid var(--dim);font-size:28px"><span style="color:var(--or)">${u}</span> ${c}</div>`);boxIn(e,s.start+.8+i*.2,.3);});
+ const nc=add(s.el,`<div class="abs D" style="left:310px;top:830px;width:460px;padding:16px 20px;border:3px solid var(--gr);color:var(--gr);font-size:54px;opacity:0">@you AUTO</div>`);
+ const inp=add(s.el,`<div class="abs" style="left:310px;top:1110px;width:460px;height:90px;border:3px solid var(--ln);display:flex;align-items:center;justify-content:space-between;padding:0 10px 0 22px"><div class="ty D" style="font-size:44px"></div><div class="snd" style="width:70px;height:70px;border:3px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:32px">➤</div></div>`);boxIn(inp,s.start+1.2,.3);
+ typeIn(inp.querySelector('.ty'),'AUTO',L(s,0)+1.3,.5);
+ const tap=L(s,0)+2.4;A(inp.querySelector('.snd'),[{background:'transparent'},{background:'#ffb347'}],tap,.15,'linear','forwards');
+ A(inp.querySelector('.ty'),[{opacity:1},{opacity:0}],tap+.1,.1,'linear','forwards');A(nc,[{opacity:0,transform:'translateY(20px)'},{opacity:1,transform:'none'}],tap+.15,.35,E.back,'forwards');
+})();
+
+/* FOLLOW */
+(()=>{const s=mk('follow');
+ const t=add(s.el,`<div class="abs D out" style="left:0;width:1080px;text-align:center;top:250px;font-size:220px">FOLLOW</div>`);A(t,[{opacity:0,clipPath:'inset(0 100% 0 0)'},{opacity:1,clipPath:'inset(0 0 0 0)'}],s.start+.1,.7,E.io);
+ A(t,[{color:'transparent'},{color:'#e8f1ff'}],s.start+.9,.4,E.io,'forwards');
+ const fm=add(s.el,`<div class="lbl" style="left:0;width:1080px;text-align:center;top:490px;font-size:30px;color:var(--or)">// FOR MORE CONTENT</div>`);rise(fm,s.start+.6);
+ const card=add(s.el,`<div class="node" style="left:190px;top:580px;width:700px;height:440px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px"><div style="width:180px;height:180px;border:4px solid var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:80px;color:var(--or)">DI</div><div class="D" style="font-size:72px">${NAME}</div><div class="k">CLAUDE · AI HACKS · TELUGU</div></div>`);boxIn(card,s.start+.4,.5);
+ dim(s.el,190,1040,700,'100% USEFUL CONTENT',s.start+1);
+ const btn=add(s.el,`<div class="abs" style="left:240px;top:1120px;width:600px;height:150px;border:4px solid var(--or);background:var(--or);color:var(--bp);display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:84px"><span class="a">FOLLOW</span><span class="b abs" style="opacity:0;color:var(--gr)">FOLLOWING ✓</span></div>`);pop(btn,L(s,0)+.3);
+ const tap=Le(s,0)+.1;
+ const cur=add(s.el,`<div class="abs" style="left:900px;top:1500px;width:64px;height:64px;z-index:9"><svg width="64" height="64" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" fill="#e8f1ff" stroke="#0b3d91" stroke-width="1.4" stroke-linejoin="round"/></svg></div>`);
+ A(cur,[{opacity:0,transform:'translate(0,0)'},{opacity:1,transform:'translate(-330px,-320px)'}],tap-.7,.6,E.out);
+ A(cur,[{transform:'translate(-330px,-320px) scale(1)'},{transform:'translate(-330px,-320px) scale(.75)'},{transform:'translate(-330px,-320px) scale(1)'}],tap,.25,E.io,'forwards');
+ A(btn,[{background:'#ffb347',borderColor:'#ffb347'},{background:'#0b3d91',borderColor:'#7dffb0'}],tap+.05,.25,E.io,'forwards');
+ A(btn.querySelector('.a'),[{opacity:1},{opacity:0}],tap,.12,E.io,'forwards');A(btn.querySelector('.b'),[{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1)'}],tap+.1,.35,E.back);
+})();
+
+/* CAPTIONS */
+const CB=document.getElementById('capbar');A(CB,[{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0 0 0)'}],.3,.6,E.io);
+lines.forEach((l,idx)=>{
+ const ws=l.cap.replace(/\*([^*]+)\*/g,(m,g)=>g.split(' ').map(w=>'§'+w).join(' ')).split(' ');
+ const plain=l.cap.replace(/\*/g,'');const fs=plain.length>62?46:plain.length>46?52:58;
+ const el=add(CB,`<div class="cap" style="font-size:${fs}px"></div>`);const dur=(l.end-l.start)*.92;
+ ws.forEach((w,i)=>{const hl=w.startsWith('§');const e=add(el,`<span class="w${hl?' hl':''}">${w.replace('§','')}</span>`);
+  const t=l.start+dur*i/ws.length;A(e,[{opacity:.28},{opacity:1}],t,.08,'linear');
+  if(hl)A(e,[{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0 0 0)'}],t,.25,E.io);});
+ const nxt=idx<lines.length-1?lines[idx+1].start:TL.total;
+ A(el,[{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],l.start-.15,.18,E.out);
+ A(el,[{opacity:1},{opacity:0}],Math.min(nxt-.15,l.end+.7),.1,'linear','forwards');
+});
+window.seek=t=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+seek(0);window.READY=true;
+</script></body></html>
