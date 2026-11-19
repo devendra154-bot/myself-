@@ -27,6 +27,12 @@ Claude తో రెండు నిమిషాల్లో అన్నిట�
 
 కానీ పోస్ట్ చేసే ముందు, ఒక్కసారి చదివి, మీ టచ్ యాడ్ చెయ్యండి.
 
+ఇంకా బెటర్: ఆటో డీ ఎం ఆటోమేషన్.
+
+ManyChat తో, కామెంట్ లో కీవర్డ్ పెడితే, డీ ఎం ఆటోమేటిక్ గా వెళ్తుంది.
+
+మీరు నిద్రపోతున్నా, రిప్లై వెళ్తుంది.
+
 ఈ ప్రాంప్ట్ కావాలా? కామెంట్ లో రిప్లై అని టైప్ చెయ్యండి.
 
 ఇలాంటి కంటెంట్ కోసం, ఫాలో చెయ్యండి!
@@ -55,6 +61,12 @@ Pro tip: reply lo okka question adagandi... conversation continue avthundi.
 
 Kaani post chese mundu, okkasari chadivi, mee touch add cheyyandi.
 
+Inka better: auto DM automation.
+
+ManyChat tho, comment lo keyword pedithe, DM automatic ga velthundi.
+
+Meeru nidrapotunna, reply velthundi.
+
 Ee prompt kavala? Comment lo REPLY ani type cheyyandi.
 
 Ilanti content kosam, follow cheyyandi!
@@ -75,6 +87,18 @@ Comments:
 [paste your comments here]
 ```
 
+## ManyChat auto DM setup (simple steps)
+
+1. Instagram ni **Professional account** (Creator / Business) ga marchandi: Settings → Account type.
+2. **manychat.com** lo sign up chesi, mee Instagram account connect cheyyandi.
+3. **Automation → New** create cheyyandi. Trigger: **"User comments on your post or reel"**.
+4. Reel select cheyyandi, **keyword** pettandi (ex: `COVER`, `PROMPT`, `REPLY`).
+5. Action 1 — **public comment reply**: "DM chesa, check cheyyandi! 📩"
+6. Action 2 — **DM message**: mee prompt / link pettandi.
+7. Test: vere account nunchi keyword comment chesi check cheyyandi, tarvatha **Set Live**.
+
+Note: ManyChat lo free plan undi (limits tho); options and menu names update avvochu, latest steps app lo chudandi.
+
 ## Post caption (ready to paste)
 
 Vandala comments ki reply ivvadaniki time leda? 😩 Claude tho 2 minutes lo annitiki reply 👇
@@ -83,10 +107,11 @@ Vandala comments ki reply ivvadaniki time leda? 😩 Claude tho 2 minutes lo ann
 2️⃣ "Prathi comment ki friendly Tenglish reply ivvu, chinnaga" ani adagandi
 3️⃣ Pro tip: reply lo okka question adagandi — conversation continue avthundi
 4️⃣ Post chese mundu okkasari chadivi, mee touch add cheyyandi ✍️
+5️⃣ Inka better: ManyChat tho auto DM — comment lo keyword pedithe DM automatic ga velthundi, meeru nidrapotunna 😴📩
 
 Reply isthe reach perugutundi, followers daggara avutharu 💬
 
 Prompt kavala? Comment lo REPLY ani type cheyyandi 👇
 Ilanti content kosam follow 🔔
 
-#instagramtips #engagement #commentreply #claude #claudeai #aitools #telugu #telugutech #telugucreators #contentcreator #tenglish
+#instagramtips #engagement #commentreply #manychat #automation #claude #claudeai #aitools #telugu #telugutech #telugucreators #contentcreator #tenglish

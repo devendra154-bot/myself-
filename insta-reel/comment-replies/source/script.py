@@ -10,6 +10,9 @@ LINES = [
 ("ex","ప్రాంప్ట్ కావాలి అంటే... డీ ఎం చేశా, చెక్ చెయ్యండి!","\"Prompt kavali\" ante... \"*DM* chesa, check cheyyandi!\""),
 ("tip","ప్రో టిప్: రిప్లై లో ఒక క్వశ్చన్ అడగండి — సంభాషణ కొనసాగుతుంది.","Pro tip: reply lo okka *question* adagandi — conversation continue avthundi."),
 ("tip","కానీ పోస్ట్ చేసే ముందు, ఒక్కసారి చదివి, మీ టచ్ యాడ్ చెయ్యండి.","Kaani post chese mundu, okkasari chadivi, mee *touch* add cheyyandi."),
+("auto","ఇంకా బెటర్: ఆటో డీ ఎం ఆటోమేషన్.","Inka better: *auto DM* automation."),
+("auto","మెనీ చాట్ తో, కామెంట్ లో కీవర్డ్ పెడితే, డీ ఎం ఆటోమేటిక్ గా వెళ్తుంది.","ManyChat tho, comment lo *keyword* pedithe, DM automatic ga velthundi."),
+("auto","మీరు నిద్రపోతున్నా, రిప్లై వెళ్తుంది.","Meeru *nidrapotunna*, reply velthundi."),
 ("cta","ఈ ప్రాంప్ట్ కావాలా? కామెంట్ లో రిప్లై అని టైప్ చెయ్యండి.","Ee prompt kavala? Comment lo *REPLY* ani type cheyyandi."),
 ("follow","ఇలాంటి కంటెంట్ కోసం, ఫాలో చెయ్యండి!","Ilanti content kosam, *follow* cheyyandi!"),
 ]

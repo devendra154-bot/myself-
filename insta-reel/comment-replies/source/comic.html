@@ -145,6 +145,30 @@ const check=(c,sz=40)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><p
  A(p2.querySelector('.s1'),[{opacity:0,transform:'scale(.4)'},{opacity:1,transform:'scale(1)'}],L(s,1)+1,.35,E.back);A(p2.querySelector('.s2'),[{opacity:0,transform:'scale(.4)'},{opacity:1,transform:'scale(1)'}],L(s,1)+1.8,.35,E.back);
 })();
 
+/* AUTO DM — ManyChat keyword automation */
+(()=>{const s=mk('auto');
+ title(s.el,'AUTO<br><span style="color:var(--b)">DM!</span>',{y:180,size:170,t:s.start+.1});
+ burst(s.el,'AUTOMATION',{x:520,y:250,w:500,h:300,fs:52,fill:'#ffde21',col:'#111',t:L(s,0)+.6,rot:8});
+ const env=`<svg width="44" height="34" viewBox="0 0 24 18"><rect x="1" y="1" width="22" height="16" rx="2" fill="#fff" stroke="#111" stroke-width="2"/><path d="M1 2l11 8 11-8" fill="none" stroke="#111" stroke-width="2"/></svg>`;
+ // flow: comment -> ManyChat -> DM
+ const c1=add(s.el,`<div class="bub" style="left:60px;top:580px;width:430px;background:#e9e9ef"><span class="mono" style="font-size:22px;color:#1e6fff">@fan</span><br><span style="font-family:'Inter Display';font-weight:900;font-size:58px">"COVER"</span></div>`);pop(c1,L(s,1)+.1);
+ const mc=add(s.el,`<div class="panel" style="left:470px;top:760px;width:550px;height:250px;padding:28px;background:#14141c;color:#fff"><div class="mono" style="font-size:22px;font-weight:800;color:#ffde21">⚡ MANYCHAT</div><div style="font-family:'Inter Display';font-weight:900;font-size:44px;margin-top:14px;line-height:1.15">IF comment = "COVER"<br><span style="color:#3fd0ff">→ send DM</span></div></div>`);panelIn(mc,L(s,1)+.8,1,2);
+ const a1=add(s.el,`<svg class="abs" style="left:300px;top:760px;width:200px;height:150px" viewBox="0 0 200 150"><path class="p" d="M10 10 C 30 110, 120 130, 180 110" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round"/><path class="h" d="M160 92 L185 110 L158 126" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+ const p1=a1.querySelector('.p');const L1=p1.getTotalLength();p1.style.strokeDasharray=L1;A(p1,[{strokeDashoffset:L1},{strokeDashoffset:0}],L(s,1)+.5,.4,'ease-in-out');A(a1.querySelector('.h'),[{opacity:0},{opacity:1}],L(s,1)+.85,.1,'linear');
+ const dm=add(s.el,`<div class="bub r" style="left:180px;top:1080px;width:760px;background:#1e6fff;color:#fff;display:flex;align-items:center;gap:20px">${env}<span>"Idigo mee prompt! 🎁"</span></div>`);
+ dm.querySelector('span').textContent='"Idigo mee prompt!"';pop(dm,L(s,1)+2.2,.45);
+ const a2=add(s.el,`<svg class="abs" style="left:560px;top:1000px;width:120px;height:90px" viewBox="0 0 120 90"><path class="p" d="M60 5 V70" stroke="#111" stroke-width="9" stroke-linecap="round"/><path class="h" d="M40 52 L60 78 L80 52" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+ A(a2,[{opacity:0,transform:'translateY(-20px)'},{opacity:1,transform:'none'}],L(s,1)+1.9,.3,E.out);
+ const pro=add(s.el,`<div class="abs mono" style="left:60px;top:1300px;font-size:24px;font-weight:800;background:#fff;border:4px solid #111;padding:8px 14px">* Instagram Professional account kavali</div>`);A(pro,[{opacity:0},{opacity:1}],L(s,1)+2.8,.3,E.io);
+ // sleeping: moon + clock + SENT
+ const t2=L(s,2);
+ [c1,mc,a1,a2].forEach(e=>fadeTo(e,t2-.1,[{opacity:1},{opacity:.25}]));
+ const night=add(s.el,`<div class="abs" style="left:60px;top:560px;width:380px;height:380px;border-radius:50%;background:#1b2350;border:9px solid #111;box-shadow:12px 12px 0 #111;display:flex;align-items:center;justify-content:center"><div style="font-size:170px;color:#ffde21;-webkit-text-stroke:4px #111">☾</div><div class="hand abs" style="right:40px;top:40px;font-size:64px;color:#fff">Zzz</div></div>`);
+ pop(night,t2,.5);A(night.querySelector('.hand'),[{transform:'translateY(0)',opacity:.4},{transform:'translateY(-20px)',opacity:1},{transform:'translateY(0)',opacity:.4}],t2+.4,1.2,E.io,'none',{iterations:2});
+ const clk=add(s.el,`<div class="cap-box" style="left:500px;top:620px;font-size:60px;background:#fff">2:00 AM</div>`);slam(clk,t2+.3,-3);
+ const sent=add(s.el,`<div class="cap-box" style="left:560px;top:1200px;font-size:46px;background:#3fd0ff">DM SENT ✓</div>`);slam(sent,t2+.8,4);
+})();
+
 /* CTA */
 (()=>{const s=mk('cta');
  title(s.el,'COMMENT<br><span style="color:var(--r)">REPLY!</span>',{y:180,size:160,t:s.start+.1});
