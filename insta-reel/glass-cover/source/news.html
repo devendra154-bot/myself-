@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--np:#f1ece1;--ink:#151413;--mu:#6c665d;--rd:#c8281e;--rule:#151413}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#d9d2c3;font-family:'Inter',sans-serif;color:var(--ink)}
+#stage{position:absolute;inset:0;overflow:hidden;perspective:2200px}
+#paper{position:absolute;inset:0;background:var(--np)}
+.grain{position:absolute;inset:-40px;opacity:.16;background-image:radial-gradient(rgba(0,0,0,.55) 1px,transparent 1.3px);background-size:4px 4px}
+.fold{position:absolute;left:0;right:0;top:958px;height:4px;background:linear-gradient(rgba(0,0,0,.08),rgba(255,255,255,.4))}
+.serif{font-family:'EB Garamond','Liberation Serif',serif}
+.mono{font-family:'JetBrains Mono',monospace}
+.abs{position:absolute}
+.scene{position:absolute;inset:0;opacity:0}
+#mast{position:absolute;left:60px;right:60px;top:50px;text-align:center}
+#mast .rule2{border-top:3px solid var(--rule);border-bottom:1px solid var(--rule);height:7px}
+#mast .name{font-family:'EB Garamond';font-weight:700;font-size:78px;letter-spacing:1px;line-height:1.05;padding:10px 0 6px}
+#mast .iss{display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:20px;letter-spacing:3px;padding:8px 4px;border-top:1px solid var(--rule);border-bottom:3px solid var(--rule)}
+.kick{position:absolute;left:60px;top:300px;padding:8px 18px;background:var(--rd);color:#fff;font-family:'JetBrains Mono';font-weight:800;font-size:24px;letter-spacing:4px}
+.hl{position:absolute;left:60px;width:960px;font-family:'EB Garamond';font-weight:700;line-height:.95;letter-spacing:-1px}
+.mask{position:absolute;overflow:hidden}
+.deck{position:absolute;left:60px;width:960px;font-family:'EB Garamond';font-style:italic;font-size:46px;line-height:1.2;color:#3a3631}
+.colrule{position:absolute;width:2px;background:var(--rule);opacity:.6}
+.hrule{position:absolute;height:2px;background:var(--rule)}
+.txtcol{position:absolute;display:flex;flex-direction:column;gap:13px}
+.txtcol i{display:block;height:9px;background:rgba(21,20,19,.28);border-radius:2px}
+.frame{position:absolute;border:3px solid var(--ink);background:#e4ded1;overflow:hidden}
+.ht{position:absolute;inset:0;background-image:radial-gradient(rgba(21,20,19,.55) 32%,transparent 34%);background-size:9px 9px;opacity:.35}
+.cap2{position:absolute;font-family:'EB Garamond';font-style:italic;font-size:28px;color:#3a3631}
+.stamp{position:absolute;padding:10px 26px;border:6px solid var(--rd);color:var(--rd);font-family:'EB Garamond';font-weight:700;font-size:70px;letter-spacing:4px;mix-blend-mode:multiply;opacity:.9}
+/* mini glass cover */
+.cv{position:absolute;overflow:hidden;background:linear-gradient(160deg,#141826,#07080d)}
+.cv .bl{position:absolute;border-radius:50%;filter:blur(18px)}
+.cv .gl{position:absolute;left:10%;right:10%;top:34%;bottom:34%;border-radius:12px;background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.05));border:1.5px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-family:'Inter Display';font-weight:900;line-height:.95;letter-spacing:-.03em}
+#capbar{position:absolute;left:50px;right:50px;top:1460px;min-height:240px;background:#fbf8f1;border-top:4px double var(--ink);border-bottom:4px double var(--ink);padding:38px 40px;box-shadow:0 10px 24px rgba(60,50,30,.2)}
+#capbar .tg{position:absolute;right:30px;top:10px;font-family:'JetBrains Mono';font-size:17px;letter-spacing:3px;color:var(--mu)}
+.cap{position:absolute;left:40px;right:40px;top:40px;font-family:'Inter Display';font-weight:900;font-size:58px;line-height:1.2;letter-spacing:-1px;opacity:0}
+.cap .w{display:inline-block;margin-right:15px;opacity:.25;position:relative}
+.cap .hlw{color:var(--rd)}
+.cap .ul{position:absolute;left:0;right:0;bottom:2px;height:6px;background:var(--rd);transform-origin:left}
+#flipA,#flipB{position:absolute;inset:0;z-index:50;transform-origin:0 50%;pointer-events:none;opacity:0;background:var(--np);box-shadow:0 0 80px rgba(0,0,0,.4)}
+#flipA::after,#flipB::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 40px,rgba(21,20,19,.07) 40px 49px),linear-gradient(90deg,rgba(0,0,0,.18),transparent 30%)}
+svg{overflow:visible}
+</style></head>
+<body><div id="stage">
+<div id="paper"><div class="grain"></div><div class="fold"></div></div>
+<div id="mast"><div class="rule2"></div><div class="name">The Dev Inventor Times</div><div class="iss"><span>VOL. 1</span><span>TELUGU AI EDITION</span><span>PRICE: FREE</span></div></div>
+<div id="scenes"></div>
+<div id="capbar"><div class="tg">TENGLISH CC</div></div>
+<div id="flipA"></div><div id="flipB"></div>
+</div>
+<script>
+const TL=__TIMELINE__;const NAME='Dev Inventor';
+const E={out:'cubic-bezier(.16,1,.3,1)',back:'cubic-bezier(.34,1.56,.64,1)',io:'cubic-bezier(.65,0,.35,1)'};
+const A=(el,kf,st,du,ea=E.out,fill='both',x={})=>el.animate(kf,Object.assign({delay:st*1000,duration:du*1000,fill,easing:ea},x));
+const H=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
+const add=(p,h)=>{const e=H(h);p.appendChild(e);return e};
+const fadeTo=(el,t,kf,d=.3)=>A(el,kf,t,d,E.io,'forwards');
+const press=(el,t,d=.5)=>A(el,[{transform:'translateY(105%)'},{transform:'translateY(0)'}],t,d,E.out);
+function head(par,lines,{y,size=120,t,gap=1.0,color='var(--ink)'}){lines.forEach((ln,i)=>{const m=add(par,`<div class="mask" style="left:60px;top:${y+i*size*gap}px;width:960px;height:${size*1.02}px"><div class="hl" style="position:relative;left:0;font-size:${size}px;color:${color};white-space:nowrap">${ln}</div></div>`);press(m.firstChild,t+i*.12);});}
+const slap=(el,t,rot)=>A(el,[{opacity:0,transform:`rotate(${rot}deg) scale(2.6)`},{opacity:1,transform:`rotate(${rot}deg) scale(.95)`,offset:.7},{opacity:1,transform:`rotate(${rot}deg) scale(1)`}],t,.35,'ease-out');
+const pop=(el,t,d=.45)=>A(el,[{opacity:0,transform:'scale(.5)'},{opacity:1,transform:'scale(1)'}],t,d,E.back);
+const rise=(el,t,d=.5,dy=50)=>A(el,[{opacity:0,transform:`translateY(${dy}px)`},{opacity:1,transform:'none'}],t,d,E.out);
+function textCol(par,x,y,w,n,t){const c=add(par,`<div class="txtcol" style="left:${x}px;top:${y}px;width:${w}px"></div>`);for(let i=0;i<n;i++){const e=add(c,`<i style="width:${i%5==4?60:92+((i*13)%9)}%"></i>`);A(e,[{transform:'scaleX(0)',transformOrigin:'left'},{transform:'scaleX(1)',transformOrigin:'left'}],t+i*.04,.25,E.out);}return c;}
+function cover(par,{x,y,w,h,title,acc='#5eead4',fs=0.16,t=null}){const c=add(par,`<div class="cv" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><div class="bl" style="left:-10%;top:12%;width:${w*.7}px;height:${w*.7}px;background:${acc};opacity:.55"></div><div class="bl" style="right:-15%;bottom:8%;width:${w*.6}px;height:${w*.6}px;background:#8b5cf6;opacity:.45"></div><div class="gl" style="font-size:${w*fs}px;box-shadow:0 0 ${w*.08}px ${acc}">${title}</div></div>`);if(t!==null)pop(c,t);return c;}
+function draw(par,d,{x=0,y=0,w=200,h=200,c='#c8281e',sw=7,t=0,dur=.6}={}){const s=add(par,`<svg class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px" viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="${c}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/></svg>`);const p=s.querySelector('path');const L=p.getTotalLength();p.style.strokeDasharray=L;A(p,[{strokeDashoffset:L},{strokeDashoffset:0}],t,dur,'ease-in-out');return s;}
+
+// masthead & paper intro: classic newspaper spin-in
+const stage=document.getElementById('stage');
+A(document.getElementById('paper'),[{transform:'rotate(-720deg) scale(.05)'},{transform:'rotate(0) scale(1)'}],0,.9,'cubic-bezier(.2,.7,.2,1)');
+A(document.getElementById('mast'),[{transform:'rotate(-720deg) scale(.05)',opacity:0},{transform:'rotate(0) scale(1)',opacity:1}],0,.9,'cubic-bezier(.2,.7,.2,1)');
+
+// timings
+const lines=TL.lines,sc={},order=[];
+lines.forEach(l=>{if(!sc[l.scene]){sc[l.scene]={lines:[]};order.push(l.scene)}sc[l.scene].lines.push(l)});
+order.forEach((k,i)=>sc[k].start=i?sc[k].lines[0].start-.45:0);
+order.forEach((k,i)=>sc[k].end=i<order.length-1?sc[order[i+1]].start:TL.total);
+const L=(s,i)=>s.lines[i].start, Le=(s,i)=>s.lines[i].end;
+const S=document.getElementById('scenes'),FA=document.getElementById('flipA'),FB=document.getElementById('flipB');
+// page turn: page swings in from the right edge (covers), then turns away to the left
+function pageTurn(t){A(FA,[{opacity:1,transform:'rotateY(-100deg)'},{opacity:1,transform:'rotateY(0deg)'}],t,.28,'cubic-bezier(.4,0,.8,.6)','none');
+ A(FB,[{opacity:1,transform:'rotateY(0deg)'},{opacity:1,transform:'rotateY(-95deg)'}],t+.28,.32,'cubic-bezier(.2,.4,.6,1)','none');}
+function mk(k){const s=sc[k];s.el=add(S,`<div class="scene"></div>`);
+ if(s.start>0){pageTurn(s.start-.28);A(s.el,[{opacity:0},{opacity:1}],s.start,.01,'linear');}
+ else A(s.el,[{opacity:0},{opacity:1}],.85,.15,'linear');
+ if(k!=='follow')A(s.el,[{opacity:1},{opacity:0}],s.end,.01,'linear','forwards');
+ return s;}
+function kick(s,txt,t){const k=add(s.el,`<div class="kick">${txt}</div>`);A(k,[{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0 0 0)'}],t,.35,E.out);return k;}
+
+/* HOOK */
+(()=>{const s=mk('hook');kick(s,'BREAKING',.95);
+ head(s.el,['Boring covers','no more!'],{y:360,size:130,t:1.05});
+ const dk=add(s.el,`<div class="deck" style="top:640px">Claude tho glass style reel cover — free ga, okka prompt tho.</div>`);rise(dk,L(s,1)+.1);
+ add(s.el,`<div class="hrule" style="left:60px;width:960px;top:760px"></div>`);
+ const fr=add(s.el,`<div class="frame" style="left:60px;top:790px;width:560px;height:600px"><div class="ht"></div></div>`);pop(fr,L(s,0)+.6);
+ const bc=add(fr,`<div class="abs serif" style="inset:0;display:flex;align-items:center;justify-content:center;font-size:60px;font-style:italic;color:#6c665d">boring.jpg</div>`);
+ const cv=cover(fr,{x:150,y:40,w:260,h:462,title:'GLASS<br>COVER',fs:.2});A(cv,[{opacity:0,transform:'rotateY(90deg)'},{opacity:1,transform:'rotateY(0)'}],L(s,1)+.3,.6,E.out);
+ A(bc,[{opacity:1},{opacity:0}],L(s,1)+.3,.2,E.io,'forwards');
+ add(s.el,`<div class="colrule" style="left:650px;top:790px;height:600px"></div>`);
+ textCol(s.el,680,800,340,22,L(s,0)+.8);
+ const cp=add(s.el,`<div class="cap2" style="left:60px;top:1400px">Fig. 1 — Before & after, ee reel lo.</div>`);rise(cp,L(s,1)+.6,.4,10);
+ const st=add(s.el,`<div class="stamp" style="left:640px;top:1150px;transform:rotate(-12deg);font-size:58px">FREE!</div>`);slap(st,L(s,1)+.9,-12);
+})();
+
+/* WHY */
+(()=>{const s=mk('why');kick(s,'EDITORIAL',s.start+.1);
+ head(s.el,['Cover = first','impression'],{y:360,size:120,t:s.start+.2});
+ const g=add(s.el,`<div class="abs" style="left:240px;top:660px;width:600px;height:740px"></div>`);
+ for(let i=0;i<9;i++){const x=(i%3)*202,y=Math.floor(i/3)*248;const e=add(g,`<div class="frame" style="left:${x}px;top:${y}px;width:192px;height:238px;border-width:2px"><div class="ht"></div></div>`);pop(e,L(s,0)+.2+i*.05,.35);}
+ const hi=cover(g,{x:202,y:248,w:192,h:238,title:'NEW<br>REEL',fs:.2});pop(hi,L(s,0)+.9,.45);
+ draw(s.el,'M60 40 C 20 120, 60 250, 160 260 C 260 270, 300 120, 230 40 C 180 -10, 90 0, 60 40',{x:405,y:880,w:320,h:300,t:L(s,0)+1.3,dur:.6});
+ const cp=add(s.el,`<div class="cap2" style="left:240px;top:1410px">Profile grid lo mee cover ye first chustaru.</div>`);rise(cp,L(s,0)+1.5,.4,10);
+})();
+
+/* PROMPT — classifieds */
+(()=>{const s=mk('prompt');kick(s,'CLASSIFIEDS',s.start+.1);
+ head(s.el,['The prompt'],{y:360,size:130,t:s.start+.2});
+ const bx=add(s.el,`<div class="abs" style="left:60px;top:540px;width:960px;height:700px;border:6px double var(--ink);padding:44px 48px;background:#f7f3ea"><div class="mono" style="font-size:24px;letter-spacing:4px;color:var(--mu)">WANTED: ONE GLASS COVER ✎ COPY THIS</div><div class="hrule" style="position:relative;margin:20px 0 26px;width:100%"></div><div class="ty mono" style="font-size:44px;line-height:1.55;font-weight:700"></div></div>`);
+ A(bx,[{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'none'}],L(s,0)-.2,.4,E.out);
+ const txt='"9:16 reel cover cheyyi — dark background, glass card, bold title."';const ty=bx.querySelector('.ty');const chars=[...txt];const span=(Le(s,0)-L(s,0))*.8;
+ chars.forEach((ch,i)=>{const e=add(ty,`<span>${ch===' '?' ':ch}</span>`);A(e,[{opacity:0},{opacity:1}],L(s,0)+.2+span*i/chars.length,.01,'linear');});
+ const st=add(s.el,`<div class="stamp" style="left:520px;top:1230px;transform:rotate(-8deg);font-size:62px">EXCLUSIVE</div>`);slap(st,Le(s,0)-.3,-8);
+})();
+
+/* DETAILS — infographic */
+(()=>{const s=mk('details');kick(s,'HOW-TO',s.start+.1);
+ head(s.el,['Two golden rules'],{y:360,size:110,t:s.start+.2});
+ add(s.el,`<div class="hrule" style="left:60px;width:960px;top:500px"></div>`);
+ const r1=add(s.el,`<div class="abs" style="left:60px;top:530px;width:960px;height:420px"><div class="serif" style="font-weight:700;font-size:56px">1. Title: 3–4 words</div></div>`);rise(r1,L(s,0)-.1);
+ cover(r1,{x:0,y:90,w:180,h:320,title:'5 CLAUDE<br>HACKS',fs:.17,t:L(s,0)+.5});
+ const ok=add(r1,`<div class="abs" style="left:230px;top:150px;font-family:'Inter Display';font-weight:900;font-size:64px;line-height:1.05">"5 CLAUDE HACKS" <span style="color:#1f8a3a">✓</span></div>`);rise(ok,L(s,0)+.8,.4,20);
+ const no=add(r1,`<div class="abs" style="left:230px;top:270px;font-family:'EB Garamond';font-size:38px;color:var(--mu);text-decoration:line-through">"How I used Claude to make my reels much better"</div>`);rise(no,L(s,0)+1.2,.4,20);
+ add(s.el,`<div class="hrule" style="left:60px;width:960px;top:970px;opacity:.5"></div>`);
+ const r2=add(s.el,`<div class="abs" style="left:60px;top:1000px;width:960px;height:400px"><div class="serif" style="font-weight:700;font-size:56px">2. One accent color</div></div>`);rise(r2,L(s,1)-.15);
+ const cols=['#ef4444','#f59e0b','#22c55e','#5eead4','#3b82f6','#a855f7'];const sw=cols.map((c,i)=>{const e=add(r2,`<div class="abs" style="left:${i*150}px;top:110px;width:120px;height:120px;border-radius:50%;background:${c};border:3px solid var(--ink)"></div>`);pop(e,L(s,1)+.2+i*.06,.35);return e;});
+ sw.forEach((e,i)=>{if(i===3)A(e,[{transform:'scale(1)'},{transform:'scale(1.25)'}],L(s,1)+1,.4,E.back,'forwards');else fadeTo(e,L(s,1)+1,[{opacity:1},{opacity:.2}]);});
+ draw(r2,'M30 20 C 0 80, 40 150, 100 150 C 170 150, 190 70, 150 25 C 120 -5, 60 0, 30 20',{x:430,y:85,w:200,h:180,t:L(s,1)+1.2,dur:.45});
+ const lb=add(r2,`<div class="abs serif" style="left:0;top:280px;font-style:italic;font-size:40px;color:#3a3631">= mee brand color, prathi cover lo.</div>`);rise(lb,L(s,1)+1.4,.4,10);
+})();
+
+/* GRID */
+(()=>{const s=mk('grid');kick(s,'FEATURE',s.start+.1);
+ head(s.el,['Same style =','pro grid'],{y:360,size:120,t:s.start+.2});
+ const titles=['5 CLAUDE<br>HACKS','VOICE<br>AGENT','10 SEC<br>CAPTION','SCRIPT<br>RAADA?','5 HOOK<br>FORMULAS','GLASS<br>COVER','PROMPT<br>NOTEBOOK','EDIT<br>PROOF','AI<br>VOICE'];
+ titles.forEach((tt,i)=>{const x=150+(i%3)*265,y=620+Math.floor(i/3)*262;const c=cover(s.el,{x,y,w:250,h:250,title:tt,fs:.15});
+  A(c,[{opacity:0,transform:'translateY(-200px) rotate(-6deg)'},{opacity:1,transform:'none'}],L(s,0)+.3+i*.12,.45,E.back);});
+ const st=add(s.el,`<div class="stamp" style="left:560px;top:490px;transform:rotate(-6deg);font-size:50px">PROFESSIONAL</div>`);slap(st,L(s,0)+1.9,-6);
+})();
+
+/* BEFORE / AFTER */
+(()=>{const s=mk('ba');kick(s,'BEFORE & AFTER',s.start+.1);
+ head(s.el,['Spot the','difference'],{y:360,size:120,t:s.start+.2});
+ const f1=add(s.el,`<div class="frame" style="left:60px;top:640px;width:465px;height:700px"><div class="ht"></div></div>`),f2=add(s.el,`<div class="frame" style="left:555px;top:640px;width:465px;height:700px;background:#e4ded1"><div class="ht"></div></div>`);
+ rise(f1,L(s,0)-.1);rise(f2,L(s,0));
+ const mess=[['#c9b28a',-8],['#8aa0c9',6],['#c98a8a',-4],['#a6c98a',9],['#bbb',-12],['#c9a6d8',4]];
+ mess.forEach(([c,r],i)=>{const e=add(f1,`<div class="abs" style="left:${30+(i%2)*200}px;top:${30+Math.floor(i/2)*215}px;width:180px;height:190px;background:${c};border:2px solid #555;transform:rotate(${r}deg)"><div class="mono" style="font-size:16px;padding:8px;color:#333">IMG_${2041+i}.png</div></div>`);pop(e,L(s,0)+.3+i*.06,.3);});
+ const t2=['5 CLAUDE<br>HACKS','VOICE<br>AGENT','10 SEC<br>CAPTION','SCRIPT<br>RAADA?','5 HOOK<br>FORMULAS','GLASS<br>COVER'];
+ t2.forEach((tt,i)=>cover(f2,{x:22+(i%2)*215,y:22+Math.floor(i/2)*220,w:200,h:205,title:tt,fs:.15,t:L(s,1)+.1+i*.08}));
+ const l1=add(s.el,`<div class="cap2" style="left:60px;top:1350px;font-style:normal;font-weight:700;font-size:34px">BEFORE <span style="color:var(--rd)">✕</span></div>`),l2=add(s.el,`<div class="cap2" style="left:555px;top:1350px;font-style:normal;font-weight:700;font-size:34px">AFTER <span style="color:#1f8a3a">✓</span></div>`);
+ rise(l1,L(s,0)+.5,.3,10);rise(l2,L(s,1)+.6,.3,10);
+ A(f1,[{filter:'none'},{filter:'grayscale(1) contrast(.8)'}],L(s,1),.4,E.io,'forwards');
+ A(f2,[{boxShadow:'0 0 0 0 transparent'},{boxShadow:'0 0 0 8px #c8281e'}],L(s,1)+.7,.3,E.io,'forwards');
+})();
+
+/* BONUS — safe zone */
+(()=>{const s=mk('bonus');kick(s,'PRO TIP',s.start+.1);
+ head(s.el,['Safe zone'],{y:360,size:130,t:s.start+.2});
+ const c=cover(s.el,{x:330,y:560,w:420,h:747,title:'GLASS<br>COVER',fs:.2,t:L(s,0)});
+ const zone=add(s.el,`<div class="abs" style="left:330px;top:653px;width:420px;height:560px;border:5px dashed var(--rd);background:rgba(200,40,30,.06)"></div>`);
+ A(zone,[{opacity:0,transform:'scale(1.3)'},{opacity:1,transform:'scale(1)'}],L(s,0)+1.2,.45,E.out);
+ [[330,560,420,93],[330,1213,420,94]].forEach(([x,y,w,h])=>{const e=add(s.el,`<div class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:repeating-linear-gradient(45deg,rgba(21,20,19,.55) 0 8px,rgba(21,20,19,.25) 8px 16px)"></div>`);A(e,[{opacity:0},{opacity:1}],L(s,0)+1.6,.3,E.io);});
+ const lb=add(s.el,`<div class="abs mono" style="left:770px;top:900px;font-size:26px;font-weight:800;color:var(--rd);line-height:1.5">← SAFE<br>ZONE<br><span style="color:var(--mu);font-weight:700">grid lo<br>kanipinche<br>part</span></div>`);rise(lb,L(s,0)+1.8,.4,10);
+ const cr=add(s.el,`<div class="abs mono" style="left:80px;top:1240px;font-size:24px;font-weight:700;color:var(--mu);line-height:1.5">CROP ✂<br>avvakunda<br>text center lo</div>`);rise(cr,L(s,0)+2.2,.4,10);
+})();
+
+/* CTA — letters to the editor */
+(()=>{const s=mk('cta');kick(s,'LETTERS TO THE EDITOR',s.start+.1);
+ head(s.el,['Comment','<span style="color:var(--rd)">COVER</span>'],{y:360,size:130,t:s.start+.2});
+ const bx=add(s.el,`<div class="abs" style="left:60px;top:680px;width:960px;height:700px;border:3px solid var(--ink);background:#f7f3ea;padding:40px"><div class="lst"></div></div>`);rise(bx,s.start+.4);
+ const lst=bx.querySelector('.lst');
+ [['Sir, naa covers anni messy ga unnayi.','— Ravi, Vijayawada'],['Ee prompt chala useful!','— Sneha, Hyderabad']].forEach(([q,b])=>add(lst,`<div style="margin-bottom:30px"><div class="serif" style="font-size:44px;font-style:italic">"${q}"</div><div class="mono" style="font-size:22px;color:var(--mu);margin-top:6px">${b}</div></div>`));
+ const nc=add(lst,`<div style="opacity:0"><div class="serif" style="font-size:60px;font-weight:700;color:var(--rd)">"COVER"</div><div class="mono" style="font-size:22px;color:var(--mu)">— You</div></div>`);
+ const inp=add(bx,`<div style="position:absolute;left:40px;right:40px;bottom:40px;height:110px;border:3px solid var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 30px;background:#fff"><div class="ty mono" style="font-size:44px;font-weight:800"></div><div class="snd mono" style="padding:16px 26px;background:var(--ink);color:#fff;font-size:26px;font-weight:800;letter-spacing:2px">SEND</div></div>`);
+ const ty=inp.querySelector('.ty');[...'COVER'].forEach((ch,i)=>{const e=add(ty,`<span>${ch}</span>`);A(e,[{opacity:0},{opacity:1}],L(s,0)+1.3+i*.12,.01,'linear');});
+ const tap=L(s,0)+2.3;A(inp.querySelector('.snd'),[{background:'#151413',transform:'scale(1)'},{background:'#c8281e',transform:'scale(.92)'},{background:'#c8281e',transform:'scale(1)'}],tap,.3,E.io,'forwards');
+ A(ty,[{opacity:1},{opacity:0}],tap+.1,.15,E.io,'forwards');A(nc,[{opacity:0,transform:'translateY(30px)'},{opacity:1,transform:'none'}],tap+.15,.4,E.out,'forwards');
+})();
+
+/* FOLLOW */
+(()=>{const s=mk('follow');kick(s,'SPECIAL EDITION',s.start+.1);
+ const m=add(s.el,`<div class="mask" style="left:0;top:360px;width:1080px;height:240px;text-align:center"><div class="hl" style="position:relative;left:0;width:1080px;font-size:230px;white-space:nowrap;text-align:center">FOLLOW</div></div>`);press(m.firstChild,s.start+.2,.55);
+ const dk=add(s.el,`<div class="deck" style="top:620px;text-align:center">for more Claude & AI hacks in Telugu</div>`);rise(dk,s.start+.5);
+ add(s.el,`<div class="hrule" style="left:60px;width:960px;top:720px"></div>`);
+ const by=add(s.el,`<div class="abs" style="left:60px;top:760px;width:960px;height:300px;display:flex;align-items:center;gap:40px"><div class="frame" style="position:relative;width:260px;height:260px;border-radius:50%"><div class="ht"></div><div class="abs serif" style="inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:110px">DI</div></div><div><div class="mono" style="font-size:24px;letter-spacing:4px;color:var(--mu)">BY</div><div class="serif" style="font-weight:700;font-size:84px;line-height:1">${NAME}</div><div class="serif" style="font-style:italic;font-size:34px;color:#3a3631;margin-top:8px">Claude & AI hacks correspondent</div></div></div>`);rise(by,L(s,0)-.1);
+ const btn=add(s.el,`<div class="abs" style="left:190px;top:1130px;width:700px;height:170px;background:var(--rd);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'EB Garamond';font-weight:700;font-size:96px;box-shadow:8px 8px 0 var(--ink)"><span class="a">Follow</span><span class="b abs" style="opacity:0">Following ✓</span></div>`);
+ pop(btn,L(s,0)+.25);
+ const tap=Le(s,0)+.1;
+ const cur=add(s.el,`<div class="abs" style="left:900px;top:1500px;width:64px;height:64px;z-index:9"><svg width="64" height="64" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke="#151413" stroke-width="1.4" stroke-linejoin="round"/></svg></div>`);
+ A(cur,[{opacity:0,transform:'translate(0,0)'},{opacity:1,transform:'translate(-300px,-300px)'}],tap-.7,.6,E.out);
+ A(cur,[{transform:'translate(-300px,-300px) scale(1)'},{transform:'translate(-300px,-300px) scale(.75)'},{transform:'translate(-300px,-300px) scale(1)'}],tap,.25,E.io,'forwards');
+ A(btn,[{background:'#c8281e',boxShadow:'8px 8px 0 #151413',transform:'translate(0,0)'},{background:'#151413',boxShadow:'0 0 0 #151413',transform:'translate(8px,8px)'}],tap+.03,.2,E.io,'forwards');
+ A(btn.querySelector('.a'),[{opacity:1},{opacity:0}],tap,.12,E.io,'forwards');A(btn.querySelector('.b'),[{opacity:0,transform:'scale(.7)'},{opacity:1,transform:'scale(1)'}],tap+.1,.35,E.back);
+ const st=add(s.el,`<div class="stamp" style="left:640px;top:1040px;transform:rotate(10deg);font-size:46px;background:rgba(241,236,225,.85)">FOLLOWED!</div>`);slap(st,tap+.5,10);
+})();
+
+/* CAPTIONS */
+const CB=document.getElementById('capbar');A(CB,[{opacity:0,transform:'translateY(80px)'},{opacity:1,transform:'none'}],.9,.5);
+lines.forEach((l,idx)=>{
+ const ws=l.cap.replace(/\*([^*]+)\*/g,(m,g)=>g.split(' ').map(w=>'§'+w).join(' ')).split(' ');
+ const plain=l.cap.replace(/\*/g,'');const fs=plain.length>62?46:plain.length>46?52:58;
+ const el=add(CB,`<div class="cap" style="font-size:${fs}px"></div>`);const dur=(l.end-l.start)*.92;
+ ws.forEach((w,i)=>{const hl=w.startsWith('§');const e=add(el,`<span class="w${hl?' hlw':''}">${w.replace('§','')}${hl?'<i class="ul"></i>':''}</span>`);
+  const t=l.start+dur*i/ws.length;A(e,[{opacity:.25},{opacity:1}],t,.08,'linear');
+  if(hl)A(e.querySelector('.ul'),[{transform:'scaleX(0)'},{transform:'scaleX(1)'}],t,.3,'ease-out');});
+ const nxt=idx<lines.length-1?lines[idx+1].start:TL.total;
+ A(el,[{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],l.start-.15,.18,E.out);
+ A(el,[{opacity:1},{opacity:0}],Math.min(nxt-.15,l.end+.7),.1,'linear','forwards');
+});
+window.seek=t=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+seek(0);window.READY=true;
+</script></body></html>
