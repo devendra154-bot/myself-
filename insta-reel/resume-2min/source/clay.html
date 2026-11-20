@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--lav:#c9b6ff;--mint:#a8ecd0;--peach:#ffc9a8;--sky:#a9d8ff;--butter:#ffe9a1;--pink:#ffb3d1;--ink:#3a2f5c;--mu:#7d72a3}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#efe9ff;font-family:'Inter',sans-serif;color:var(--ink)}
+#stage{position:absolute;inset:0;overflow:hidden}
+#bg{position:absolute;inset:0;background:linear-gradient(170deg,#efe6ff 0%,#e6f1ff 55%,#fdf0f6 100%)}
+.blob{position:absolute;border-radius:50%;box-shadow:inset -18px -22px 40px rgba(60,40,120,.12),inset 18px 18px 36px rgba(255,255,255,.8),20px 30px 60px rgba(120,100,180,.18)}
+.scene{position:absolute;inset:0;opacity:0}
+.abs{position:absolute}
+.mono{font-family:'JetBrains Mono',monospace}
+.clay{position:absolute;border-radius:44px;box-shadow:inset -12px -14px 26px rgba(60,40,120,.14),inset 12px 12px 24px rgba(255,255,255,.85),18px 26px 50px rgba(110,90,170,.25)}
+.puff{font-family:'Inter Display';font-weight:900;letter-spacing:-.03em;line-height:.92;color:#7b5cff;
+ text-shadow:0 2px 0 #6a4ae8,0 4px 0 #5d3fd6,0 6px 0 #5035c2,0 8px 0 #432bab,0 10px 0 #372395,0 20px 26px rgba(80,50,160,.35),0 -2px 0 rgba(255,255,255,.7)}
+.puff.p2{color:#ff8a5c;text-shadow:0 2px 0 #f27a4b,0 4px 0 #e56c3e,0 6px 0 #d65f33,0 8px 0 #c55229,0 10px 0 #b34720,0 20px 26px rgba(200,100,60,.3),0 -2px 0 rgba(255,255,255,.7)}
+.puff.p3{color:#2fbf85;text-shadow:0 2px 0 #27ad77,0 4px 0 #219c6b,0 6px 0 #1b8b5f,0 8px 0 #167a53,0 10px 0 #116947,0 20px 26px rgba(40,140,100,.3),0 -2px 0 rgba(255,255,255,.7)}
+.puff span{color:#3a2f5c!important;text-shadow:0 2px 0 #2f2650,0 4px 0 #272044,0 6px 0 #201a39,0 8px 0 #19142e,0 16px 22px rgba(40,30,80,.3)}
+.lbl{font-family:'JetBrains Mono';font-weight:700;font-size:22px;letter-spacing:4px;color:var(--mu)}
+.chip{display:inline-flex;align-items:center;padding:14px 26px;border-radius:999px;font-weight:800;font-size:32px;box-shadow:inset -6px -6px 12px rgba(60,40,120,.14),inset 6px 6px 12px rgba(255,255,255,.85),8px 12px 22px rgba(110,90,170,.22)}
+.bub{position:absolute;background:#fff;border-radius:46px;padding:30px 36px;font-family:'Inter Display';font-weight:900;font-size:50px;line-height:1.1;letter-spacing:-1px;box-shadow:inset -10px -10px 20px rgba(60,40,120,.1),inset 10px 10px 20px rgba(255,255,255,.9),16px 24px 44px rgba(110,90,170,.28)}
+.bub::after{content:'';position:absolute;left:-26px;bottom:50px;width:60px;height:60px;background:#fff;border-radius:0 0 0 60px;transform:rotate(10deg)}
+#host{position:absolute;z-index:5;transform-origin:50% 100%}
+#host img{display:block;width:100%;height:100%}
+#hud{position:absolute;top:60px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:6}
+#hud .a{padding:12px 26px;border-radius:999px;background:#fff;font-family:'Inter Display';font-weight:900;font-size:30px;box-shadow:inset -5px -5px 10px rgba(60,40,120,.1),inset 5px 5px 10px rgba(255,255,255,.9),8px 12px 22px rgba(110,90,170,.22)}
+#hud .b{padding:12px 24px;border-radius:999px;background:var(--mint);font-family:'Inter Display';font-weight:900;font-size:26px;box-shadow:inset -5px -5px 10px rgba(30,100,70,.15),inset 5px 5px 10px rgba(255,255,255,.7),8px 12px 22px rgba(110,90,170,.2)}
+#capbar{position:absolute;left:50px;right:50px;top:1480px;min-height:220px;border-radius:60px;background:#fff;padding:38px 46px;z-index:8;box-shadow:inset -12px -12px 24px rgba(60,40,120,.1),inset 12px 12px 24px rgba(255,255,255,.95),18px 28px 56px rgba(110,90,170,.3)}
+#capbar .tg{position:absolute;left:46px;top:-22px;padding:6px 18px;border-radius:999px;background:var(--lav);color:#fff;font-family:'JetBrains Mono';font-weight:800;font-size:19px;letter-spacing:2px}
+.cap{position:absolute;left:46px;right:46px;top:38px;font-family:'Inter Display';font-weight:900;font-size:58px;line-height:1.18;letter-spacing:-1px;opacity:0}
+.cap .w{display:inline-block;margin-right:15px;opacity:.28}
+.cap .hl{background:var(--mint);padding:0 14px;border-radius:999px;box-shadow:inset -4px -4px 8px rgba(30,100,70,.18),inset 4px 4px 8px rgba(255,255,255,.7)}
+#tr{position:absolute;left:540px;top:900px;width:0;height:0;z-index:30;pointer-events:none}
+svg{overflow:visible}
+</style></head>
+<body><div id="stage">
+<div id="bg"></div><div id="blobs"></div>
+<div id="hud"><div class="a">Dev Inventor ✦</div><div class="b">RESUME HACK</div></div>
+<div id="scenes"></div>
+<div id="host"><img src="assets/host.png"><div class="abs" id="glint" style="overflow:hidden"></div></div>
+<div id="capbar"><div class="tg">TENGLISH CC</div></div>
+<div id="tr"></div>
+</div>
+<script>
+const TL=__TIMELINE__;const TALK=__TALK__;const NAME='Dev Inventor';
+const E={out:'cubic-bezier(.16,1,.3,1)',spring:'cubic-bezier(.34,1.8,.5,1)',back:'cubic-bezier(.34,1.56,.64,1)',io:'cubic-bezier(.65,0,.35,1)'};
+const A=(el,kf,st,du,ea=E.out,fill='both',x={})=>el.animate(kf,Object.assign({delay:st*1000,duration:du*1000,fill,easing:ea},x));
+const H=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
+const add=(p,h)=>{const e=H(h);p.appendChild(e);return e};
+const fadeTo=(el,t,kf,d=.3)=>A(el,kf,t,d,E.io,'forwards');
+const T=TL.total;
+// squishy clay pop: squash & stretch
+const squish=(el,t,base='',d=.7)=>A(el,[{opacity:0,transform:`${base} scale(.2,.2)`},{opacity:1,transform:`${base} scale(1.18,.82)`,offset:.4},{transform:`${base} scale(.9,1.12)`,offset:.6},{transform:`${base} scale(1.04,.97)`,offset:.8},{opacity:1,transform:`${base} scale(1,1)`}],t,d,'ease-out');
+const jelly=(el,t,base='')=>A(el,[{transform:`${base} scale(1,1)`},{transform:`${base} scale(1.15,.85)`},{transform:`${base} scale(.92,1.08)`},{transform:`${base} scale(1.03,.97)`},{transform:`${base} scale(1,1)`}],t,.5,'ease-out','forwards');
+const floaty=(el,t0,amp=12,per=2.6)=>A(el,[{transform:'translateY(0)'},{transform:`translateY(-${amp}px)`},{transform:'translateY(0)'}],t0,per,'ease-in-out','none',{iterations:Math.max(1,Math.ceil((T-t0)/per)),composite:'add'});
+const rise=(el,t,d=.5,dy=50)=>A(el,[{opacity:0,transform:`translateY(${dy}px)`},{opacity:1,transform:'none'}],t,d,E.spring);
+function typeIn(el,txt,t,span){const chars=[...txt];chars.forEach((ch,i)=>{const e=add(el,`<span>${ch===' '?' ':ch}</span>`);A(e,[{opacity:0},{opacity:1}],t+span*i/chars.length,.01,'linear');});}
+const check=(c,sz=40)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="${c}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const cross=(c,sz=40)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="${c}" stroke-width="3.6" stroke-linecap="round"/></svg>`;
+
+// floating clay blobs
+const BL=document.getElementById('blobs');
+[['#c9b6ff',-120,260,340],['#a8ecd0',860,520,260],['#ffc9a8',780,1180,320],['#a9d8ff',-80,1050,240],['#ffe9a1',420,120,150],['#ffb3d1',120,1720,200]].forEach((b,i)=>{const e=add(BL,`<div class="blob" style="left:${b[1]}px;top:${b[2]}px;width:${b[3]}px;height:${b[3]}px;background:${b[0]}"></div>`);
+ A(e,[{transform:'translate(0,0) scale(1)'},{transform:`translate(${i%2?-30:30}px,${i%3?-40:40}px) scale(1.06,.95)`},{transform:'translate(0,0) scale(1)'}],-i*.7,5+i,'ease-in-out','none',{iterations:Math.ceil(T/5)+2});});
+squish(document.querySelector('#hud .a'),.2);squish(document.querySelector('#hud .b'),.35);
+
+// timings
+const lines=TL.lines,sc={},order=[];
+lines.forEach(l=>{if(!sc[l.scene]){sc[l.scene]={lines:[]};order.push(l.scene)}sc[l.scene].lines.push(l)});
+order.forEach((k,i)=>sc[k].start=i?sc[k].lines[0].start-.45:0);
+order.forEach((k,i)=>sc[k].end=i<order.length-1?sc[order[i+1]].start:TL.total);
+const L=(s,i)=>s.lines[i].start, Le=(s,i)=>s.lines[i].end;
+const S=document.getElementById('scenes'),TR=document.getElementById('tr');
+const trCols=['#c9b6ff','#a8ecd0','#ffc9a8','#a9d8ff','#ffe9a1','#ffb3d1'];let ti=0;
+function clayPop(t){const c=trCols[ti++%trCols.length];const b=add(TR,`<div class="abs" style="left:-300px;top:-300px;width:600px;height:600px;border-radius:50%;background:${c};transform:scale(0);box-shadow:inset -40px -50px 90px rgba(60,40,120,.18),inset 40px 40px 80px rgba(255,255,255,.7)"></div>`);
+ A(b,[{transform:'scale(0,0)'},{transform:'scale(4.8,4.2)',offset:.45},{transform:'scale(4.4,4.9)',offset:.6},{transform:'scale(5.2,5.2)',offset:.72},{transform:'scale(5.6,5.6)',opacity:0}],t,.7,'ease-in-out','none');}
+function mk(k){const s=sc[k];s.el=add(S,`<div class="scene"></div>`);
+ if(s.start>0){clayPop(s.start-.32);A(s.el,[{opacity:0},{opacity:1}],s.start,.01,'linear');}
+ else A(s.el,[{opacity:0},{opacity:1}],0,.01,'linear');
+ if(k!=='follow')A(s.el,[{opacity:1},{opacity:0}],s.end,.01,'linear','forwards');
+ return s;}
+function title(s,html,{x=60,y=190,size=130,cls='',t,w=960,align='left'}){const e=add(s.el,`<div class="abs puff ${cls}" style="left:${x}px;top:${y}px;width:${w}px;font-size:${size}px;text-align:${align}">${html}</div>`);squish(e,t);return e;}
+
+/* ---------- HOST (intro + outro) ---------- */
+const HO=document.getElementById('host'),IMG_W=1005,IMG_H=1791;
+function placeHost(x,y,h){const w=h*IMG_W/IMG_H;HO.style.left=x+'px';HO.style.top=y+'px';HO.style.width=w+'px';HO.style.height=h+'px';return w/IMG_W;}
+const hs=placeHost(-20,360,1120);
+// glint over sunglasses (natural coords ~ x440-610, y195-265)
+const G=document.getElementById('glint');G.style.left=(430*hs)+'px';G.style.top=(190*hs)+'px';G.style.width=(190*hs)+'px';G.style.height=(80*hs)+'px';G.style.borderRadius='20px';
+const shine=add(G,`<div class="abs" style="top:-20%;height:140%;width:30%;left:-40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);transform:skewX(-20deg)"></div>`);
+const hook=sc.hook, fol=sc.follow;
+// entrance (pop from bottom with squash), exit, return
+A(HO,[{opacity:0,transform:'translateY(700px) scale(1,1)'},{opacity:1,transform:'translateY(-40px) scale(.92,1.08)',offset:.55},{transform:'translateY(10px) scale(1.06,.94)',offset:.75},{opacity:1,transform:'translateY(0) scale(1,1)'}],.15,.8,'ease-out');
+A(HO,[{opacity:1,transform:'translateX(0)'},{opacity:0,transform:'translateX(-700px) rotate(-12deg)'}],hook.end-.35,.4,E.io,'forwards');
+A(HO,[{opacity:0,transform:'translateY(700px) scale(1,1)'},{opacity:1,transform:'translateY(-40px) scale(.92,1.08)',offset:.55},{transform:'translateY(10px) scale(1.06,.94)',offset:.75},{opacity:1,transform:'translateY(0) scale(1,1)'}],fol.start+.1,.8,'ease-out','forwards');
+// idle breathing + sway (additive)
+A(HO,[{transform:'rotate(0) scaleY(1)'},{transform:'rotate(-1.4deg) scaleY(1.015)'},{transform:'rotate(0) scaleY(1)'},{transform:'rotate(1.2deg) scaleY(1.012)'},{transform:'rotate(0) scaleY(1)'}],0,3.2,'ease-in-out','none',{iterations:Math.ceil(T/3.2),composite:'add'});
+// talking bounce from the voice envelope (additive), only during host scenes
+function talk(t0,t1){const f0=Math.floor(t0*30),f1=Math.min(TALK.length-1,Math.ceil(t1*30));if(f1<=f0)return;const kf=[];
+ for(let f=f0;f<=f1;f++){const e=TALK[f]||0;kf.push({transform:`translateY(${(-e*12).toFixed(1)}px) scale(${(1+e*.012).toFixed(4)},${(1+e*.02).toFixed(4)})`});}
+ A(HO,kf,t0,(f1-f0)/30,'linear','none',{composite:'add'});}
+talk(hook.lines[0].start,hook.lines[1].end);talk(fol.lines[0].start,fol.lines[0].end);
+// glints
+[hook.lines[0].start+.4,hook.lines[1].start+.6,fol.lines[0].start+.3].forEach(t=>A(shine,[{left:'-40%'},{left:'130%'}],t,.55,E.io,'none'));
+
+/* HOOK */
+(()=>{const s=mk('hook');
+ const b1=add(s.el,`<div class="bub" style="left:560px;top:380px;width:470px">Resume raayadaniki <span style="color:#9f86f5">gantalu?!</span></div>`);squish(b1,L(s,0)+.1,'',.6);
+ const clk=add(s.el,`<div class="clay" style="left:700px;top:700px;width:230px;height:230px;border-radius:50%;background:var(--peach)"><div class="abs" style="left:107px;top:30px;width:16px;height:90px;border-radius:8px;background:var(--ink);transform-origin:50% 100%" id="hand"></div><div class="abs" style="left:100px;top:100px;width:30px;height:30px;border-radius:50%;background:var(--ink)"></div></div>`);
+ squish(clk,L(s,0)+.5);A(clk.querySelector('#hand'),[{transform:'rotate(0)'},{transform:'rotate(1080deg)'}],L(s,0)+.6,L(s,1)-L(s,0),'linear','forwards');
+ fadeTo(b1,L(s,1)-.15,[{opacity:1,transform:'none'},{opacity:0,transform:'scale(.6)'}],.25);
+ fadeTo(clk,L(s,1)-.15,[{opacity:1,transform:'none'},{opacity:0,transform:'scale(.6)'}],.25);
+ const t2=title(s,'2<br>MINUTES',{x:560,y:390,size:112,t:L(s,1)+.05,w:500});
+ const doc=add(s.el,`<div class="clay" style="left:620px;top:760px;width:360px;height:470px;background:#fff;padding:34px"><div style="width:90px;height:90px;border-radius:50%;background:var(--lav)"></div><div style="margin-top:22px;height:22px;width:80%;border-radius:11px;background:var(--ink);opacity:.8"></div>${[70,90,60,85,75].map(w=>`<div style="margin-top:18px;height:14px;width:${w}%;border-radius:7px;background:#d9d2f2"></div>`).join('')}<div class="abs chip" style="right:-30px;bottom:-26px;background:var(--mint);font-size:26px">ATS ✓</div></div>`);
+ squish(doc,L(s,1)+.4,'rotate(4deg)');floaty(doc,L(s,1)+1.2,10);
+})();
+
+/* ATS funnel */
+(()=>{const s=mk('ats');title(s,'ATS ante?',{y:190,size:140,t:s.start+.1});
+ const fun=add(s.el,`<svg class="abs" style="left:190px;top:560px;width:700px;height:520px" viewBox="0 0 700 520"><defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9ccff"/><stop offset="1" stop-color="#a98ff0"/></linearGradient></defs><path d="M30 30 H670 L420 330 V500 H280 V330 Z" fill="url(#fg)" stroke="#fff" stroke-width="10" stroke-linejoin="round"/></svg>`);
+ squish(fun,L(s,0)+.1);
+ const lb=add(s.el,`<div class="abs puff" style="left:360px;top:640px;font-size:60px;width:360px;text-align:center;color:#fff">FILTER</div>`);squish(lb,L(s,0)+.4);
+ const res=[['✓','var(--mint)',300],['✕','var(--pink)',500],['✓','var(--mint)',700]];
+ res.forEach(([m,c,x],i)=>{const d=add(s.el,`<div class="clay" style="left:${x}px;top:400px;width:110px;height:140px;border-radius:22px;background:#fff"><div style="margin:20px auto 0;width:60%;height:10px;border-radius:5px;background:#d9d2f2"></div><div style="margin:12px auto 0;width:70%;height:10px;border-radius:5px;background:#d9d2f2"></div></div>`);
+  A(d,[{opacity:0,transform:'translateY(-200px) rotate(-20deg)'},{opacity:1,transform:'translateY(0) rotate(0)'}],L(s,0)+.6+i*.35,.5,E.spring);
+  A(d,[{transform:'translateY(0)',opacity:1},{transform:`translate(${(540-55-x)}px,520px) scale(.5)`,opacity:0}],L(s,0)+1.4+i*.35,.6,E.io,'forwards');
+  const out=add(s.el,`<div class="chip" style="position:absolute;left:${170+i*270}px;top:1140px;background:${c};font-size:44px;width:200px;justify-content:center">${m==='✓'?check('#2d6b52',44):cross('#a33a63',44)}</div>`);squish(out,L(s,0)+2+i*.25);});
+ const sw=add(s.el,`<div class="abs lbl" style="left:0;width:1080px;text-align:center;top:1300px;font-size:26px">companies resumes filter chese software</div>`);rise(sw,L(s,0)+2.6);
+})();
+
+/* S1 details form */
+(()=>{const s=mk('s1');title(s,'Step 1:<br><span style="color:#ffd8c2">Details</span>',{y:190,size:130,t:s.start+.1,cls:'p2'});
+ const f=add(s.el,`<div class="clay" style="left:90px;top:560px;width:900px;height:800px;background:#fff;padding:44px"></div>`);squish(f,L(s,0)+.1);
+ [['EDUCATION','B.Tech CSE · 2025'],['SKILLS','Python · Excel · Canva'],['PROJECTS','AI reels with Claude']].forEach(([k,v],i)=>{const row=add(f,`<div style="margin-bottom:40px"><div class="lbl">${k}</div><div class="clay ty" style="position:relative;margin-top:14px;height:120px;border-radius:30px;background:${['var(--sky)','var(--mint)','var(--butter)'][i]};padding:34px 30px;font-family:'Inter Display';font-weight:900;font-size:44px"></div></div>`);
+  rise(row,L(s,0)+.5+i*.4);typeIn(row.querySelector('.ty'),v,L(s,0)+1+i*.9,.7);});
+})();
+
+/* S2 job description */
+(()=>{const s=mk('s2');title(s,'Step 2:<br><span style="color:#d6fbe9">Job desc.</span>',{y:190,size:130,t:s.start+.1,cls:'p3'});
+ const jd=add(s.el,`<div class="clay" style="left:90px;top:560px;width:900px;height:780px;background:#fff;padding:44px"><div class="lbl">JOB DESCRIPTION · DATA ANALYST</div><div class="tx" style="margin-top:26px;font-size:40px;line-height:1.7;font-weight:600"></div></div>`);squish(jd,L(s,0)+.1);
+ const tx=jd.querySelector('.tx');
+ const words=['Looking','for','a','fresher','with','§Python,','§Excel','and','§SQL','skills.','Strong','§communication','and','§teamwork.'];
+ words.forEach((w,i)=>{const kw=w.startsWith('§');const e=add(tx,`<span style="display:inline-block;margin-right:12px;padding:0 ${kw?12:0}px;border-radius:999px">${w.replace('§','')}</span>`);A(e,[{opacity:0,transform:'translateY(20px)'},{opacity:1,transform:'none'}],L(s,0)+.5+i*.07,.3,E.spring);
+  if(kw)A(e,[{background:'rgba(168,236,208,0)'},{background:'#a8ecd0'}],L(s,0)+1.7+i*.06,.3,E.io,'forwards');});
+ const k=add(s.el,`<div class="chip" style="position:absolute;left:560px;top:1250px;background:var(--mint)">= KEYWORDS ✓</div>`);squish(k,L(s,0)+2.4);
+})();
+
+/* S3 prompt + resume builds */
+(()=>{const s=mk('s3');title(s,'Step 3:<br>Ask Claude',{y:190,size:130,t:s.start+.1});
+ const pb=add(s.el,`<div class="bub" style="left:120px;top:540px;width:840px;font-size:44px;line-height:1.3"><div class="ty"></div></div>`);squish(pb,L(s,0)+.1);
+ typeIn(pb.querySelector('.ty'),'"Ee job ki ATS friendly resume raayi, okka page lo."',L(s,0)+.4,(Le(s,0)-L(s,0))*.5);
+ const doc=add(s.el,`<div class="clay" style="left:250px;top:830px;width:580px;height:560px;background:#fff;padding:36px"></div>`);squish(doc,L(s,0)+2.4);
+ const rows=[['#3a2f5c',55,26],['#9f86f5',35,16],['#d9d2f2',90,14],['#d9d2f2',80,14],['#a8ecd0',40,16],['#d9d2f2',85,14],['#d9d2f2',70,14],['#ffc9a8',45,16],['#d9d2f2',88,14]];
+ rows.forEach(([c,w,h],i)=>{const r=add(doc,`<div style="margin-top:${i?20:0}px;height:${h}px;width:${w}%;border-radius:${h/2}px;background:${c}"></div>`);A(r,[{transform:'scaleX(0)',transformOrigin:'left'},{transform:'scaleX(1)',transformOrigin:'left'}],L(s,0)+2.8+i*.18,.35,E.spring);});
+ const pg=add(doc,`<div class="chip" style="position:absolute;right:-40px;top:-30px;background:var(--butter);font-size:26px">1 PAGE ✓</div>`);squish(pg,Le(s,0)-.3);
+})();
+
+/* TIPS */
+(()=>{const s=mk('tips');title(s,'3 Pro tips',{y:190,size:140,t:s.start+.1});
+ const tiles=[['KEYWORDS','JD words → resume','var(--mint)','🔑'],['NUMBERS','"20% penchanu"','var(--peach)','20%↑'],['SIMPLE','no tables / photos','var(--sky)','Aa']];
+ tiles.forEach(([k,v,c,ic],i)=>{const y=440+i*330;const t=add(s.el,`<div class="clay" style="left:90px;top:${y}px;width:900px;height:290px;background:${c};padding:40px;display:flex;align-items:center;gap:40px"><div class="clay" style="position:relative;flex:0 0 200px;height:200px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:${ic.length>2?62:80}px">${ic==='🔑'?'<svg width=\"100\" height=\"100\" viewBox=\"0 0 24 24\"><circle cx=\"8\" cy=\"12\" r=\"4.5\" fill=\"none\" stroke=\"#3a2f5c\" stroke-width=\"2.4\"/><path d=\"M12.5 12H22M18 12v3M21 12v2.5\" stroke=\"#3a2f5c\" stroke-width=\"2.4\" stroke-linecap=\"round\"/></svg>':ic}</div><div><div class="lbl" style="color:var(--ink)">0${i+1} · ${k}</div><div style="font-family:'Inter Display';font-weight:900;font-size:54px;margin-top:12px;letter-spacing:-1px">${v}</div></div></div>`);
+  squish(t,L(s,i)+.05);jelly(t.firstElementChild,L(s,i)+.8);});
+})();
+
+/* CHECK — honesty */
+(()=>{const s=mk('check');title(s,'Nijamena?',{y:190,size:150,t:s.start+.1,cls:'p2'});
+ const doc=add(s.el,`<div class="clay" style="left:190px;top:470px;width:700px;height:820px;background:#fff;padding:50px"></div>`);squish(doc,L(s,0)-.1);
+ const ticks=[];for(let i=0;i<6;i++){const r=add(doc,`<div style="display:flex;align-items:center;gap:20px;margin-bottom:56px"><div style="flex:1;height:18px;border-radius:9px;background:#d9d2f2;width:${60+(i*11)%35}%"></div><div class="tk" style="opacity:0">${check('#2fae7c',48)}</div></div>`);ticks.push(r.querySelector('.tk'));}
+ const mg=add(s.el,`<div class="abs" style="left:230px;top:500px;width:200px;height:240px;z-index:3"><div class="clay" style="position:absolute;left:0;top:0;width:170px;height:170px;border-radius:50%;background:rgba(169,216,255,.55);border:16px solid #9f86f5"></div><div class="clay" style="position:absolute;left:140px;top:150px;width:34px;height:110px;border-radius:17px;background:#9f86f5;transform:rotate(-40deg)"></div></div>`);
+ squish(mg,L(s,0)+.2);A(mg,[{transform:'translateY(0)'},{transform:'translateY(640px)'}],L(s,0)+.5,(Le(s,0)-L(s,0))*.85,'ease-in-out','forwards',{composite:'add'});
+ ticks.forEach((tk,i)=>A(tk,[{opacity:0,transform:'scale(.2)'},{opacity:1,transform:'scale(1)'}],L(s,0)+.7+i*.32,.35,E.spring));
+ const b=add(s.el,`<div class="chip" style="position:absolute;left:330px;top:1320px;background:var(--mint);font-size:34px">fake info vaddu ✓</div>`);squish(b,Le(s,0)-.2);
+})();
+
+/* CTA */
+(()=>{const s=mk('cta');title(s,'Comment<br><span style="color:#d6fbe9">RESUME</span>',{y:190,size:130,t:s.start+.1,cls:'p3'});
+ const p=add(s.el,`<div class="clay" style="left:90px;top:560px;width:900px;height:780px;background:#fff;padding:44px"><div class="lbl">COMMENTS</div><div class="lst" style="margin-top:20px"></div></div>`);squish(p,s.start+.3);
+ const lst=p.querySelector('.lst');[['@friend1','super useful!','var(--sky)'],['@friend2','naku kavali','var(--peach)']].forEach(([u,t,c])=>add(lst,`<div style="display:flex;align-items:center;gap:20px;margin-top:26px"><div class="clay" style="position:relative;width:76px;height:76px;border-radius:50%;background:${c}"></div><div style="font-size:40px;font-weight:700"><span class="mono" style="font-size:24px;color:var(--mu)">${u}</span> ${t}</div></div>`));
+ const nc=add(lst,`<div style="display:flex;align-items:center;gap:20px;margin-top:26px;opacity:0"><div class="clay" style="position:relative;width:76px;height:76px;border-radius:50%;background:var(--mint)"></div><div class="puff p3" style="font-size:64px">RESUME</div></div>`);
+ const inp=add(p,`<div class="clay" style="left:44px;right:44px;bottom:44px;height:120px;border-radius:60px;background:#f3efff;display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 40px"><div class="ty" style="font-family:'Inter Display';font-weight:900;font-size:48px"></div><div class="snd clay" style="position:relative;width:90px;height:90px;border-radius:50%;background:var(--lav);display:flex;align-items:center;justify-content:center"><svg width="40" height="40" viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/></svg></div></div>`);
+ typeIn(inp.querySelector('.ty'),'RESUME',L(s,0)+1.3,.7);
+ const tap=L(s,0)+2.4;jelly(inp.querySelector('.snd'),tap);
+ A(inp.querySelector('.ty'),[{opacity:1},{opacity:0}],tap+.1,.15,E.io,'forwards');A(nc,[{opacity:0,transform:'translateY(40px) scale(.6)'},{opacity:1,transform:'none'}],tap+.15,.5,E.spring,'forwards');
+})();
+
+/* FOLLOW — host returns */
+(()=>{const s=mk('follow');
+ title(s,'FOLLOW',{x:0,w:1080,y:200,size:200,align:'center',t:s.start+.15});
+ const bub=add(s.el,`<div class="bub" style="left:560px;top:520px;width:470px;font-size:48px">Follow cheyyandi! <span style="color:#9f86f5">✦</span></div>`);squish(bub,L(s,0)+.1);
+ const card=add(s.el,`<div class="clay" style="left:560px;top:800px;width:470px;height:300px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px"><div class="clay" style="position:relative;width:110px;height:110px;border-radius:50%;background:var(--lav);display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:50px;color:#fff">DI</div><div style="font-family:'Inter Display';font-weight:900;font-size:48px">${NAME}</div><div class="lbl" style="font-size:18px">CLAUDE · AI · TELUGU</div></div>`);squish(card,s.start+.6);
+ const btn=add(s.el,`<div class="clay" style="left:560px;top:1150px;width:470px;height:150px;border-radius:75px;background:var(--lav);display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:66px;color:#fff"><span class="a">Follow</span><span class="b abs" style="opacity:0;color:#2d6b52">Following ✓</span></div>`);squish(btn,L(s,0)+.3);
+ const tap=Le(s,0)+.1;
+ const cur=add(s.el,`<div class="abs" style="left:980px;top:1500px;width:64px;height:64px;z-index:9"><svg width="64" height="64" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke="#3a2f5c" stroke-width="1.4" stroke-linejoin="round"/></svg></div>`);
+ A(cur,[{opacity:0,transform:'translate(0,0)'},{opacity:1,transform:'translate(-180px,-270px)'}],tap-.7,.6,E.out);
+ A(cur,[{transform:'translate(-180px,-270px) scale(1)'},{transform:'translate(-180px,-270px) scale(.75)'},{transform:'translate(-180px,-270px) scale(1)'}],tap,.25,E.io,'forwards');
+ jelly(btn,tap);A(btn,[{background:'#c9b6ff'},{background:'#a8ecd0'}],tap+.05,.3,E.io,'forwards');
+ A(btn.querySelector('.a'),[{opacity:1},{opacity:0}],tap,.12,E.io,'forwards');A(btn.querySelector('.b'),[{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1)'}],tap+.1,.4,E.spring);
+ // confetti
+ const cols=['#c9b6ff','#a8ecd0','#ffc9a8','#a9d8ff','#ffe9a1','#ffb3d1'];
+ for(let i=0;i<40;i++){const x=(i*97)%1080,c=cols[i%6],sz=18+(i*7)%22;const p=add(s.el,`<div class="abs" style="left:${x}px;top:-60px;width:${sz}px;height:${sz*(i%2?1:.5)}px;border-radius:${i%3?50:20}%;background:${c};box-shadow:inset -3px -3px 6px rgba(0,0,0,.12),inset 3px 3px 6px rgba(255,255,255,.7)"></div>`);
+  A(p,[{transform:'translateY(0) rotate(0)',opacity:1},{transform:`translateY(${1500+(i*53)%400}px) rotate(${(i%2?1:-1)*(360+i*20)}deg)`,opacity:1}],tap+.2+(i%10)*.06,2.2,'cubic-bezier(.3,.1,.6,1)');}
+})();
+
+/* CAPTIONS */
+const CB=document.getElementById('capbar');A(CB,[{opacity:0,transform:'translateY(300px) scale(.8,1.2)'},{opacity:1,transform:'translateY(-20px) scale(1.04,.96)',offset:.7},{opacity:1,transform:'none'}],.3,.7,'ease-out');
+lines.forEach((l,idx)=>{
+ const ws=l.cap.replace(/\*([^*]+)\*/g,(m,g)=>g.split(' ').map(w=>'§'+w).join(' ')).split(' ');
+ const plain=l.cap.replace(/\*/g,'');const fs=plain.length>62?46:plain.length>46?52:58;
+ const el=add(CB,`<div class="cap" style="font-size:${fs}px"></div>`);const dur=(l.end-l.start)*.92;
+ ws.forEach((w,i)=>{const hl=w.startsWith('§');const e=add(el,`<span class="w${hl?' hl':''}">${w.replace('§','')}</span>`);
+  const t=l.start+dur*i/ws.length;A(e,[{opacity:.28},{opacity:1}],t,.08,'linear');
+  if(hl)A(e,[{transform:'scale(.4,.4)'},{transform:'scale(1.2,.85)',offset:.45},{transform:'scale(.92,1.08)',offset:.7},{transform:'scale(1,1)'}],t,.5,'ease-out','forwards');});
+ const nxt=idx<lines.length-1?lines[idx+1].start:TL.total;
+ A(el,[{opacity:0,transform:'translateY(20px)'},{opacity:1,transform:'none'}],l.start-.15,.2,E.spring);
+ A(el,[{opacity:1},{opacity:0}],Math.min(nxt-.15,l.end+.7),.1,'linear','forwards');
+});
+window.seek=t=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+seek(0);window.READY=true;
+</script></body></html>
