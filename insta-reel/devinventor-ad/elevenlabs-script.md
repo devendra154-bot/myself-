@@ -14,11 +14,11 @@ Website (in the QR code): https://devendra154-bot.github.io/myself-/
 
 DevInventor... ఎంబెడెడ్ అండ్ ఐ ఓ టి ప్రాజెక్ట్స్.
 
-Arduino, ESP32, STM32, Raspberry Pi.
+Arduino, ESP32, STM32 బోర్డ్స్ తో బిల్డ్ చేస్తాం.
 
 పీ సీ బీ డిజైన్, ఫర్మ్ వేర్, మొబైల్ యాప్, క్లౌడ్ డాష్ బోర్డ్... అన్నీ.
 
-హోమ్ ఆటోమేషన్, రోబోటిక్స్, ఎడ్జ్ ఏ ఐ కెమెరా ప్రాజెక్ట్స్.
+హోమ్ ఆటోమేషన్, రోబోటిక్స్, స్మార్ట్ సెన్సార్ ప్రాజెక్ట్స్.
 
 స్టూడెంట్స్ కి ఫైనల్ ఇయర్ ప్రాజెక్ట్స్... కోడ్, రిపోర్ట్, డెమో సపోర్ట్ తో.
 
@@ -42,11 +42,11 @@ Daanni working device ga memu marustham.
 
 DevInventor... Embedded and IoT projects.
 
-Arduino, ESP32, STM32, Raspberry Pi.
+Arduino, ESP32, STM32 boards tho build chestham.
 
 PCB design, firmware, mobile app, cloud dashboard... anni.
 
-Home automation, robotics, Edge AI camera projects.
+Home automation, robotics, smart sensor projects.
 
 Students ki final year projects... code, report, demo support tho.
 
@@ -65,9 +65,9 @@ Marinni projects kosam, follow cheyyandi!
 
 Mee daggara project idea undaa? 💡 Daanni working device ga memu marustham ⚡
 
-🔌 Arduino · ESP32 · STM32 · Raspberry Pi
+🔌 Arduino · ESP32 · STM32
 🧩 PCB design · firmware · mobile app · cloud dashboard
-🏠 Home automation · 🤖 Robotics · 📷 Edge AI camera
+🏠 Home automation · 🤖 Robotics · 📡 Smart sensors
 🎓 Final year projects — code, report & demo support
 
 📝 Form fill → 💬 WhatsApp lo quote → 🛠 Build → 📦 Deliver
@@ -76,4 +76,4 @@ Mee daggara project idea undaa? 💡 Daanni working device ga memu marustham ⚡
 🔗 Link bio lo undi / reel lo QR scan cheyyandi
 Marinni projects kosam follow @devinventor2010 🔔
 
-#embeddedsystems #iot #arduino #esp32 #raspberrypi #pcbdesign #finalyearproject #engineeringprojects #btech #telugu #devinventor
+#embeddedsystems #iot #arduino #esp32 #stm32 #pcbdesign #finalyearproject #engineeringprojects #btech #telugu #devinventor

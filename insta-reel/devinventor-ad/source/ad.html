@@ -129,12 +129,12 @@ function mk(k){const s=sc[k];s.el=add(S,`<div class="scene"></div>`);
  A(core,[{opacity:0,transform:'rotate(-90deg) scale(.2)'},{opacity:1,transform:'rotate(0) scale(1)'}],s.start+.2,.7,E.back);
  A(core,[{boxShadow:'0 0 40px rgba(34,211,238,.4)'},{boxShadow:'0 0 120px rgba(34,211,238,.9)'},{boxShadow:'0 0 40px rgba(34,211,238,.4)'}],s.start+1,1.2,'ease-in-out','none',{iterations:4});
  for(let i=0;i<8;i++){['top','bottom'].forEach((side,j)=>{const pn=add(core,`<div class="abs" style="left:${28+i*33}px;${side}:-18px;width:16px;height:18px;border-radius:3px;background:#d4af37"></div>`);});}
- const bds=[['Arduino','#00979d',90,430],['ESP32','#e7352c',700,430],['STM32','#03234b',90,1080],['Raspberry Pi','#c51a4a',650,1080]];
+ const bds=[['Arduino','#00979d',90,430],['ESP32','#e7352c',700,430],['STM32','#2b6cb0',395,1080]];
  const span=Le(s,0)-L(s,0);
- bds.forEach(([n,c,x,y],i)=>{const t=L(s,0)+span*i/4;const b=add(s.el,`<div class="holo" style="left:${x}px;top:${y}px;width:${n.length>8?340:290}px;height:150px;display:flex;align-items:center;gap:18px;padding:0 24px"><div style="width:70px;height:70px;border-radius:14px;background:${c};box-shadow:0 0 24px ${c}"></div><div class="K" style="font-size:${n.length>8?40:48}px">${n}</div></div>`);
+ bds.forEach(([n,c,x,y],i)=>{const t=L(s,0)+span*i/3;const b=add(s.el,`<div class="holo" style="left:${x}px;top:${y}px;width:${n.length>8?340:290}px;height:150px;display:flex;align-items:center;gap:18px;padding:0 24px"><div style="width:70px;height:70px;border-radius:14px;background:${c};box-shadow:0 0 24px ${c}"></div><div class="K" style="font-size:${n.length>8?40:48}px">${n}</div></div>`);
   b.querySelector('.K').style.fontSize=(n.length>8?40:48)+'px';
   A(b,[{opacity:0,transform:'rotateY(90deg) scale(.6)'},{opacity:1,transform:'rotateY(0) scale(1)'}],t,.6,E.back);
-  const cx=x+150,cy=y+75;const tr=add(s.el,`<svg class="abs" style="left:0;top:0;width:1080px;height:1920px;pointer-events:none" viewBox="0 0 1080 1920"><path d="M${cx} ${cy+(cy<800?75:-75)} L${cx} 790 L${cx<540?390:690} 790" fill="none" stroke="#22d3ee" stroke-width="4" stroke-dasharray="10 8"/></svg>`);A(tr,[{opacity:0},{opacity:.8}],t+.3,.3,E.io);});
+  const cx=x+145,cy=y+75;const tr=add(s.el,`<svg class="abs" style="left:0;top:0;width:1080px;height:1920px;pointer-events:none" viewBox="0 0 1080 1920"><path d="${i===2?`M540 1080 L540 940`:`M${cx} ${cy+75} L${cx} 790 L${cx<540?390:690} 790`}" fill="none" stroke="#22d3ee" stroke-width="4" stroke-dasharray="10 8"/></svg>`);A(tr,[{opacity:0},{opacity:.8}],t+.3,.3,E.io);});
 })();
 
 /* STACK — PCB → firmware → app → cloud pipeline */
@@ -151,12 +151,12 @@ function mk(k){const s=sc[k];s.el=add(S,`<div class="scene"></div>`);
 /* BUILDS — 3 holo project cards */
 (()=>{const s=mk('builds');
  kin(s.el,'PROJECTS',{y:190,size:130,t:s.start+.1,align:'center',x:0,w:1080});
- const cards=[['Home Automation',`<path data-d d="M30 110 L110 40 L190 110 V190 H30 Z"/><path data-d d="M95 190 V140 H125 V190"/><circle data-d cx="160" cy="70" r="14" stroke="#fbbf24"/>`],['Robotics',`<path data-d d="M40 190 H180 M110 190 V150 L70 100 L120 60 L160 80"/><circle data-d cx="70" cy="100" r="10"/><circle data-d cx="120" cy="60" r="10"/><path data-d d="M160 80 L185 70 M160 80 L180 100"/>`],['Edge AI Camera',`<rect data-d x="30" y="60" width="160" height="110" rx="16"/><circle data-d cx="110" cy="115" r="34"/><rect data-d x="60" y="30" width="60" height="30" rx="6"/><path data-d d="M80 95 h10 M130 95 h10" stroke="#4ade80"/>`]];
+ const cards=[['Home Automation',`<path data-d d="M30 110 L110 40 L190 110 V190 H30 Z"/><path data-d d="M95 190 V140 H125 V190"/><circle data-d cx="160" cy="70" r="14" stroke="#fbbf24"/>`],['Robotics',`<path data-d d="M40 190 H180 M110 190 V150 L70 100 L120 60 L160 80"/><circle data-d cx="70" cy="100" r="10"/><circle data-d cx="120" cy="60" r="10"/><path data-d d="M160 80 L185 70 M160 80 L180 100"/>`],['Smart Sensors',`<rect data-d x="70" y="90" width="80" height="100" rx="14"/><circle data-d cx="110" cy="140" r="18" stroke="#4ade80"/><path data-d d="M60 70 A60 60 0 0 1 160 70"/><path data-d d="M40 45 A90 90 0 0 1 180 45"/><path data-d d="M20 20 A120 120 0 0 1 200 20"/>`]];
  cards.forEach(([n,svg],i)=>{const x=60+i*330;const c=add(s.el,`<div class="holo" style="left:${x}px;top:520px;width:300px;height:640px;padding:30px;display:flex;flex-direction:column;align-items:center;gap:30px"></div>`);
   const t=L(s,0)+i*(Le(s,0)-L(s,0))/3;A(c,[{opacity:0,transform:'translateY(300px) rotateX(50deg)'},{opacity:1,transform:'none'}],t,.6,E.out);
   svgEl(c,svg,{x:40,y:80,w:220,h:220,t:t+.3,dur:.9});
   const lb=add(c,`<div class="K" style="position:absolute;left:20px;right:20px;top:380px;text-align:center;font-size:46px;line-height:1">${n}</div>`);rise(lb,t+.6,.4,20);
-  if(i===2){const scan=add(c,`<div class="abs" style="left:70px;top:150px;width:160px;height:4px;background:#4ade80;box-shadow:0 0 16px #4ade80"></div>`);A(scan,[{transform:'translateY(0)'},{transform:'translateY(130px)'},{transform:'translateY(0)'}],t+1,1.2,'ease-in-out','none',{iterations:3});}
+  if(i===2){const dot=add(c,`<div class="abs" style="left:136px;top:206px;width:28px;height:28px;border-radius:50%;background:#4ade80;box-shadow:0 0 30px #4ade80"></div>`);A(dot,[{opacity:.3,transform:'scale(.8)'},{opacity:1,transform:'scale(1.2)'},{opacity:.3,transform:'scale(.8)'}],t+1,.9,'ease-in-out','none',{iterations:4});}
   if(i===0){const bulb=add(c,`<div class="abs" style="left:186px;top:136px;width:28px;height:28px;border-radius:50%;background:#fbbf24;opacity:0;box-shadow:0 0 40px #fbbf24"></div>`);A(bulb,[{opacity:0},{opacity:1},{opacity:.2},{opacity:1}],t+1.2,1,'steps(4,end)','forwards');}});
 })();
 
