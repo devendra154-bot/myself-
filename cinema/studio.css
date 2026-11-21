@@ -1,0 +1,28 @@
+.studio{max-width:1100px;margin:0 auto;padding:24px 16px 60px}
+.settings{margin-top:22px}
+.settings .row{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-bottom:12px}
+.settings label{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:.9rem}
+.settings select{max-width:280px;padding:8px;border-radius:8px;background:#0f0a15;color:var(--text);border:1px solid #4a3a5c}
+.settings input[type=range]{accent-color:var(--gold)}
+.settings output{min-width:34px;color:var(--text)}
+.check{cursor:pointer}
+.ghost{background:transparent;border:1px solid #4a3a5c;color:var(--text);border-radius:999px;padding:8px 14px}
+.ghost:hover{border-color:var(--gold)}
+.parts{display:grid;gap:14px;margin-top:18px}
+.part{display:grid;grid-template-columns:240px 1fr;gap:16px;background:var(--panel);border:1px solid #2c2236;border-radius:14px;padding:14px}
+@media(max-width:700px){.part{grid-template-columns:1fr}}
+.part canvas{width:100%;aspect-ratio:16/9;border-radius:8px;background:#000;display:block}
+.part h3{font-size:1rem;margin-bottom:6px}
+.part h3 small{color:var(--gold);font-weight:600;margin-right:6px}
+.part textarea{width:100%;min-height:84px;resize:vertical;padding:10px;border-radius:8px;background:#0f0a15;color:var(--text);border:1px solid #3a2e48;font:inherit;font-size:.92rem;line-height:1.45}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
+.tools button{background:#2b1f3a;border:1px solid #4a3a5c;color:var(--text);border-radius:999px;padding:7px 14px;font-size:.85rem}
+.tools button:hover:not(:disabled){border-color:var(--gold)}
+.tools button:disabled{opacity:.35;cursor:not-allowed}
+.tools .rec{background:#5a0f1f;border-color:#b3122e}
+.tools .rec.on{background:#b3122e;animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px #b3122e44}}
+.badge{font-size:.78rem;padding:4px 10px;border-radius:999px;background:#1f2a1f;color:#8fd18f;border:1px solid #2f5a2f}
+.badge.ai{background:#1f1f2e;color:#a9b4ff;border-color:#3a3a6a}
+.premiere{text-align:center;margin-top:26px}
+.premiere .btn{display:inline-block;text-decoration:none}

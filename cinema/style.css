@@ -27,6 +27,8 @@ button{font:inherit;cursor:pointer}
 .poster{width:52px;height:70px;border-radius:6px;display:grid;place-items:center;font-size:1.6rem;flex:none}
 .p1{background:linear-gradient(135deg,#f5c542,#b3122e)}
 .p2{background:linear-gradient(135deg,#3a7bd5,#00d2ff)}
+.p4{background:linear-gradient(135deg,#f3e6c4,#b3122e)}
+.film small a,.studio-link{color:var(--gold)}
 .p3{background:linear-gradient(135deg,#8e2de2,#4a00e0)}
 .url-box{margin-top:10px}
 .url-box input{width:100%;padding:10px;border-radius:8px;border:1px solid #4a3a5c;background:#0f0a15;color:var(--text)}

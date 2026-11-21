@@ -37,3 +37,6 @@ Repo **Settings → Pages → Deploy from branch** → pick your branch and `/ (
 
 ## Mini Cinema (`/cinema/`)
 A mini cinema in the browser: pick a film (built-in 1-minute animated short, your own video file, or a YouTube / .mp4 link), choose a seat, and the lights dim and curtains open. Seat position changes the screen size and angle, the room glows with the film's colours, and there are lights, popcorn and fullscreen controls (keys: Space, L, P, F, Esc). No server or login needed.
+
+### Voice Studio (`/cinema/studio.html`)
+Narrate the 10-part film **"The Last Ticket"**. For each part you can hear an AI voice (the browser's built-in voices, Indian English listed first, with speed and pitch controls) or record your own voice with the microphone. You can also edit the words, including writing them in Telugu or Hindi. Recordings stay in your browser (IndexedDB). Then press **Premiere** to watch it in the Mini Cinema with animated scenes, subtitles and music.

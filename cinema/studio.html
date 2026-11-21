@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Studio · The Last Ticket · DevInventor Mini Cinema</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="studio.css">
+</head>
+<body>
+<main class="studio">
+  <header class="marquee">
+    <div class="bulbs"></div>
+    <h1>VOICE <span>STUDIO</span></h1>
+    <p>Give a voice to <b>“The Last Ticket”</b>: use an AI voice, or record your own for each of the 10 parts.</p>
+    <div class="bulbs"></div>
+  </header>
+
+  <section class="panel settings">
+    <h2>🎚️ Narrator</h2>
+    <div class="row">
+      <label>AI voice <select id="voiceSel"></select></label>
+      <label>Speed <input id="rate" type="range" min="0.6" max="1.4" step="0.05"><output id="rateOut"></output></label>
+      <label>Pitch <input id="pitch" type="range" min="0.5" max="1.6" step="0.05"><output id="pitchOut"></output></label>
+    </div>
+    <div class="row">
+      <label class="check"><input id="useRec" type="checkbox"> Use my recorded voice where I recorded one</label>
+      <button id="resetTexts" class="ghost">↺ Reset story text</button>
+    </div>
+    <p id="voiceNote" class="note"></p>
+  </section>
+
+  <section id="partsList" class="parts"></section>
+
+  <div class="premiere">
+    <a class="btn" href="index.html?film=story">🎬 Premiere in the Mini Cinema</a>
+    <p class="note">Tip: you can edit any part's words. Write in Telugu or Hindi and pick a Telugu or Hindi voice if your device has one.</p>
+  </div>
+</main>
+<script src="story.js"></script>
+<script src="studio.js"></script>
+</body>
+</html>

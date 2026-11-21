@@ -15,7 +15,7 @@
   <header class="marquee">
     <div class="bulbs"></div>
     <h1>MINI <span>CINEMA</span></h1>
-    <p>Pick a film · choose your seat · dim the lights</p>
+    <p>Pick a film · choose your seat · dim the lights · <a class="studio-link" href="studio.html">🎙️ Voice Studio</a></p>
     <div class="bulbs"></div>
   </header>
 
@@ -26,6 +26,10 @@
         <button class="film selected" data-kind="demo">
           <span class="poster p1">★</span>
           <span><b>The Little Projector</b><small>Built-in short · 1 min · no download</small></span>
+        </button>
+        <button class="film" data-kind="story">
+          <span class="poster p4">🎟️</span>
+          <span><b>The Last Ticket</b><small>10-part story · narrated · <a href="studio.html">🎙️ Voice Studio</a></small></span>
         </button>
         <button class="film" data-kind="file">
           <span class="poster p2">📁</span>
@@ -99,6 +103,7 @@
   <div class="toast" id="toast"></div>
 </section>
 
+<script src="story.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

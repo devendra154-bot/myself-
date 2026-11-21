@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   const ROWS = "ABCDEF", COLS = 10;
-  const state = { kind: "demo", file: null, url: "", seat: null };
+  const state = { kind: new URLSearchParams(location.search).get("film") === "story" ? "story" : "demo", file: null, url: "", seat: null };
 
   /* ---------------- ticket booth ---------------- */
   // Seats: some are "taken" (same pattern each day so it feels real)
@@ -49,6 +49,7 @@
 
   function filmTitle() {
     if (state.kind === "demo") return "The Little Projector";
+    if (state.kind === "story") return "The Last Ticket";
     if (state.kind === "file") return state.file ? state.file.name : null;
     if (state.kind === "url") return state.url ? (ytId(state.url) ? "YouTube video" : state.url.split("/").pop().split("?")[0] || "Video link") : null;
   }
@@ -67,7 +68,7 @@
 
   /* ---------------- theater ---------------- */
   const video = $("video"), yt = $("yt"), canvas = $("demoCanvas"), wrap = $("screenWrap"), hall = $("hall");
-  let mode = null, curtainsOpen = false;
+  let mode = null, curtainsOpen = false, film = null;
 
   // audience heads in front of you (rows in front of your seat)
   function buildRows() {
@@ -102,7 +103,7 @@
     [canvas, video, yt].forEach(el => el.classList.remove("on"));
     $("seek").disabled = false; $("playBtn").disabled = false;
 
-    if (state.kind === "demo") { mode = "demo"; canvas.classList.add("on"); demo.reset(); demo.draw(); }
+    if (state.kind === "demo" || state.kind === "story") { mode = "canvas"; film = state.kind === "demo" ? demo : story; film.reset(); film.draw(); canvas.classList.add("on"); }
     else if (state.kind === "file") { mode = "video"; video.src = URL.createObjectURL(state.file); video.classList.add("on"); }
     else {
       const id = ytId(state.url);
@@ -127,22 +128,22 @@
   }
 
   function play() {
-    if (mode === "demo") demo.play();
+    if (mode === "canvas") film.play();
     else if (mode === "video") video.play().catch(() => toast("Tap ▶ to start the film"));
     hall.classList.add("dark");
   }
   function pause() {
-    if (mode === "demo") demo.pause();
+    if (mode === "canvas") film.pause();
     else if (mode === "video") video.pause();
   }
-  const isPlaying = () => mode === "demo" ? demo.playing : mode === "video" ? !video.paused : false;
+  const isPlaying = () => mode === "canvas" ? film.playing : mode === "video" ? !video.paused : false;
   function togglePlay() { if (mode === "yt") return; isPlaying() ? pause() : play(); }
 
   $("playBtn").onclick = togglePlay;
-  $("vol").oninput = e => { video.volume = +e.target.value; demo.setVolume(+e.target.value); };
+  $("vol").oninput = e => { video.volume = +e.target.value; demo.setVolume(+e.target.value); story.setVolume(+e.target.value); };
   $("seek").oninput = e => {
     const f = e.target.value / 1000;
-    if (mode === "demo") demo.seek(f * demo.duration);
+    if (mode === "canvas") film.seek(f * film.duration);
     else if (mode === "video" && video.duration) video.currentTime = f * video.duration;
   };
   $("lightsBtn").onclick = () => { hall.classList.toggle("dark"); toast(hall.classList.contains("dark") ? "Lights dimmed" : "Lights on"); };
@@ -173,9 +174,9 @@
     requestAnimationFrame(tick);
     if (!$("theater").classList.contains("active")) return;
     let cur = 0, dur = 0;
-    if (mode === "demo") { cur = demo.time(); dur = demo.duration; }
+    if (mode === "canvas") { cur = film.time(); dur = film.duration; }
     else if (mode === "video") { cur = video.currentTime; dur = video.duration; }
-    $("time").textContent = `${fmt(cur)} / ${fmt(dur)}`;
+    $("time").textContent = mode === "canvas" && film.label ? film.label() : `${fmt(cur)} / ${fmt(dur)}`;
     if (dur && document.activeElement !== $("seek")) $("seek").value = (cur / dur) * 1000;
     $("playBtn").textContent = isPlaying() ? "❚❚" : "▶";
 
@@ -185,7 +186,7 @@
       if (!curtainsOpen) { glow.style.background = "#311"; return; }
       if (mode === "yt" || glowFail) { glow.style.background = "radial-gradient(#4a5a9a,#1a1a40)"; return; }
       try {
-        const src = mode === "demo" ? canvas : video;
+        const src = mode === "canvas" ? canvas : video;
         if (mode === "video" && video.readyState < 2) return;
         tctx.drawImage(src, 0, 0, 4, 2);
         const d = tctx.getImageData(0, 0, 4, 2).data;
@@ -390,5 +391,7 @@
     return { play, pause, seek, reset, draw, time, setVolume, crunch, duration, get playing() { return playing; } };
   })();
 
+  const story = window.Story.Player(canvas, { onEnd: ending });
+  if (state.kind === "story") { films.querySelectorAll(".film").forEach(x => x.classList.toggle("selected", x.dataset.kind === "story")); }
   refresh();
 })();
