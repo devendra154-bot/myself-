@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   const ROWS = "ABCDEF", COLS = 10;
-  const state = { kind: new URLSearchParams(location.search).get("film") === "story" ? "story" : "demo", file: null, url: "", seat: null };
+  const state = { kind: new URLSearchParams(location.search).get("film") === "story" ? "story" : "demo", src: "", file: null, url: "", seat: null };
 
   /* ---------------- ticket booth ---------------- */
   // Seats: some are "taken" (same pattern each day so it feels real)
@@ -38,7 +38,7 @@
     const f = e.target.closest(".film"); if (!f) return;
     films.querySelectorAll(".film").forEach(x => x.classList.remove("selected"));
     f.classList.add("selected");
-    state.kind = f.dataset.kind;
+    state.kind = f.dataset.kind; state.src = f.dataset.src;
     $("urlBox").hidden = state.kind !== "url";
     if (state.kind === "file") $("fileInput").click();
     if (state.kind === "url") $("urlInput").focus();
@@ -50,6 +50,7 @@
   function filmTitle() {
     if (state.kind === "demo") return "The Little Projector";
     if (state.kind === "story") return "The Last Ticket";
+    if (state.kind === "movie") return "The Last Ticket (video)";
     if (state.kind === "file") return state.file ? state.file.name : null;
     if (state.kind === "url") return state.url ? (ytId(state.url) ? "YouTube video" : state.url.split("/").pop().split("?")[0] || "Video link") : null;
   }
@@ -104,6 +105,7 @@
     $("seek").disabled = false; $("playBtn").disabled = false;
 
     if (state.kind === "demo" || state.kind === "story") { mode = "canvas"; film = state.kind === "demo" ? demo : story; film.reset(); film.draw(); canvas.classList.add("on"); }
+    else if (state.kind === "movie") { mode = "video"; video.src = state.src; video.classList.add("on"); }
     else if (state.kind === "file") { mode = "video"; video.src = URL.createObjectURL(state.file); video.classList.add("on"); }
     else {
       const id = ytId(state.url);
