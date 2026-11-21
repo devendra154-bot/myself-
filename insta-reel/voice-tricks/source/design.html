@@ -163,7 +163,7 @@ const sx=x=>FX+x+60,sy=y=>FY+y; // board coords → screen (board at x=60 on scr
  const ph=add(sc2,`<div class="abs" style="left:560px;top:140px;width:130px;height:250px;border-radius:24px;background:#1e1e1e;border:6px solid #444;transform-origin:50% 70%"><div style="margin:12px auto 0;width:40px;height:8px;border-radius:4px;background:#555"></div><div style="position:absolute;left:50%;top:-14px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#0d99ff;box-shadow:0 0 14px #0d99ff"></div></div>`);
  A(ph,[{opacity:0,transform:'translateX(160px)'},{opacity:1,transform:'none'}],L(s,0)+.5,.6,E.out);
  measure(sc2,{x1:345,y1:330,x2:555,y2:330,label:'20 cm',t:L(s,1)+.2});
- const span=add(sc2,`<div class="pill" style="left:300px;top:420px;font-size:32px">✋ 1 jaanedu</div>`);pop(span,L(s,1)+1.4);
+ const span=add(sc2,`<div class="pill" style="left:300px;top:420px;font-size:32px">✋ ≈ 1 hand span</div>`);pop(span,L(s,1)+1.4);
  select(sc2,{x:340,y:300,w:220,h:60,t:L(s,1)+.5,d:1.8,tag:'Spacing'});
  // tilt + wind
  const t3=L(s,2);A(ph,[{transform:'rotate(0)'},{transform:'rotate(-28deg)'}],t3+.2,.6,E.back,'forwards');
@@ -191,7 +191,7 @@ const sx=x=>FX+x+60,sy=y=>FY+y; // board coords → screen (board at x=60 on scr
 
 /* BONUS water */
 (()=>{const s=sc.bonus,B=s.b;
- const h=add(B,`<div class="abs" style="left:70px;top:70px"><div class="mono" style="font-size:24px;color:#ff7262;font-weight:700">BONUS</div><div class="D" style="font-size:110px;margin-top:10px">Neellu thaagandi</div></div>`);rise(h,s.start+.4);
+ const h=add(B,`<div class="abs" style="left:70px;top:70px"><div class="mono" style="font-size:24px;color:#ff7262;font-weight:700">BONUS</div><div class="D" style="font-size:110px;margin-top:10px">Drink water</div></div>`);rise(h,s.start+.4);
  const gl=add(B,`<div class="abs" style="left:330px;top:340px;width:300px;height:520px"><svg width="300" height="520" viewBox="0 0 300 520"><defs><clipPath id="glc"><path d="M40 20 H260 L230 500 H70 Z"/></clipPath></defs><g clip-path="url(#glc)"><rect class="wt" x="0" y="520" width="300" height="520" fill="#4fb3ff"/></g><path d="M40 20 H260 L230 500 H70 Z" fill="none" stroke="#1e1e1e" stroke-width="10" stroke-linejoin="round"/></svg></div>`);
  rise(gl,L(s,0));A(gl.querySelector('.wt'),[{transform:'translateY(0)'},{transform:'translateY(-400px)'}],L(s,0)+.6,1.8,E.io,'forwards');
  for(let i=0;i<6;i++){const b=add(B,`<div class="abs" style="left:${400+(i*37)%160}px;top:800px;width:${14+i%3*6}px;height:${14+i%3*6}px;border-radius:50%;border:3px solid #fff;background:rgba(255,255,255,.4)"></div>`);A(b,[{opacity:0,transform:'translateY(0)'},{opacity:1,transform:'translateY(-120px)',offset:.5},{opacity:0,transform:'translateY(-260px)'}],L(s,0)+1.4+i*.2,1.2,'ease-out','none',{iterations:2});}
@@ -209,7 +209,7 @@ const sx=x=>FX+x+60,sy=y=>FY+y; // board coords → screen (board at x=60 on scr
  const bm=`<svg width="90" height="90" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z" fill="none" stroke="#1e1e1e" stroke-width="2" stroke-linejoin="round"/></svg>`;
  const sh=`<svg width="90" height="90" viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" fill="none" stroke="#1e1e1e" stroke-width="2" stroke-linejoin="round"/></svg>`;
  const t1=L(s,0)+.9,t2=L(s,0)+2.4;comp(70,'Save',bm,'#ffcd29',t1);comp(500,'Share',sh,'#9fd4ff',t2);
- const cf=add(B,`<div class="pill" style="left:200px;top:930px">→ creator friend ki pampandi</div>`);pop(cf,t2+.5);
+ const cf=add(B,`<div class="pill" style="left:200px;top:930px">→ creator friend ki share cheyyandi</div>`);pop(cf,t2+.5);
 })();
 
 /* FOLLOW */
