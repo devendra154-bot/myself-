@@ -1,0 +1,110 @@
+/* ================= SCENES ================= */
+// eraser swipe transition
+function eraser(t){const sm=add(TR,`<div class="abs" style="left:28px;top:150px;width:0;height:1270px;background:linear-gradient(90deg,rgba(36,73,58,.98),rgba(52,95,77,.98));filter:blur(4px)"></div>`);
+ const er=add(TR,`<div class="abs" style="left:-260px;top:620px;width:240px;height:130px;transform:rotate(-8deg)"><div style="height:70px;border-radius:14px 14px 4px 4px;background:linear-gradient(#c58a4c,#8a5a2b)"></div><div style="height:60px;border-radius:4px 4px 10px 10px;background:repeating-linear-gradient(90deg,#9c9c9c 0 6px,#8a8a8a 6px 12px)"></div></div>`);
+ A(er,[{transform:'translate(0,0) rotate(-8deg)'},{transform:'translate(700px,-160px) rotate(4deg)',offset:.35},{transform:'translate(1350px,120px) rotate(-6deg)'}],t,.6,'ease-in-out','none');
+ A(sm,[{width:'0px',opacity:1},{width:'1030px',opacity:1,offset:.8},{width:'1030px',opacity:0}],t,.75,'ease-in-out','none');}
+function mk(k){const s=sc[k];s.el=add(S,`<div class="scene"></div>`);
+ if(s.start>0){eraser(s.start-.35);A(s.el,[{opacity:0},{opacity:1}],s.start+.05,.01,'linear');}
+ else A(s.el,[{opacity:0},{opacity:1}],0,.01,'linear');
+ if(k!=='follow')A(s.el,[{opacity:1},{opacity:0}],s.start>0?sc[order[order.indexOf(k)+1]].start-.05:s.end-.05,.01,'linear','forwards');return s;}
+function title(s,html,{x=60,y=180,size=110,t,w=960,align='left',color='var(--ck)'}){const e=add(s.el,`<div class="abs ckb" style="left:${x}px;top:${y}px;width:${w}px;font-size:${size}px;text-align:${align};color:${color}">${html}</div>`);write(e,t,.7);return e;}
+const colX=k=>plan[k][2]>0?560:60;
+
+/* HOOK */
+(()=>{const s=mk('hook');const cx=colX('hook');
+ title(s,'EXAMS?!',{x:cx,y:480,size:96,t:.6,w:470,color:'var(--cy)'});
+ draw(s.el,'M30 70 C 10 10, 420 0, 440 70 C 455 140, 40 170, 25 95',{x:cx-20,y:440,w:480,h:190,c:'#ff9cc2',sw:7,t:1.2,dur:.7});
+ const [hx,hy]=headXY('hook');const sw=add(s.el,`<div class="abs" style="left:${hx+40}px;top:${hy+10}px;z-index:8"><svg width="44" height="64" viewBox="0 0 44 64"><path d="M22 2 C30 22 42 32 42 44 A20 20 0 0 1 2 44 C2 32 14 22 22 2Z" fill="#8fd3ff" stroke="#1a3a2d" stroke-width="4"/></svg></div>`);FX.appendChild(sw);
+ A(sw,[{opacity:0,transform:'translateY(-20px)'},{opacity:1,transform:'translateY(0)',offset:.2},{opacity:1,transform:'translateY(40px)',offset:.8},{opacity:0,transform:'translateY(60px)'}],L(s,0)+.4,1.6,'ease-in','both');
+ const n=add(s.el,`<div class="note" style="left:${cx+10}px;top:700px;width:440px;height:420px;background:#ffd1e3;transform:rotate(3deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center"><div style="width:130px;height:130px;border-radius:50%;background:#2b2b2b;color:#ffe27a;display:flex;align-items:center;justify-content:center;font-size:70px">✦</div><div style="font-size:30px;letter-spacing:3px">CLAUDE =</div><div style="font-family:'Inter Display';font-weight:900;font-size:58px;line-height:1">STUDY<br>PARTNER ✓</div></div>`);
+ pin(n,L(s,1)+.05,3);jump(L(s,1)+.1);point(L(s,1)+.6,'hook',820);
+})();
+
+/* S1 notes -> simple */
+(()=>{const s=mk('s1');const cx=colX('s1');title(s,'STEP 1',{x:cx,y:180,size:110,t:s.start+.1,w:480});
+ const bx=add(s.el,`<div class="box" style="left:${cx}px;top:350px;width:470px;height:420px;padding:24px"><div class="lbl">MY NOTES</div></div>`);write(bx,L(s,0),.5);
+ const sq=add(s.el,`<div class="abs" style="left:${cx+24}px;top:410px;width:420px"></div>`);
+ for(let i=0;i<9;i++){const e=add(sq,`<div style="height:10px;border-radius:5px;margin-top:22px;width:${70+(i*17)%30}%;background:rgba(244,241,230,.45)"></div>`);write(e,L(s,0)+.3+i*.07,.25);}
+ const sh=L(s,0)+2.2;A(sq,[{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(.3) rotate(-10deg)'}],sh,.4,E.io,'forwards');dustPuff(s.el,cx+230,560,sh+.2);
+ ['• Simple words','• Key points','• Short lines'].forEach((b,i)=>{const e=add(s.el,`<div class="abs ck" style="left:${cx+30}px;top:${420+i*100}px;font-size:52px;color:${['#a6f0b8','#8fd3ff','#ffe27a'][i]}">${b}</div>`);write(e,sh+.5+i*.35,.5);});
+ const ex=add(s.el,`<div class="note" style="left:${cx+20}px;top:830px;width:430px;background:#fff3a6;transform:rotate(-2deg);font-size:38px;line-height:1.3">Ex: apple kindha padithe → <b>gravity!</b> 🍎</div>`);
+ ex.innerHTML='Ex: apple kindha padithe → <b>gravity!</b>';pin(ex,L(s,1)+.1,-2);
+ lean(L(s,0)+.5,'s1',1.4);point(L(s,0)+1.2,'s1',780,1.8);nod(L(s,1)+.6);
+})();
+
+/* S2 flashcards */
+(()=>{const s=mk('s2');const cx=colX('s2');title(s,'FLASHCARDS',{x:cx,y:190,size:68,t:s.start+.1,w:480});
+ const cards=[['Q: H₂O ante?','A: Water ✓'],['Q: India capital?','A: New Delhi ✓']];
+ cards.forEach(([q,a],i)=>{const f=add(s.el,`<div class="flip" style="left:${cx}px;top:${370+i*400}px;width:470px;height:340px">
+   <div class="face" style="background:#fdfaf0;color:#2b2b2b;display:flex;flex-direction:column;justify-content:center;padding:34px;box-shadow:0 14px 26px rgba(0,0,0,.45)"><div class="lbl" style="color:#9a8f7a">FRONT</div><div style="font-family:'Comic Neue';font-weight:700;font-size:56px;margin-top:10px">${q}</div></div>
+   <div class="face" style="background:#c9f2d4;color:#1f4a30;display:flex;flex-direction:column;justify-content:center;padding:34px;box-shadow:0 14px 26px rgba(0,0,0,.45);opacity:0"><div class="lbl" style="color:#4c8a62">BACK</div><div style="font-family:'Comic Neue';font-weight:700;font-size:58px;margin-top:10px">${a}</div></div></div>`);
+  pin(f,L(s,0)+.3+i*.4,i?2:-2);turn(f,L(s,0)+2.2+i*1.3,.7);});
+ point(L(s,0)+1.4,'s2',800,2.2);jump(Le(s,0)-.5);
+})();
+
+/* S3 quiz */
+(()=>{const s=mk('s3');const cx=colX('s3');title(s,'QUIZ',{x:cx,y:180,size:120,t:s.start+.1,w:480});
+ const q=add(s.el,`<div class="box" style="left:${cx}px;top:350px;width:470px;height:600px;padding:30px"></div>`);write(q,L(s,0)+.1,.5);
+ const qt=add(s.el,`<div class="abs ck" style="left:${cx+30}px;top:380px;font-size:60px">Q1: 5 × 6 = ?</div>`);write(qt,L(s,0)+.6,.6);
+ const opts=['A) 30','B) 35','C) 11'];opts.forEach((o,i)=>{const e=add(s.el,`<div class="abs ck" style="left:${cx+50}px;top:${500+i*110}px;font-size:56px">${o}</div>`);write(e,L(s,0)+1.2+i*.3,.4);});
+ draw(s.el,'M20 40 C 0 0, 200 -5, 210 40 C 220 85, 30 95, 15 50',{x:cx+30,y:595,w:240,h:100,c:'#8fd3ff',sw:6,t:L(s,0)+2.6,dur:.4});
+ const x=add(s.el,`<div class="abs ckb" style="left:${cx+300}px;top:590px;font-size:90px;color:#ff9cc2">✕</div>`);A(x,[{opacity:0,transform:'scale(2.4)'},{opacity:1,transform:'scale(1)'}],L(s,1)-.1,.3,E.back);
+ const ok=add(s.el,`<div class="abs ckb" style="left:${cx+300}px;top:480px;font-size:80px;color:#a6f0b8">✓</div>`);A(ok,[{opacity:0,transform:'scale(2.4)'},{opacity:1,transform:'scale(1)'}],L(s,1)+.5,.3,E.back);
+ const ex=add(s.el,`<div class="note" style="left:${cx+10}px;top:990px;width:450px;background:#fff3a6;transform:rotate(2deg);font-size:36px;line-height:1.3">Why? 5 × 6 = 30 → <b>A correct</b>, B tappu</div>`);pin(ex,L(s,1)+.9,2);
+ lean(L(s,0)+.4,'s3',1.2);popAbove(L(s,1)-.1,'s3','?','#ff7aa8');point(L(s,1)+.8,'s3',800,1.8);
+})();
+
+/* TIP */
+(()=>{const s=mk('tip');const cx=colX('tip');title(s,'PRO TIP',{x:cx,y:180,size:110,t:s.start+.1,w:480,color:'var(--cy)'});
+ const t1=add(s.el,`<div class="abs ck" style="left:${cx}px;top:340px;width:470px;font-size:50px;line-height:1.2">"10 years kid ki cheppinattu cheppu"</div>`);write(t1,L(s,0)+.3,1.2);
+ draw(s.el,'M100 10 A90 90 0 1 0 100.1 10 M70 80 v6 M130 80 v6 M60 125 Q100 160 140 125',{x:cx+130,y:530,w:200,h:200,c:'#a6f0b8',sw:7,t:L(s,0)+1.6,dur:1.1});
+ const ez=add(s.el,`<div class="abs ckb" style="left:${cx+60}px;top:760px;font-size:70px;color:#a6f0b8">EASY! ✓</div>`);write(ez,L(s,0)+2.8,.5);
+ draw(s.el,'M10 20 H160 V170 H10 Z M85 20 V170 M30 50 H70 M30 80 H70 M100 50 H140 M100 80 H140',{x:cx+20,y:880,w:180,h:190,c:'#8fd3ff',sw:6,t:L(s,1)+.1,dur:.9});
+ const ck=add(s.el,`<div class="abs ckb" style="left:${cx+215}px;top:930px;font-size:48px;color:#ffe27a;line-height:1.05">TEXTBOOK<br>CHECK ✓</div>`);write(ck,L(s,1)+.8,.6);
+ point(L(s,0)+.6,'tip',800,1.6);popAbove(L(s,1)+.4,'tip','!','#ffb347');nod(L(s,1)+1.4);
+})();
+
+/* CTA */
+(()=>{const s=mk('cta');const cx=colX('cta');title(s,'COMMENT',{x:cx,y:180,size:96,t:s.start+.1,w:500});
+ const bx=add(s.el,`<div class="box" style="left:${cx}px;top:340px;width:470px;height:520px;padding:26px"><div class="lbl">COMMENTS</div></div>`);write(bx,s.start+.3,.5);
+ [['@friend1','super idea!'],['@friend2','exams ki useful']].forEach(([u,t],i)=>{const e=add(s.el,`<div class="abs ck" style="left:${cx+26}px;top:${410+i*90}px;font-size:36px"><span style="color:#8fd3ff;font-size:26px">${u}</span> ${t}</div>`);write(e,s.start+.6+i*.3,.5);});
+ const st=add(s.el,`<div class="abs ckb" style="left:${cx+26}px;top:610px;font-size:110px;color:#ffe27a">STUDY</div>`);write(st,L(s,0)+1.4,.9);
+ draw(s.el,'M10 20 Q 200 40 400 10',{x:cx+20,y:740,w:420,h:60,c:'#ff9cc2',sw:7,t:L(s,0)+2.4,dur:.4});
+ const snd=add(s.el,`<div class="abs ck" style="left:${cx+300}px;top:780px;font-size:40px;padding:8px 20px;border:4px solid #a6f0b8;border-radius:12px;color:#a6f0b8">SEND ➤</div>`);write(snd,L(s,0)+2.6,.3);
+ point(L(s,0)+.5,'cta',800,2);nod(L(s,0)+2.8);
+})();
+
+/* FOLLOW */
+(()=>{const s=mk('follow');title(s,'FOLLOW',{x:0,y:190,size:190,t:s.start+.15,w:1080,align:'center',color:'var(--cy)'});
+ draw(s.el,'M10 30 Q 300 60 640 20',{x:220,y:380,w:660,h:70,c:'#ff9cc2',sw:9,t:s.start+.9,dur:.5});
+ const b=add(s.el,`<div class="note" style="left:600px;top:470px;width:420px;background:#fdfaf0;transform:rotate(2deg);font-size:46px">Follow cheyyandi! ✎</div>`);pin(b,L(s,0)+.1,2);
+ const card=add(s.el,`<div class="note" style="left:610px;top:700px;width:400px;height:300px;background:#c9f2d4;transform:rotate(-2deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px"><div style="width:110px;height:110px;border-radius:50%;background:#2b2b2b;color:#ffe27a;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:48px">DI</div><div style="font-family:'Inter Display';font-weight:900;font-size:44px;color:#1f4a30">${NAME}</div></div>`);pin(card,s.start+.6,-2);
+ const btn=add(s.el,`<div class="abs" style="left:610px;top:1060px;width:400px;height:140px;border-radius:70px;background:#ffe27a;color:#2b2b2b;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:62px;box-shadow:0 10px 0 #b8952a"><span class="a">Follow</span><span class="b abs" style="opacity:0;color:#1f4a30">Following ✓</span></div>`);rise(btn,L(s,0)+.3);
+ point(L(s,0)+.5,'follow',820,1.6);
+ const tap=Le(s,0)+.1;
+ const cur=add(s.el,`<div class="abs" style="left:1000px;top:1500px;width:64px;height:64px;z-index:15"><svg width="64" height="64" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke="#1a3a2d" stroke-width="1.4" stroke-linejoin="round"/></svg></div>`);
+ A(cur,[{opacity:0,transform:'translate(0,0)'},{opacity:1,transform:'translate(-200px,-360px)'}],tap-.7,.6,E.out);
+ A(cur,[{transform:'translate(-200px,-360px) scale(1)'},{transform:'translate(-200px,-360px) scale(.75)'},{transform:'translate(-200px,-360px) scale(1)'}],tap,.25,E.io,'forwards');
+ A(btn,[{background:'#ffe27a',boxShadow:'0 10px 0 #b8952a',transform:'translateY(0)'},{background:'#a6f0b8',boxShadow:'0 3px 0 #4c8a62',transform:'translateY(7px)'}],tap+.03,.2,E.io,'forwards');
+ A(btn.querySelector('.a'),[{opacity:1},{opacity:0}],tap,.12,E.io,'forwards');A(btn.querySelector('.b'),[{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1)'}],tap+.1,.4,E.spring);
+ jump(tap+.15);popAbove(tap+.2,'follow','✓','#4cc77a',1.6);
+ for(let i=0;i<10;i++)dustPuff(s.el,100+(i*97)%880,300+(i*131)%800,tap+.2+i*.08);
+})();
+
+/* CAPTIONS */
+const CB=document.getElementById('capbar');A(CB,[{opacity:0,transform:'translateY(300px)'},{opacity:1,transform:'none'}],.3,.6,E.spring);
+lines.forEach((l,idx)=>{
+ const ws=l.cap.replace(/\*([^*]+)\*/g,(m,g)=>g.split(' ').map(w=>'§'+w).join(' ')).split(' ');
+ const plain=l.cap.replace(/\*/g,'');const fs=plain.length>62?44:plain.length>46?50:56;
+ const el=add(CB,`<div class="cap" style="font-size:${fs}px"></div>`);const dur=(l.end-l.start)*.92;
+ ws.forEach((w,i)=>{const hl=w.startsWith('§');const e=add(el,`<span class="w${hl?' hl':''}">${w.replace('§','')}${hl?'<i class="ul"></i>':''}</span>`);
+  const t=l.start+dur*i/ws.length;A(e,[{opacity:.28},{opacity:1}],t,.08,'linear');
+  if(hl)A(e.querySelector('.ul'),[{transform:'scaleX(0)'},{transform:'scaleX(1)'}],t,.3,'steps(6,end)');});
+ const nxt=idx<lines.length-1?lines[idx+1].start:TL.total;
+ A(el,[{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],l.start-.15,.18,E.spring);
+ A(el,[{opacity:1},{opacity:0}],Math.min(nxt-.15,l.end+.7),.1,'linear','forwards');
+});
+window.seek=t=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+seek(0);window.READY=true;
+</script></body></html>

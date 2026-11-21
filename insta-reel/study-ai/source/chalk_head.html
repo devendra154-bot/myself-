@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bd:#24493a;--ck:#f4f1e6;--cy:#ffe27a;--cp:#ff9cc2;--cb:#8fd3ff;--cg:#a6f0b8;--wd:#8a5a2b}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#5b3a1c;font-family:'Inter',sans-serif;color:var(--ck)}
+#stage{position:absolute;inset:0;overflow:hidden}
+#board{position:absolute;inset:0;background:radial-gradient(ellipse at 40% 30%,#2f5d4a 0%,#24493a 55%,#1a3a2d 100%)}
+#frame{position:absolute;inset:0;border:28px solid #8a5a2b;box-shadow:inset 0 0 0 6px #6b4220,inset 0 0 60px rgba(0,0,0,.55);pointer-events:none;z-index:4;
+ background:repeating-linear-gradient(90deg,transparent 0 3px,rgba(0,0,0,.0) 3px 6px)}
+.smudge{position:absolute;border-radius:50%;background:rgba(255,255,255,.05);filter:blur(30px)}
+.dust{position:absolute;inset:0;opacity:.18;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1.4px);background-size:7px 9px}
+#tray{position:absolute;left:28px;right:28px;top:1418px;height:34px;background:linear-gradient(#a06a35,#7a4b22);box-shadow:0 8px 14px rgba(0,0,0,.5);z-index:5}
+#tray i{position:absolute;top:-14px;height:16px;border-radius:6px}
+.scene{position:absolute;inset:0;opacity:0}
+.abs{position:absolute}
+.ck{font-family:'Comic Neue','Inter',sans-serif;font-weight:700;color:var(--ck);filter:url(#chalkf);text-shadow:0 0 1px rgba(255,255,255,.6)}
+.ckb{font-family:'Inter Display';font-weight:900;letter-spacing:-.02em;line-height:.95;color:var(--ck);filter:url(#chalkf)}
+.note{position:absolute;padding:26px 28px;font-family:'Comic Neue';font-weight:700;color:#2b2b2b;box-shadow:0 14px 24px rgba(0,0,0,.45)}
+.note::before{content:'';position:absolute;left:50%;top:-14px;width:28px;height:28px;margin-left:-14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff8a8a,#c62828);box-shadow:0 4px 6px rgba(0,0,0,.4)}
+.box{position:absolute;border:4px dashed rgba(244,241,230,.7);border-radius:20px;filter:url(#chalkf)}
+.flip{position:absolute}
+.face{position:absolute;inset:0;border-radius:24px}
+.lbl{font-family:'JetBrains Mono';font-weight:700;font-size:22px;letter-spacing:4px;color:rgba(244,241,230,.6)}
+#hud{position:absolute;top:58px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:12}
+#hud .a{font-family:'Comic Neue';font-weight:700;font-size:36px;color:var(--ck);filter:url(#chalkf)}
+#hud .b{font-family:'Inter Display';font-weight:900;font-size:26px;padding:10px 20px;border:4px solid var(--cy);border-radius:14px;color:var(--cy);filter:url(#chalkf)}
+/* puppet (same rig ids as interview reel) */
+#pupPos{position:absolute;left:0;top:470px;width:561px;height:1000px;transform-origin:0 100%;z-index:6}
+#pupAct{position:absolute;inset:0;transform-origin:50% 100%}
+#pupFlip{position:absolute;inset:0;transform-origin:50% 50%}
+#pupScale{position:absolute;left:0;top:0;width:1005px;height:1791px;transform-origin:0 0}
+#pupScale img{position:absolute;display:block}
+#headG{position:absolute;left:330px;top:40px;width:330px;height:304px}
+.mouth{position:absolute;opacity:0}
+#shadow{position:absolute;left:60px;bottom:-24px;width:440px;height:48px;border-radius:50%;background:rgba(0,0,0,.35);filter:blur(8px)}
+#capbar{position:absolute;left:40px;right:40px;top:1480px;min-height:230px;background:#1f4032;border:16px solid #8a5a2b;border-radius:18px;padding:30px 36px;z-index:10;box-shadow:inset 0 0 30px rgba(0,0,0,.5),0 16px 30px rgba(0,0,0,.45)}
+#capbar .tg{position:absolute;left:24px;top:-34px;background:#8a5a2b;color:#ffe9c7;border-radius:8px;padding:4px 14px;font-family:'JetBrains Mono';font-weight:800;font-size:18px;letter-spacing:2px}
+.cap{position:absolute;left:36px;right:36px;top:30px;font-family:'Inter Display';font-weight:900;font-size:56px;line-height:1.2;letter-spacing:-1px;color:var(--ck);opacity:0}
+.cap .w{display:inline-block;margin-right:15px;opacity:.28;position:relative}
+.cap .hl{color:var(--cy)}
+.cap .ul{position:absolute;left:0;right:0;bottom:0;height:7px;border-radius:4px;background:var(--cy);transform-origin:left;filter:url(#chalkf)}
+#tr{position:absolute;inset:0;z-index:20;pointer-events:none}
+svg{overflow:visible}
+</style></head>
+<body><div id="stage">
+<svg width="0" height="0" style="position:absolute"><filter id="chalkf" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3" result="d"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -0.8 1.15" result="holes"/><feComposite in="d" in2="holes" operator="in"/></filter></svg>
+<div id="board"><div class="smudge" style="left:80px;top:300px;width:500px;height:200px"></div><div class="smudge" style="left:500px;top:900px;width:480px;height:220px"></div><div class="dust"></div></div>
+<div id="frame"></div>
+<div id="tray"><i style="left:120px;width:90px;background:#f4f1e6"></i><i style="left:240px;width:70px;background:#ffe27a"></i><i style="left:340px;width:80px;background:#ff9cc2"></i><i style="left:780px;width:110px;background:#8a8a8a;height:28px;top:-26px;border-radius:4px"></i></div>
+<div id="hud"><div class="a">✎ Dev Inventor's class</div><div class="b">STUDY HACK</div></div>
+<div id="scenes"></div>
+<div id="pupPos"><div id="pupAct"><div id="shadow"></div><div id="pupFlip"><div id="pupScale">
+ <img src="assets/body.png" style="left:0;top:0;width:1005px;height:1791px">
+ <div id="headG"><img src="assets/head.png" style="left:0;top:0;width:330px;height:304px"><div id="mouths"></div></div>
+</div></div></div></div>
+<div id="fx" style="position:absolute;inset:0;z-index:7;pointer-events:none"></div>
+<div id="capbar"><div class="tg">TENGLISH CC</div></div>
+<div id="tr"></div>
+</div>
+<script>
+const TL=__TIMELINE__;const TALK=__TALK__;const NAME='Dev Inventor';
+const E={out:'cubic-bezier(.16,1,.3,1)',spring:'cubic-bezier(.34,1.7,.5,1)',back:'cubic-bezier(.34,1.56,.64,1)',io:'cubic-bezier(.65,0,.35,1)'};
+const A=(el,kf,st,du,ea=E.out,fill='both',x={})=>el.animate(kf,Object.assign({delay:st*1000,duration:du*1000,fill,easing:ea},x));
+const H=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
+const add=(p,h)=>{const e=H(h);p.appendChild(e);return e};
+const fadeTo=(el,t,kf,d=.3)=>A(el,kf,t,d,E.io,'forwards');
+const T=TL.total;
+// chalk write-on (left-to-right reveal with a slightly jittery hand)
+const write=(el,t,d=.7)=>A(el,[{clipPath:'inset(-10% 100% -10% 0)'},{clipPath:'inset(-10% 0% -10% 0)'}],t,d,'steps(14,end)');
+const pin=(el,t,rot=0)=>A(el,[{opacity:0,transform:`translateY(-160px) rotate(${rot-15}deg) scale(1.1)`},{opacity:1,transform:`translateY(0) rotate(${rot+2}deg) scale(1)`,offset:.7},{opacity:1,transform:`rotate(${rot}deg)`}],t,.55,'ease-out');
+const rise=(el,t,d=.5,dy=40)=>A(el,[{opacity:0,transform:`translateY(${dy}px)`},{opacity:1,transform:'none'}],t,d,E.spring);
+function typeIn(el,txt,t,span){const chars=[...txt];chars.forEach((ch,i)=>{const e=add(el,`<span>${ch===' '?' ':ch}</span>`);A(e,[{opacity:0},{opacity:1}],t+span*i/chars.length,.01,'linear');});}
+function draw(par,d,{x=0,y=0,w=200,h=200,c='#f4f1e6',sw=8,t=0,dur=.6}={}){const s=add(par,`<svg class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;filter:url(#chalkf)" viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="${c}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/></svg>`);const p=s.querySelector('path');const L=p.getTotalLength();p.style.strokeDasharray=L;A(p,[{strokeDashoffset:L},{strokeDashoffset:0}],t,dur,'ease-in-out');return s;}
+function dustPuff(par,x,y,t){for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const e=add(par,`<div class="abs" style="left:${x}px;top:${y}px;width:${6+i%3*3}px;height:${6+i%3*3}px;border-radius:50%;background:rgba(244,241,230,.7)"></div>`);A(e,[{opacity:0,transform:'translate(0,0)'},{opacity:.9,transform:`translate(${Math.cos(a)*20}px,${Math.sin(a)*20}px)`,offset:.2},{opacity:0,transform:`translate(${Math.cos(a)*60}px,${Math.sin(a)*60+40}px)`}],t,.9,'ease-out');}}
+function turn(f,t,d=.7){const fr=f.children[0],bk=f.children[1];
+ A(fr,[{transform:'perspective(1400px) rotateY(0)'},{transform:'perspective(1400px) rotateY(90deg)'}],t,d/2,'cubic-bezier(.55,0,1,.45)','forwards');
+ A(fr,[{opacity:1},{opacity:0}],t+d/2,.01,'linear','forwards');
+ A(bk,[{transform:'perspective(1400px) rotateY(-90deg)',opacity:1},{transform:'perspective(1400px) rotateY(0)',opacity:1}],t+d/2,d/2,'cubic-bezier(0,.55,.45,1)','both');
+ A(bk,[{opacity:0},{opacity:1}],t+d/2,.01,'linear','both');}
+const check=(c,sz=40)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="${c}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+write(document.querySelector('#hud .a'),.2,.8);write(document.querySelector('#hud .b'),.5,.5);
+
+// timings
+const lines=TL.lines,sc={},order=[];
+lines.forEach(l=>{if(!sc[l.scene]){sc[l.scene]={lines:[]};order.push(l.scene)}sc[l.scene].lines.push(l)});
+order.forEach((k,i)=>sc[k].start=i?sc[k].lines[0].start-.45:0);
+order.forEach((k,i)=>sc[k].end=i<order.length-1?sc[order[i+1]].start:TL.total);
+const L=(s,i)=>s.lines[i].start, Le=(s,i)=>s.lines[i].end;
+const S=document.getElementById('scenes'),TR=document.getElementById('tr'),FX=document.getElementById('fx');
