@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevInventor Mini Cinema</title>
+<meta name="description" content="A mini cinema in your browser: pick a film, choose your seat, dim the lights and watch.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ========== TICKET BOOTH ========== -->
+<section id="booth" class="view active">
+  <header class="marquee">
+    <div class="bulbs"></div>
+    <h1>MINI <span>CINEMA</span></h1>
+    <p>Pick a film · choose your seat · dim the lights</p>
+    <div class="bulbs"></div>
+  </header>
+
+  <div class="booth-grid">
+    <div class="panel">
+      <h2>🎞️ Now showing</h2>
+      <div class="films" id="films">
+        <button class="film selected" data-kind="demo">
+          <span class="poster p1">★</span>
+          <span><b>The Little Projector</b><small>Built-in short · 1 min · no download</small></span>
+        </button>
+        <button class="film" data-kind="file">
+          <span class="poster p2">📁</span>
+          <span><b>Your own video</b><small>MP4 / WebM / MOV from your device</small></span>
+        </button>
+        <button class="film" data-kind="url">
+          <span class="poster p3">🔗</span>
+          <span><b>Video link</b><small>YouTube or direct .mp4 link</small></span>
+        </button>
+      </div>
+      <input type="file" id="fileInput" accept="video/*" hidden>
+      <div id="urlBox" class="url-box" hidden>
+        <input id="urlInput" type="url" placeholder="https://www.youtube.com/watch?v=... or https://.../movie.mp4">
+      </div>
+      <p id="filmNote" class="note">Selected: <b>The Little Projector</b></p>
+    </div>
+
+    <div class="panel">
+      <h2>💺 Choose your seat</h2>
+      <div class="mini-screen">SCREEN</div>
+      <div id="seats" class="seats"></div>
+      <div class="legend">
+        <span><i class="seat"></i> Free</span>
+        <span><i class="seat taken"></i> Taken</span>
+        <span><i class="seat mine"></i> Yours</span>
+      </div>
+      <p id="seatNote" class="note">Pick a seat (closer = bigger screen).</p>
+    </div>
+  </div>
+
+  <div class="ticket-row">
+    <div class="ticket" id="ticket">
+      <div><small>FILM</small><b id="tFilm">The Little Projector</b></div>
+      <div><small>SEAT</small><b id="tSeat">—</b></div>
+      <div><small>HALL</small><b>1</b></div>
+      <div class="stub">ADMIT ONE</div>
+    </div>
+    <button id="enterBtn" class="btn" disabled>🎟️ Enter the hall</button>
+  </div>
+</section>
+
+<!-- ========== THEATER ========== -->
+<section id="theater" class="view">
+  <div class="hall" id="hall">
+    <div class="ceiling-lights" id="ceilingLights"></div>
+    <div class="screen-wrap" id="screenWrap">
+      <div class="glow" id="glow"></div>
+      <div class="screen" id="screen">
+        <canvas id="demoCanvas" width="1280" height="720"></canvas>
+        <video id="video" playsinline></video>
+        <iframe id="yt" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+      </div>
+      <div class="curtain left" id="curtainL"></div>
+      <div class="curtain right" id="curtainR"></div>
+      <div class="valance"></div>
+    </div>
+    <div class="rows" id="rows"></div>
+    <div class="popcorn-layer" id="popLayer"></div>
+  </div>
+
+  <div class="controls" id="controls">
+    <button id="playBtn" title="Play / pause (Space)">▶</button>
+    <input id="seek" type="range" min="0" max="1000" value="0">
+    <span id="time">0:00 / 0:00</span>
+    <input id="vol" type="range" min="0" max="1" step="0.05" value="0.8" title="Volume">
+    <button id="lightsBtn" title="Lights (L)">💡</button>
+    <button id="popBtn" title="Popcorn (P)">🍿</button>
+    <button id="fsBtn" title="Fullscreen (F)">⛶</button>
+    <button id="exitBtn" title="Leave the hall (Esc)">🚪</button>
+  </div>
+  <div class="toast" id="toast"></div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>

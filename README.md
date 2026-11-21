@@ -34,3 +34,6 @@ Repo **Settings → Pages → Deploy from branch** → pick your branch and `/ (
 
 ## Notes
 - Login is browser-based (accounts are stored in the visitor's browser via localStorage). It works on static hosting with no server; for accounts that work across devices, connect Firebase Authentication or a backend later.
+
+## Mini Cinema (`/cinema/`)
+A mini cinema in the browser: pick a film (built-in 1-minute animated short, your own video file, or a YouTube / .mp4 link), choose a seat, and the lights dim and curtains open. Seat position changes the screen size and angle, the room glows with the film's colours, and there are lights, popcorn and fullscreen controls (keys: Space, L, P, F, Esc). No server or login needed.
