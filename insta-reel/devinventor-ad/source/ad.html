@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--cy:#22d3ee;--cy2:#67e8f9;--tl:#2dd4bf;--bl:#3b82f6;--gr:#4ade80;--yl:#fbbf24;--tx:#e8f6ff;--mu:#8aa4bf;--bg:#050a14}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif;color:var(--tx)}
+#stage{position:absolute;inset:0;overflow:hidden;perspective:1800px}
+#bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,#0c2238 0%,#07121f 50%,#050a14 85%)}
+#pcb{position:absolute;inset:0;opacity:.55}
+.glow{position:absolute;border-radius:50%;filter:blur(130px)}
+.scene{position:absolute;inset:0;opacity:0;transform-style:preserve-3d}
+.abs{position:absolute}
+.mono{font-family:'JetBrains Mono',monospace}
+.K{font-family:'Inter Display';font-weight:900;letter-spacing:-.035em;line-height:.9}
+.cy{background:linear-gradient(90deg,#67e8f9,#22d3ee 50%,#4ade80);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mask{position:absolute;overflow:hidden}
+.holo{position:absolute;border-radius:26px;background:linear-gradient(160deg,rgba(34,211,238,.14),rgba(34,211,238,.03));border:1.5px solid rgba(103,232,249,.5);box-shadow:0 0 40px rgba(34,211,238,.25),inset 0 1px 0 rgba(255,255,255,.2)}
+.chip{position:absolute;display:inline-flex;align-items:center;gap:12px;padding:14px 26px;border-radius:999px;font-family:'Inter Display';font-weight:900;font-size:34px;background:rgba(34,211,238,.15);border:2px solid rgba(103,232,249,.6);box-shadow:0 0 30px rgba(34,211,238,.35);white-space:nowrap}
+.chip.on{background:var(--cy);color:#04121a;border-color:#fff;box-shadow:0 0 50px rgba(34,211,238,.8)}
+.lbl{font-family:'JetBrains Mono';font-weight:700;font-size:22px;letter-spacing:4px;color:var(--mu)}
+.phone{position:absolute;border-radius:62px;background:#111827;padding:14px;box-shadow:0 0 0 3px #1f2f45,0 50px 110px rgba(0,0,0,.75),0 0 80px rgba(34,211,238,.25)}
+.phone .scr{position:relative;width:100%;height:100%;border-radius:48px;overflow:hidden;background:#0b1020}
+.phone .scr img{position:absolute;left:0;top:0;width:100%}
+.phone .notch{position:absolute;left:50%;top:26px;width:130px;height:34px;margin-left:-65px;border-radius:17px;background:#050a14;z-index:3}
+.phone .shine{position:absolute;inset:14px;border-radius:48px;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.14) 45%,transparent 55%);z-index:2}
+#hud{position:absolute;top:60px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:12}
+#hud .a{font-family:'Inter Display';font-weight:900;font-size:34px}#hud .a span{color:var(--cy)}
+#hud .b{padding:10px 20px;border-radius:999px;border:2px solid rgba(103,232,249,.6);font-family:'JetBrains Mono';font-weight:800;font-size:19px;letter-spacing:3px;color:var(--cy2)}
+#capbar{position:absolute;left:50px;right:50px;top:1490px;min-height:220px;border-radius:30px;background:rgba(5,12,24,.86);border:1.5px solid rgba(103,232,249,.4);padding:34px 42px;z-index:10;box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 40px rgba(34,211,238,.18)}
+#capbar .tg{position:absolute;left:42px;top:-20px;padding:6px 16px;border-radius:999px;background:var(--cy);color:#04121a;font-family:'JetBrains Mono';font-weight:800;font-size:19px;letter-spacing:2px}
+.cap{position:absolute;left:42px;right:42px;top:34px;font-family:'Inter Display';font-weight:900;font-size:58px;line-height:1.18;letter-spacing:-1px;opacity:0}
+.cap .w{display:inline-block;margin-right:15px;opacity:.28}
+.cap .hl{color:#04121a;padding:0 12px;border-radius:12px;background:linear-gradient(90deg,#67e8f9,#22d3ee);box-shadow:0 0 24px rgba(34,211,238,.6)}
+#flash{position:absolute;inset:0;z-index:30;background:radial-gradient(circle,#fff,rgba(103,232,249,.6) 40%,transparent 70%);opacity:0;pointer-events:none}
+#bars{position:absolute;inset:0;z-index:25;pointer-events:none}
+#bars i{position:absolute;left:0;right:0;height:120px;background:#000}
+svg{overflow:visible}
+</style></head>
+<body><div id="stage">
+<div id="bg"></div><div id="glows"></div><svg id="pcb" width="1080" height="1920" viewBox="0 0 1080 1920"></svg>
+<div id="hud"><div class="a">Dev<span>Inventor</span></div><div class="b">EMBEDDED · IoT</div></div>
+<div id="scenes"></div>
+<div id="capbar"><div class="tg">TENGLISH CC</div></div>
+<div id="bars"><i style="top:-120px" id="bt"></i><i style="bottom:-120px" id="bb"></i></div>
+<div id="flash"></div>
+</div>
+<script>
+const TL=__TIMELINE__;const HANDLE='@devinventor2010';const URL='devendra154-bot.github.io/myself-';
+const E={out:'cubic-bezier(.16,1,.3,1)',spring:'cubic-bezier(.34,1.6,.5,1)',back:'cubic-bezier(.34,1.56,.64,1)',io:'cubic-bezier(.65,0,.35,1)'};
+const A=(el,kf,st,du,ea=E.out,fill='both',x={})=>el.animate(kf,Object.assign({delay:st*1000,duration:du*1000,fill,easing:ea},x));
+const H=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
+const add=(p,h)=>{const e=H(h);p.appendChild(e);return e};
+const NS='http://www.w3.org/2000/svg';
+const fadeTo=(el,t,kf,d=.3)=>A(el,kf,t,d,E.io,'forwards');
+const T=TL.total;
+const pop=(el,t,d=.5,base='')=>A(el,[{opacity:0,transform:`${base} scale(.3)`},{opacity:1,transform:`${base} scale(1)`}],t,d,E.back);
+const rise=(el,t,d=.55,dy=60)=>A(el,[{opacity:0,transform:`translateY(${dy}px)`,filter:'blur(10px)'},{opacity:1,transform:'none',filter:'blur(0)'}],t,d,E.out);
+function kin(par,html,{x=60,y=200,size=130,t,w=960,align='left',d=.6}){const m=add(par,`<div class="mask" style="left:${x}px;top:${y}px;width:${w}px;height:${size*1.05}px;text-align:${align}"><div class="K" style="font-size:${size}px;white-space:nowrap">${html}</div></div>`);
+ A(m.firstChild,[{transform:'translateY(110%)'},{transform:'translateY(0)'}],t,d,E.out);return m;}
+function typeIn(el,txt,t,span){const chars=[...txt];chars.forEach((ch,i)=>{const e=add(el,`<span>${ch===' '?' ':ch}</span>`);A(e,[{opacity:0},{opacity:1}],t+span*i/chars.length,.01,'linear');});}
+function phone(par,{x,y,w=460,img,ry=0}){const h=w/0.461;const p=add(par,`<div class="phone" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:rotateY(${ry}deg)"><div class="scr"><img src="assets/${img}"></div><div class="notch"></div><div class="shine"></div></div>`);p.img=p.querySelector('img');return p;}
+function phoneIn(p,t,from){A(p,[{opacity:0,transform:from},{opacity:1,transform:p.style.transform}],t,.9,E.out);}
+function scrollImg(p,t,d,px){A(p.img,[{transform:'translateY(0)'},{transform:`translateY(-${px}px)`}],t,d,'cubic-bezier(.45,0,.25,1)','forwards');}
+const check=(c,sz=40)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="${c}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function svgEl(par,inner,{x,y,w,h,t,dur=.8,stroke='#67e8f9',sw=4}){const s=add(par,`<svg class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px" viewBox="0 0 ${w} ${h}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`);
+ s.querySelectorAll('[data-d]').forEach((p,i,arr)=>{const L=p.getTotalLength();p.style.strokeDasharray=L;A(p,[{strokeDashoffset:L},{strokeDashoffset:0}],t+i*(dur*.5)/Math.max(1,arr.length),dur*.7,'ease-in-out');});return s;}
+
+/* ambient: PCB traces with travelling data pulses */
+const G=document.getElementById('glows');
+[['#0ea5e9',-200,150,700],['#14b8a6',600,800,700],['#3b82f6',-100,1300,600]].forEach((g,i)=>{const e=add(G,`<div class="glow" style="background:${g[0]};left:${g[1]}px;top:${g[2]}px;width:${g[3]}px;height:${g[3]}px;opacity:.35"></div>`);A(e,[{transform:'translate(0,0)'},{transform:`translate(${i%2?-150:170}px,${i?-110:130}px)`},{transform:'translate(0,0)'}],0,T,'ease-in-out','none');});
+const P=document.getElementById('pcb');
+function trace(d,delay){const base=document.createElementNS(NS,'path');base.setAttribute('d',d);base.setAttribute('stroke','rgba(103,232,249,.18)');base.setAttribute('stroke-width','3');base.setAttribute('fill','none');P.appendChild(base);
+ const pulse=document.createElementNS(NS,'path');pulse.setAttribute('d',d);pulse.setAttribute('stroke','#67e8f9');pulse.setAttribute('stroke-width','4');pulse.setAttribute('fill','none');pulse.setAttribute('stroke-linecap','round');P.appendChild(pulse);
+ const L=pulse.getTotalLength();pulse.style.strokeDasharray=`60 ${L}`;pulse.style.filter='drop-shadow(0 0 8px #22d3ee)';
+ A(pulse,[{strokeDashoffset:60},{strokeDashoffset:-L}],delay,2.6+(L/900),'linear','none',{iterations:Math.ceil(T/2.5)+2});
+ const pts=d.match(/[\d.]+ [\d.]+/g);[pts[0],pts[pts.length-1]].forEach(pp=>{const [x,y]=pp.split(' ');const c=document.createElementNS(NS,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r','7');c.setAttribute('fill','#050a14');c.setAttribute('stroke','rgba(103,232,249,.5)');c.setAttribute('stroke-width','3');P.appendChild(c);});}
+[['M0 300 L180 300 L240 360 L420 360',-.5],['M1080 520 L900 520 L840 460 L640 460',-1.2],['M0 1000 L120 1000 L190 1070 L190 1300',-2],['M1080 1150 L960 1150 L900 1210 L900 1420',-.8],['M300 0 L300 140 L360 200 L560 200',-1.6],['M760 1920 L760 1700 L700 1640 L520 1640',-2.4],['M0 700 L260 700 L320 640 L320 520',-3],['M1080 860 L820 860 L760 920 L760 1050',-1]].forEach(([d,dl])=>trace(d,dl));
+A(document.getElementById('hud'),[{opacity:0,transform:'translateY(-40px)'},{opacity:1,transform:'none'}],.2,.6);
+// cinematic letterbox on the hook
+A(document.getElementById('bt'),[{transform:'translateY(0)'},{transform:'translateY(120px)',offset:.1},{transform:'translateY(120px)',offset:.85},{transform:'translateY(0)'}],0,5.2,E.io,'none');
+A(document.getElementById('bb'),[{transform:'translateY(0)'},{transform:'translateY(-120px)',offset:.1},{transform:'translateY(-120px)',offset:.85},{transform:'translateY(0)'}],0,5.2,E.io,'none');
+
+// timings
+const lines=TL.lines,sc={},order=[];
+lines.forEach(l=>{if(!sc[l.scene]){sc[l.scene]={lines:[]};order.push(l.scene)}sc[l.scene].lines.push(l)});
+order.forEach((k,i)=>sc[k].start=i?sc[k].lines[0].start-.45:0);
+order.forEach((k,i)=>sc[k].end=i<order.length-1?sc[order[i+1]].start:TL.total);
+const L=(s,i)=>s.lines[i].start, Le=(s,i)=>s.lines[i].end;
+const S=document.getElementById('scenes'),FL=document.getElementById('flash');
+function glitchIn(el,t){A(el,[{opacity:0,transform:'translateX(-30px) skewX(12deg)',filter:'hue-rotate(90deg) blur(6px)'},{opacity:1,transform:'translateX(18px) skewX(-6deg)',offset:.35},{opacity:.6,transform:'translateX(-8px)',offset:.6},{opacity:1,transform:'none',filter:'none'}],t,.45,'steps(6,end)');}
+function mk(k){const s=sc[k];s.el=add(S,`<div class="scene"></div>`);
+ if(s.start>0){A(s.el,[{opacity:0,transform:'scale(.86)',filter:'blur(12px) brightness(2)'},{opacity:1,transform:'scale(1)',filter:'blur(0) brightness(1)'}],s.start,.5,E.out);A(FL,[{opacity:0},{opacity:.45},{opacity:0}],s.start-.08,.36,E.io,'none');}
+ else A(s.el,[{opacity:0},{opacity:1}],0,.3,'linear');
+ if(k!=='follow')A(s.el,[{opacity:1,transform:'scale(1)',filter:'blur(0)'},{opacity:0,transform:'scale(1.25)',filter:'blur(16px)'}],s.end-.3,.3,E.io,'forwards');
+ return s;}
+
+/* HOOK — idea bulb → working device */
+(()=>{const s=mk('hook');
+ const bulb=svgEl(s.el,`<path data-d d="M150 40 C90 40 50 85 50 140 C50 180 75 205 95 230 C108 246 112 262 112 280 H188 C188 262 192 246 205 230 C225 205 250 180 250 140 C250 85 210 40 150 40 Z"/><path data-d d="M118 310 H182 M125 335 H175"/><path data-d d="M128 230 L140 170 L150 200 L160 170 L172 230" stroke="#fbbf24"/>`,{x:390,y:300,w:300,h:360,t:.3,dur:1});
+ A(bulb,[{filter:'drop-shadow(0 0 0 #fbbf24)'},{filter:'drop-shadow(0 0 60px #fbbf24)'}],1,.4,E.io,'forwards');
+ kin(s.el,'PROJECT',{y:720,size:150,t:.5,align:'center',x:0,w:1080});kin(s.el,'<span class="cy">IDEA?</span>',{y:880,size:150,t:.65,align:'center',x:0,w:1080});
+ const t2=L(s,1);
+ fadeTo(bulb,t2-.1,[{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(.4)'}],.3);
+ // board assembles
+ const bd=add(s.el,`<div class="abs" style="left:240px;top:280px;width:600px;height:380px;border-radius:24px;background:linear-gradient(160deg,#0f3b2e,#0a2a20);border:3px solid #22d3ee;box-shadow:0 0 60px rgba(34,211,238,.4)"></div>`);
+ A(bd,[{opacity:0,transform:'rotateX(70deg) scale(.6)'},{opacity:1,transform:'rotateX(18deg) scale(1)'}],t2+.05,.7,E.out);
+ const parts=[['MCU',230,120,160,140,'#1f2937'],['WiFi',420,40,140,90,'#94a3b8'],['',60,60,80,80,'#111827'],['',60,250,120,60,'#fbbf24'],['',440,260,110,70,'#111827']];
+ parts.forEach(([n,x,y,w,h,c],i)=>{const p=add(bd,`<div class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;border-radius:8px;background:${c};border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-weight:800;font-size:24px;color:#67e8f9">${n}</div>`);A(p,[{opacity:0,transform:'translateY(-200px)'},{opacity:1,transform:'none'}],t2+.4+i*.12,.4,E.back);});
+ for(let i=0;i<12;i++){const pin=add(bd,`<div class="abs" style="left:${40+i*45}px;top:-14px;width:20px;height:28px;border-radius:4px;background:#d4af37"></div>`);A(pin,[{opacity:0},{opacity:1}],t2+.9+i*.03,.1,'linear');}
+ const led=add(bd,`<div class="abs" style="left:520px;top:50px;width:28px;height:28px;border-radius:50%;background:#4ade80;box-shadow:0 0 30px #4ade80"></div>`);A(led,[{opacity:0},{opacity:1},{opacity:.3},{opacity:1}],t2+1.3,.8,'steps(4,end)','forwards');
+ fadeTo(s.el.querySelectorAll('.mask')[0],t2-.1,[{opacity:1},{opacity:0}],.2);fadeTo(s.el.querySelectorAll('.mask')[1],t2-.1,[{opacity:1},{opacity:0}],.2);
+ kin(s.el,'WORKING',{y:740,size:150,t:t2+.2,align:'center',x:0,w:1080});kin(s.el,'<span class="cy">DEVICE ✓</span>',{y:900,size:150,t:t2+.35,align:'center',x:0,w:1080});
+})();
+
+/* BRAND — logo + phone with site */
+(()=>{const s=mk('brand');
+ const lg=add(s.el,`<div class="abs K" style="left:0;width:1080px;top:200px;text-align:center;font-size:150px">Dev<span class="cy">Inventor</span></div>`);glitchIn(lg,s.start+.1);
+ const tg=add(s.el,`<div class="abs mono" style="left:0;width:1080px;top:370px;text-align:center;font-size:30px;letter-spacing:6px;color:#67e8f9">EMBEDDED · IoT · AUTOMATION</div>`);A(tg,[{opacity:0,letterSpacing:'26px'},{opacity:1,letterSpacing:'6px'}],s.start+.5,.7,E.out);
+ const p=phone(s.el,{x:310,y:470,img:'s_hero.png',w:460});phoneIn(p,L(s,0)+.1,'translateY(900px) rotateX(40deg)');
+ scrollImg(p,L(s,0)+1,1.8,0);
+ const c1=add(s.el,`<div class="chip on" style="left:60px;top:800px">STUDENTS</div>`),c2=add(s.el,`<div class="chip" style="left:740px;top:950px">STARTUPS</div>`),c3=add(s.el,`<div class="chip" style="left:60px;top:1150px">BUSINESS</div>`);
+ [c1,c2,c3].forEach((c,i)=>pop(c,L(s,0)+.9+i*.25));
+})();
+
+/* BOARDS — chip core with boards around */
+(()=>{const s=mk('boards');
+ kin(s.el,'WE BUILD ON',{y:190,size:110,t:s.start+.1,align:'center',x:0,w:1080});
+ const core=add(s.el,`<div class="abs" style="left:390px;top:640px;width:300px;height:300px;border-radius:30px;background:linear-gradient(145deg,#1f2937,#0b1220);border:3px solid #22d3ee;box-shadow:0 0 80px rgba(34,211,238,.6);display:flex;align-items:center;justify-content:center"><div class="mono" style="font-weight:800;font-size:40px;color:#67e8f9;text-align:center;line-height:1.2">DEV<br>CORE</div></div>`);
+ A(core,[{opacity:0,transform:'rotate(-90deg) scale(.2)'},{opacity:1,transform:'rotate(0) scale(1)'}],s.start+.2,.7,E.back);
+ A(core,[{boxShadow:'0 0 40px rgba(34,211,238,.4)'},{boxShadow:'0 0 120px rgba(34,211,238,.9)'},{boxShadow:'0 0 40px rgba(34,211,238,.4)'}],s.start+1,1.2,'ease-in-out','none',{iterations:4});
+ for(let i=0;i<8;i++){['top','bottom'].forEach((side,j)=>{const pn=add(core,`<div class="abs" style="left:${28+i*33}px;${side}:-18px;width:16px;height:18px;border-radius:3px;background:#d4af37"></div>`);});}
+ const bds=[['Arduino','#00979d',90,430],['ESP32','#e7352c',700,430],['STM32','#03234b',90,1080],['Raspberry Pi','#c51a4a',650,1080]];
+ const span=Le(s,0)-L(s,0);
+ bds.forEach(([n,c,x,y],i)=>{const t=L(s,0)+span*i/4;const b=add(s.el,`<div class="holo" style="left:${x}px;top:${y}px;width:${n.length>8?340:290}px;height:150px;display:flex;align-items:center;gap:18px;padding:0 24px"><div style="width:70px;height:70px;border-radius:14px;background:${c};box-shadow:0 0 24px ${c}"></div><div class="K" style="font-size:${n.length>8?40:48}px">${n}</div></div>`);
+  b.querySelector('.K').style.fontSize=(n.length>8?40:48)+'px';
+  A(b,[{opacity:0,transform:'rotateY(90deg) scale(.6)'},{opacity:1,transform:'rotateY(0) scale(1)'}],t,.6,E.back);
+  const cx=x+150,cy=y+75;const tr=add(s.el,`<svg class="abs" style="left:0;top:0;width:1080px;height:1920px;pointer-events:none" viewBox="0 0 1080 1920"><path d="M${cx} ${cy+(cy<800?75:-75)} L${cx} 790 L${cx<540?390:690} 790" fill="none" stroke="#22d3ee" stroke-width="4" stroke-dasharray="10 8"/></svg>`);A(tr,[{opacity:0},{opacity:.8}],t+.3,.3,E.io);});
+})();
+
+/* STACK — PCB → firmware → app → cloud pipeline */
+(()=>{const s=mk('stack');
+ kin(s.el,'END-TO-END',{y:190,size:120,t:s.start+.1});kin(s.el,'<span class="cy">DEVELOPMENT</span>',{y:320,size:100,t:s.start+.2});
+ const steps=[['PCB','KiCad · EasyEDA','#22d3ee'],['FIRMWARE','C / C++ · RTOS','#2dd4bf'],['MOBILE APP','Android / Web','#3b82f6'],['CLOUD','Dashboard · MQTT','#4ade80']];
+ const span=Le(s,0)-L(s,0);
+ steps.forEach(([n,d,c],i)=>{const y=500+i*230;const t=L(s,0)+span*i/4;const b=add(s.el,`<div class="holo" style="left:${i%2?420:80}px;top:${y}px;width:580px;height:180px;display:flex;align-items:center;gap:28px;padding:0 30px;border-color:${c}"><div class="K" style="flex:0 0 110px;height:110px;border-radius:24px;border:3px solid ${c};display:flex;align-items:center;justify-content:center;font-size:56px;color:${c}">${i+1}</div><div><div class="K" style="font-size:54px">${n}</div><div class="mono" style="font-size:24px;color:#8aa4bf;margin-top:8px">${d}</div></div></div>`);
+  A(b,[{opacity:0,transform:`translateX(${i%2?300:-300}px)`},{opacity:1,transform:'none'}],t,.55,E.out);
+  if(i<3){const ln=add(s.el,`<svg class="abs" style="left:0;top:0;width:1080px;height:1920px;pointer-events:none" viewBox="0 0 1080 1920"><path d="M${i%2?700:380} ${y+180} L${i%2?380:700} ${y+230}" stroke="${c}" stroke-width="5" fill="none" stroke-dasharray="12 10"/></svg>`);A(ln,[{opacity:0},{opacity:1}],t+.4,.3,E.io);
+   const pk=add(s.el,`<div class="abs" style="left:${i%2?690:370}px;top:${y+190}px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 0 20px ${c}"></div>`);A(pk,[{opacity:0,transform:'translate(0,0)'},{opacity:1,transform:`translate(${i%2?-320:320}px,40px)`}],t+.6,.6,E.io,'none',{iterations:3});}});
+})();
+
+/* BUILDS — 3 holo project cards */
+(()=>{const s=mk('builds');
+ kin(s.el,'PROJECTS',{y:190,size:130,t:s.start+.1,align:'center',x:0,w:1080});
+ const cards=[['Home Automation',`<path data-d d="M30 110 L110 40 L190 110 V190 H30 Z"/><path data-d d="M95 190 V140 H125 V190"/><circle data-d cx="160" cy="70" r="14" stroke="#fbbf24"/>`],['Robotics',`<path data-d d="M40 190 H180 M110 190 V150 L70 100 L120 60 L160 80"/><circle data-d cx="70" cy="100" r="10"/><circle data-d cx="120" cy="60" r="10"/><path data-d d="M160 80 L185 70 M160 80 L180 100"/>`],['Edge AI Camera',`<rect data-d x="30" y="60" width="160" height="110" rx="16"/><circle data-d cx="110" cy="115" r="34"/><rect data-d x="60" y="30" width="60" height="30" rx="6"/><path data-d d="M80 95 h10 M130 95 h10" stroke="#4ade80"/>`]];
+ cards.forEach(([n,svg],i)=>{const x=60+i*330;const c=add(s.el,`<div class="holo" style="left:${x}px;top:520px;width:300px;height:640px;padding:30px;display:flex;flex-direction:column;align-items:center;gap:30px"></div>`);
+  const t=L(s,0)+i*(Le(s,0)-L(s,0))/3;A(c,[{opacity:0,transform:'translateY(300px) rotateX(50deg)'},{opacity:1,transform:'none'}],t,.6,E.out);
+  svgEl(c,svg,{x:40,y:80,w:220,h:220,t:t+.3,dur:.9});
+  const lb=add(c,`<div class="K" style="position:absolute;left:20px;right:20px;top:380px;text-align:center;font-size:46px;line-height:1">${n}</div>`);rise(lb,t+.6,.4,20);
+  if(i===2){const scan=add(c,`<div class="abs" style="left:70px;top:150px;width:160px;height:4px;background:#4ade80;box-shadow:0 0 16px #4ade80"></div>`);A(scan,[{transform:'translateY(0)'},{transform:'translateY(130px)'},{transform:'translateY(0)'}],t+1,1.2,'ease-in-out','none',{iterations:3});}
+  if(i===0){const bulb=add(c,`<div class="abs" style="left:186px;top:136px;width:28px;height:28px;border-radius:50%;background:#fbbf24;opacity:0;box-shadow:0 0 40px #fbbf24"></div>`);A(bulb,[{opacity:0},{opacity:1},{opacity:.2},{opacity:1}],t+1.2,1,'steps(4,end)','forwards');}});
+})();
+
+/* STUDENTS — final year projects checklist + phone */
+(()=>{const s=mk('students');
+ kin(s.el,'FINAL YEAR',{y:190,size:120,t:s.start+.1});kin(s.el,'<span class="cy">PROJECTS</span>',{y:320,size:120,t:s.start+.2});
+ const cap=svgEl(s.el,`<path data-d d="M20 70 L120 30 L220 70 L120 110 Z"/><path data-d d="M60 88 V130 C80 150 160 150 180 130 V88"/><path data-d d="M220 70 V120" stroke="#fbbf24"/>`,{x:720,y:220,w:240,h:170,t:s.start+.3,dur:.8});
+ const p=phone(s.el,{x:560,y:480,img:'s_services.png',w:430,ry:-14});phoneIn(p,L(s,0),'translateX(500px) rotateY(-60deg)');scrollImg(p,L(s,0)+.6,3.4,820);
+ ['CODE','REPORT','DEMO SUPPORT'].forEach((n,i)=>{const c=add(s.el,`<div class="holo" style="left:60px;top:${600+i*200}px;width:460px;height:160px;display:flex;align-items:center;gap:24px;padding:0 28px"><div style="width:76px;height:76px;border-radius:50%;border:4px solid #4ade80;display:flex;align-items:center;justify-content:center">${check('#4ade80',46)}</div><div class="K" style="font-size:48px">${n}</div></div>`);
+  A(c,[{opacity:0,transform:'translateX(-300px)'},{opacity:1,transform:'none'}],L(s,0)+1.4+i*.45,.5,E.back);});
+})();
+
+/* PROCESS — form → WhatsApp quote → build → deliver */
+(()=>{const s=mk('process');
+ kin(s.el,'HOW IT WORKS',{y:190,size:110,t:s.start+.1,align:'center',x:0,w:1080});
+ const steps=[['📝','Fill form'],['💬','WhatsApp quote'],['🛠','We build'],['📦','Deliver']];
+ const icons=[`<rect data-d x="40" y="20" width="100" height="130" rx="12"/><path data-d d="M65 60 H115 M65 85 H115 M65 110 H95"/>`,`<path data-d d="M90 20 A70 70 0 1 1 40 140 L25 160 L35 125 A70 70 0 0 1 90 20 Z" stroke="#25d366"/><path data-d d="M65 80 C70 100 90 115 110 115" stroke="#25d366"/>`,`<path data-d d="M40 140 L100 80 M100 80 C95 55 120 30 145 40 L125 60 L135 70 L155 50 C165 75 140 100 115 95"/>`,`<path data-d d="M30 60 L90 30 L150 60 V130 L90 160 L30 130 Z"/><path data-d d="M30 60 L90 90 L150 60 M90 90 V160"/>`];
+ const span=Le(s,0)-L(s,0);
+ steps.forEach(([e,n],i)=>{const y=420+i*250;const t=L(s,0)+span*i/4;
+  const card=add(s.el,`<div class="holo" style="left:150px;top:${y}px;width:780px;height:200px;display:flex;align-items:center;gap:30px;padding:0 30px;${i==1?'border-color:#25d366;box-shadow:0 0 50px rgba(37,211,102,.35)':''}"><div style="position:relative;flex:0 0 180px;height:180px"></div><div><div class="mono" style="font-size:22px;letter-spacing:4px;color:#8aa4bf">STEP ${i+1}</div><div class="K" style="font-size:58px;margin-top:6px">${n}</div></div></div>`);
+  A(card,[{opacity:0,transform:'translateX(-200px)',filter:'blur(8px)'},{opacity:1,transform:'none',filter:'blur(0)'}],t,.5,E.out);
+  svgEl(card.firstElementChild,icons[i],{x:0,y:0,w:180,h:180,t:t+.2,dur:.7,stroke:i==1?'#25d366':'#67e8f9'});
+  if(i<3){const ln=add(s.el,`<div class="abs" style="left:240px;top:${y+200}px;width:4px;height:50px;background:linear-gradient(#22d3ee,transparent)"></div>`);A(ln,[{transform:'scaleY(0)',transformOrigin:'top'},{transform:'scaleY(1)',transformOrigin:'top'}],t+.4,.3,E.io);}});
+})();
+
+/* PRICING — counters */
+(()=>{const s=mk('pricing');
+ kin(s.el,'STARTING AT',{y:190,size:110,t:s.start+.1,align:'center',x:0,w:1080});
+ const mkCard=(y,lbl,val,sub,t,c)=>{const cd=add(s.el,`<div class="holo" style="left:110px;top:${y}px;width:860px;height:420px;padding:44px;border-color:${c};box-shadow:0 0 60px ${c}55"><div class="mono" style="font-size:26px;letter-spacing:4px;color:${c}">${lbl}</div><div class="K num" style="position:relative;font-size:170px;margin-top:20px;height:170px"></div><div style="font-size:34px;color:#8aa4bf;margin-top:22px;font-weight:700">${sub}</div></div>`);
+  A(cd,[{opacity:0,transform:'rotateX(60deg) translateY(200px)'},{opacity:1,transform:'none'}],t,.6,E.out);
+  const num=cd.querySelector('.num');const steps=8;for(let k=0;k<=steps;k++){const v=Math.round(val*k/steps);const e=add(num,`<div class="abs" style="left:0;top:0">₹${v.toLocaleString('en-IN')}<span style="font-size:60px;color:${c}">+</span></div>`);const tt=t+.4+k*.08;A(e,[{opacity:0},{opacity:1}],tt,.01,'linear');if(k<steps)A(e,[{opacity:1},{opacity:0}],tt+.08,.01,'linear','forwards');}
+  return cd;};
+ mkCard(400,'STUDENT / MINI PROJECT',1999,'Arduino / ESP · code + circuit + demo',L(s,0)-.1,'#22d3ee');
+ mkCard(880,'IoT PROJECT',4999,'Cloud dashboard / app · sensors · docs',L(s,1)-.1,'#4ade80');
+ const pr=add(s.el,`<div class="abs mono" style="left:0;width:1080px;text-align:center;top:1330px;font-size:24px;color:#8aa4bf">Custom product / PCB → price on request</div>`);rise(pr,L(s,1)+1.4,.4,20);
+})();
+
+/* CTA — real QR code with laser scan */
+(()=>{const s=mk('cta');
+ kin(s.el,'SCAN &amp; START',{y:190,size:120,t:s.start+.1,align:'center',x:0,w:1080});
+ const q=add(s.el,`<div class="abs" style="left:240px;top:400px;width:600px;height:600px;border-radius:40px;background:#fff;padding:30px;box-shadow:0 0 0 6px #22d3ee,0 0 90px rgba(34,211,238,.7)"><img src="assets/qr.png" style="width:100%;height:100%;display:block"></div>`);
+ A(q,[{opacity:0,transform:'rotateY(90deg) scale(.6)'},{opacity:1,transform:'none'}],s.start+.3,.8,E.back);
+ const corners=add(s.el,`<svg class="abs" style="left:200px;top:360px;width:680px;height:680px" viewBox="0 0 680 680" fill="none" stroke="#67e8f9" stroke-width="10" stroke-linecap="round"><path d="M10 110 V10 H110 M570 10 H670 V110 M670 570 V670 H570 M110 670 H10 V570"/></svg>`);pop(corners,s.start+.6);
+ const laser=add(s.el,`<div class="abs" style="left:250px;top:420px;width:580px;height:6px;background:#22d3ee;box-shadow:0 0 30px 8px rgba(34,211,238,.8)"></div>`);
+ A(laser,[{opacity:0,transform:'translateY(0)'},{opacity:1,transform:'translateY(0)',offset:.05},{transform:'translateY(560px)',offset:.5},{opacity:1,transform:'translateY(0)'}],L(s,0)+.3,1.6,'ease-in-out','none',{iterations:2});
+ const url=add(s.el,`<div class="holo" style="left:80px;top:1080px;width:920px;height:110px;display:flex;align-items:center;justify-content:center;gap:16px"><span class="mono" style="font-size:22px;color:#4ade80">●</span><span class="ty mono" style="font-size:32px;font-weight:700"></span></div>`);rise(url,L(s,0)+.5);
+ typeIn(url.querySelector('.ty'),URL,L(s,0)+.8,1.4);
+ const st=add(s.el,`<div class="chip on" style="left:320px;top:1240px;font-size:40px">START YOUR PROJECT →</div>`);st.style.left='190px';pop(st,Le(s,0)-.6);
+})();
+
+/* FOLLOW */
+(()=>{const s=mk('follow');
+ kin(s.el,'FOLLOW',{x:0,w:1080,y:220,size:220,t:s.start+.15,align:'center'});
+ const card=add(s.el,`<div class="holo" style="left:190px;top:520px;width:700px;height:460px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px"><div style="width:190px;height:190px;border-radius:50%;padding:6px;background:conic-gradient(#22d3ee,#4ade80,#3b82f6,#22d3ee)"><div style="width:100%;height:100%;border-radius:50%;background:#07121f;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:80px">DI</div></div><div class="K" style="font-size:64px">${HANDLE}</div><div class="mono" style="font-size:22px;letter-spacing:3px;color:#8aa4bf">EMBEDDED · IoT · PROJECTS</div></div>`);
+ A(card,[{opacity:0,transform:'rotateX(70deg) translateY(200px)'},{opacity:1,transform:'none'}],s.start+.4,.8,E.out);
+ const btn=add(s.el,`<div class="abs" style="left:240px;top:1060px;width:600px;height:160px;border-radius:80px;background:linear-gradient(90deg,#22d3ee,#4ade80);color:#04121a;display:flex;align-items:center;justify-content:center;font-family:'Inter Display';font-weight:900;font-size:80px;box-shadow:0 0 70px rgba(34,211,238,.7)"><span class="a">Follow</span><span class="b abs" style="opacity:0;color:#e8f6ff;display:flex;align-items:center;gap:16px">Following ${check('#4ade80',60)}</span></div>`);pop(btn,L(s,0)+.3);
+ const tap=Le(s,0)+.1;
+ const cur=add(s.el,`<div class="abs" style="left:900px;top:1500px;width:70px;height:70px;z-index:9"><svg width="70" height="70" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke="#050a14" stroke-width="1.3" stroke-linejoin="round"/></svg></div>`);
+ A(cur,[{opacity:0,transform:'translate(0,0)'},{opacity:1,transform:'translate(-320px,-350px)'}],tap-.7,.6,E.out);
+ A(cur,[{transform:'translate(-320px,-350px) scale(1)'},{transform:'translate(-320px,-350px) scale(.75)'},{transform:'translate(-320px,-350px) scale(1)'}],tap,.25,E.io,'forwards');
+ A(btn,[{background:'linear-gradient(90deg,#22d3ee,#4ade80)'},{background:'linear-gradient(90deg,#0b1a2b,#102538)'}],tap+.05,.3,E.io,'forwards');
+ A(btn.querySelector('.a'),[{opacity:1},{opacity:0}],tap,.12,E.io,'forwards');A(btn.querySelector('.b'),[{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1)'}],tap+.1,.4,E.back);
+ A(FL,[{opacity:0},{opacity:.45},{opacity:0}],tap+.05,.4,E.io,'none');
+})();
+
+/* CAPTIONS */
+const CB=document.getElementById('capbar');A(CB,[{opacity:0,transform:'translateY(80px)'},{opacity:1,transform:'none'}],.3,.6);
+lines.forEach((l,idx)=>{
+ const ws=l.cap.replace(/\*([^*]+)\*/g,(m,g)=>g.split(' ').map(w=>'§'+w).join(' ')).split(' ');
+ const plain=l.cap.replace(/\*/g,'');const fs=plain.length>62?46:plain.length>46?52:58;
+ const el=add(CB,`<div class="cap" style="font-size:${fs}px"></div>`);const dur=(l.end-l.start)*.92;
+ ws.forEach((w,i)=>{const hl=w.startsWith('§');const e=add(el,`<span class="w${hl?' hl':''}">${w.replace('§','')}</span>`);
+  const t=l.start+dur*i/ws.length;A(e,[{opacity:.28},{opacity:1}],t,.08,'linear');
+  if(hl)A(e,[{transform:'scale(.5)',filter:'blur(6px)'},{transform:'scale(1.12)',filter:'blur(0)',offset:.6},{transform:'scale(1)'}],t,.4,E.out,'forwards');});
+ const nxt=idx<lines.length-1?lines[idx+1].start:TL.total;
+ A(el,[{opacity:0,transform:'translateY(20px)',filter:'blur(6px)'},{opacity:1,transform:'none',filter:'blur(0)'}],l.start-.15,.2,E.out);
+ A(el,[{opacity:1},{opacity:0}],Math.min(nxt-.15,l.end+.7),.1,'linear','forwards');
+});
+window.seek=t=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+seek(0);window.READY=true;
+</script></body></html>
