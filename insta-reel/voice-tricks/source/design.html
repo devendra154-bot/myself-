@@ -6,9 +6,11 @@
 html,body{width:1080px;height:1920px;overflow:hidden;background:var(--cv);font-family:'Inter',sans-serif;color:var(--ink)}
 #stage{position:absolute;inset:0;overflow:hidden}
 #cam{position:absolute;left:0;top:0;width:4000px;height:4400px;transform-origin:0 0}
-#dots{position:absolute;left:-2000px;top:-2000px;width:8000px;height:8400px;background-image:radial-gradient(#c9c9d1 1.6px,transparent 1.8px);background-size:28px 28px}
-.board{position:absolute;width:960px;height:1200px;background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 20px 50px rgba(0,0,0,.08);overflow:hidden}
-.blabel{position:absolute;font-size:24px;font-weight:600;color:var(--mu);display:flex;align-items:center;gap:10px}
+#dots{display:none}
+#soft{position:absolute;inset:0;background:linear-gradient(165deg,#f6f2ff 0%,#eef5ff 45%,#fff4ee 100%)}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55}
+.board{position:absolute;width:960px;height:1200px;opacity:0}
+  .blabel{display:none;position:absolute;font-size:24px;font-weight:600;color:var(--mu);display:flex;align-items:center;gap:10px}
 .blabel i{width:18px;height:18px;border:2.5px solid var(--mu);border-radius:3px}
 .abs{position:absolute}
 .mono{font-family:'JetBrains Mono',monospace}
@@ -23,10 +25,10 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:var(--cv);font-f
 .selbox b{position:absolute;width:18px;height:18px;background:#fff;border:3px solid var(--sel);border-radius:3px}
 .selbox .tag{position:absolute;left:-3px;top:-44px;background:var(--sel);color:#fff;font-size:20px;font-weight:600;padding:6px 12px;border-radius:6px 6px 6px 0;white-space:nowrap}
 .selbox .dim{position:absolute;left:50%;bottom:-44px;transform:translateX(-50%);background:var(--sel);color:#fff;font-size:18px;font-weight:600;padding:5px 10px;border-radius:6px;white-space:nowrap}
-.cursor{position:absolute;z-index:40;pointer-events:none}
+.cursor{display:none}
 .cursor .nm{position:absolute;left:30px;top:30px;padding:6px 14px;border-radius:0 12px 12px 12px;color:#fff;font-size:22px;font-weight:700;white-space:nowrap}
 .measure{position:absolute;pointer-events:none}
-#tool{position:absolute;left:0;right:0;top:0;height:120px;background:#2c2c2c;display:flex;align-items:center;justify-content:space-between;padding:30px 36px 0;z-index:50;color:#fff}
+#tool{display:none;position:absolute;left:0;right:0;top:0;height:120px;background:#2c2c2c;display:flex;align-items:center;justify-content:space-between;padding:30px 36px 0;z-index:50;color:#fff}
 #tool .tools{display:flex;gap:8px}
 #tool .tools span{width:62px;height:62px;border-radius:12px;display:flex;align-items:center;justify-content:center}
 #tool .fn{font-size:24px;font-weight:600;color:#e6e6e6}
@@ -34,19 +36,23 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:var(--cv);font-f
 #tool .av{display:flex;align-items:center;gap:-8px}
 #tool .av i{width:48px;height:48px;border-radius:50%;border:3px solid #2c2c2c;margin-left:-10px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;font-size:20px}
 #tool .zoom{font-size:22px;color:#cfcfcf;margin-left:16px}
-#capbar{position:absolute;left:60px;right:60px;top:1500px;min-height:220px;background:#fff;border-radius:20px;padding:36px 42px;z-index:45;box-shadow:0 2px 6px rgba(0,0,0,.06),0 24px 60px rgba(30,30,60,.16);outline:3px solid var(--sel);outline-offset:8px}
-#capbar .tg{position:absolute;left:-11px;top:-58px;background:var(--sel);color:#fff;font-size:20px;font-weight:600;padding:6px 12px;border-radius:6px 6px 6px 0}
+#capbar{position:absolute;left:60px;right:60px;top:1500px;min-height:220px;background:#fff;border-radius:20px;padding:36px 42px;z-index:45;box-shadow:0 2px 6px rgba(0,0,0,.06),0 24px 60px rgba(30,30,60,.16)}
+#capbar .tg{position:absolute;left:40px;top:-20px;background:linear-gradient(90deg,#9747ff,#0d99ff);color:#fff;font-family:'JetBrains Mono';font-size:18px;font-weight:800;letter-spacing:2px;padding:6px 16px;border-radius:999px}
+#capbar b{display:none}
 #capbar b{position:absolute;width:18px;height:18px;background:#fff;border:3px solid var(--sel);border-radius:3px}
 .cap{position:absolute;left:42px;right:42px;top:36px;font-family:'Inter Display';font-weight:900;font-size:58px;line-height:1.18;letter-spacing:-1px;opacity:0}
 .cap .w{display:inline-block;margin-right:15px;opacity:.25}
 .cap .hl{color:#fff;padding:0 12px;border-radius:12px;background:linear-gradient(90deg,#9747ff,#0d99ff)}
 svg{overflow:visible}
+#tool,.blabel,.cursor,.selbox{display:none!important}
 </style></head>
 <body><div id="stage">
+<div id="soft"><div class="blob" style="left:-150px;top:200px;width:600px;height:600px;background:#c9b6ff"></div><div class="blob" style="left:600px;top:700px;width:560px;height:560px;background:#a9d8ff"></div><div class="blob" style="left:100px;top:1300px;width:520px;height:520px;background:#ffd0bd"></div></div>
 <div id="cam"><div id="dots"></div><div id="boards"></div></div>
 <div id="tool"><div class="tools" id="tools"></div><div class="fn">voice-tricks.reel<em>/ Dev Inventor</em></div><div style="display:flex;align-items:center"><div class="av"><i style="background:#9747ff">D</i><i style="background:#14ae5c">Y</i><i style="background:#ff7262">+3</i></div><span class="zoom" id="zoom"></span></div></div>
+<div id="brand" style="position:absolute;left:60px;right:60px;top:80px;display:flex;justify-content:space-between;align-items:center;z-index:30"><div style="padding:14px 26px;border-radius:999px;background:#fff;box-shadow:0 10px 30px rgba(30,30,60,.12);font-family:'Inter Display';font-weight:900;font-size:30px">Dev Inventor <span style="background:linear-gradient(90deg,#9747ff,#0d99ff);-webkit-background-clip:text;color:transparent">✦</span></div><div style="padding:12px 22px;border-radius:999px;background:linear-gradient(90deg,#9747ff,#0d99ff);color:#fff;font-family:'JetBrains Mono';font-weight:800;font-size:20px;letter-spacing:3px">CREATOR TIPS</div></div>
 <div id="fx"></div>
-<div id="capbar"><div class="tg">T Caption · Tenglish</div><b style="left:-20px;top:-20px"></b><b style="right:-20px;top:-20px"></b><b style="left:-20px;bottom:-20px"></b><b style="right:-20px;bottom:-20px"></b></div>
+<div id="capbar"><div class="tg">TENGLISH CC</div><b style="left:-20px;top:-20px"></b><b style="right:-20px;top:-20px"></b><b style="left:-20px;bottom:-20px"></b><b style="right:-20px;bottom:-20px"></b></div>
 </div>
 <script>
 const TL=__TIMELINE__;const NAME='Dev Inventor';
@@ -63,7 +69,8 @@ const check=(c,sz=40)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><p
 function draw(par,inner,{x,y,w,h,t,dur=.8,stroke='#1e1e1e',sw=6}){const s=add(par,`<svg class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px" viewBox="0 0 ${w} ${h}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`);
  s.querySelectorAll('[data-d]').forEach((p,i,arr)=>{const L=p.getTotalLength();p.style.strokeDasharray=L;A(p,[{strokeDashoffset:L},{strokeDashoffset:0}],t+i*(dur*.5)/Math.max(1,arr.length),dur*.7,'ease-in-out');});return s;}
 // selection box that snaps around an element area (board coords)
-function select(par,{x,y,w,h,t,d=1.6,tag='',dim=''}){const s=add(par,`<div class="selbox" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><b style="left:-11px;top:-11px"></b><b style="right:-11px;top:-11px"></b><b style="left:-11px;bottom:-11px"></b><b style="right:-11px;bottom:-11px"></b>${tag?`<div class="tag">${tag}</div>`:''}${dim?`<div class="dim">${dim}</div>`:''}</div>`);
+function select(){return null;}
+function _selectOld(par,{x,y,w,h,t,d=1.6,tag='',dim=''}){const s=add(par,`<div class="selbox" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><b style="left:-11px;top:-11px"></b><b style="right:-11px;top:-11px"></b><b style="left:-11px;bottom:-11px"></b><b style="right:-11px;bottom:-11px"></b>${tag?`<div class="tag">${tag}</div>`:''}${dim?`<div class="dim">${dim}</div>`:''}</div>`);
  A(s,[{opacity:0,transform:'scale(1.08)'},{opacity:1,transform:'scale(1)',offset:.12},{opacity:1,offset:.88},{opacity:0}],t,d,E.out);return s;}
 // red distance measurement (design-tool style)
 function measure(par,{x1,y1,x2,y2,label,t}){const horiz=Math.abs(y2-y1)<Math.abs(x2-x1);const w=Math.max(Math.abs(x2-x1),4),h=Math.max(Math.abs(y2-y1),4);
@@ -85,7 +92,7 @@ const L=(s,i)=>s.lines[i].start, Le=(s,i)=>s.lines[i].end;
 
 /* ===== canvas + camera: each scene is an artboard ===== */
 const BW=960,BH=1200,GX=1240,GY=1520;
-const layout={hook:[0,0],t1:[1,0],t2:[2,0],t3:[2,1],bonus:[1,1],cta:[0,1],follow:[1,2]};
+const layout={hook:[0,0],t1:[0,0],t2:[0,0],t3:[0,0],bonus:[0,0],cta:[0,0],follow:[0,0]};
 const titles={hook:'01 · Hook',t1:'02 · Silent room',t2:'03 · Distance',t3:'04 · Pause',bonus:'05 · Bonus',cta:'06 · Save & share',follow:'07 · Follow'};
 const BD=document.getElementById('boards'),CAM=document.getElementById('cam');
 const boardPos=k=>{const [c,r]=layout[k];return [200+c*GX,240+r*GY];};
@@ -95,16 +102,21 @@ order.forEach(k=>{const [x,y]=boardPos(k);add(BD,`<div class="blabel" style="lef
 // camera path: hold on each board, zoom out + pan between them
 (function(){const kf=[];let prev=null;const tot=T;
  order.forEach((k,i)=>{const s=sc[k];const st=i?s.start-.15:0;
-  if(prev){const ps=sc[prev];const [ax,ay]=boardPos(prev),[bx,by]=boardPos(k);const mx=(ax+bx)/2+BW/2,my=(ay+by)/2+BH/2;const z=.42;
+  if(prev){const ps=sc[prev];const [ax,ay]=boardPos(prev),[bx,by]=boardPos(k);const mx=(ax+bx)/2+BW/2,my=(ay+by)/2+BH/2;const z=1;
    kf.push({offset:Math.max(0,(st-.55))/tot,transform:camAt(prev)});
    kf.push({offset:Math.max(0,(st-.28))/tot,transform:`translate(${540-z*mx}px,${(FY+BH/2)-z*my}px) scale(${z})`,easing:'cubic-bezier(.4,0,.2,1)'});
    kf.push({offset:Math.min(1,(st+.05)/tot),transform:camAt(k)});}
-  else kf.push({offset:0,transform:camAt(k,.55)}),kf.push({offset:.6/tot,transform:camAt(k)});
+  else kf.push({offset:0,transform:camAt(k,1)}),kf.push({offset:.6/tot,transform:camAt(k)});
   prev=k;});
  kf.push({offset:1,transform:camAt(prev)});
  kf.sort((a,b)=>a.offset-b.offset);for(let i=1;i<kf.length;i++)if(kf[i].offset<=kf[i-1].offset)kf[i].offset=Math.min(1,kf[i-1].offset+1e-4);
  kf.forEach(f=>{if(!f.easing)f.easing='cubic-bezier(.65,0,.35,1)';});
  A(CAM,kf,0,tot,'linear','both');})();
+A(document.getElementById('brand'),[{opacity:0,transform:'translateY(-30px)'},{opacity:1,transform:'none'}],.2,.6,E.out);
+// clean scene transitions: each board slides/scales in, then out
+order.forEach((k,i)=>{const s=sc[k],b=s.b;
+ A(b,[{opacity:0,transform:'translateY(70px) scale(.97)',filter:'blur(8px)'},{opacity:1,transform:'none',filter:'blur(0)'}],i?s.start:0,.55,E.out);
+ if(i<order.length-1)A(b,[{opacity:1,transform:'none',filter:'blur(0)'},{opacity:0,transform:'translateY(-50px) scale(1.02)',filter:'blur(8px)'}],s.end-.3,.3,E.io,'forwards');});
 // zoom % readout
 const ZM=document.getElementById('zoom');ZM.style.position='relative';ZM.style.display='inline-block';ZM.style.width='80px';ZM.style.height='26px';
 order.forEach((k,i)=>{const s=sc[k];if(i){const a=add(ZM,`<span class="abs" style="left:0;top:0">42%</span>`);A(a,[{opacity:0},{opacity:1}],s.start-.4,.01,'linear');A(a,[{opacity:1},{opacity:0}],s.start,.01,'linear','forwards');}
@@ -122,7 +134,7 @@ const sx=x=>FX+x+60,sy=y=>FY+y; // board coords → screen (board at x=60 on scr
  const t1=add(B,`<div class="abs D" style="left:70px;top:90px;font-size:120px;width:820px">Voice <span style="background:linear-gradient(90deg,#9747ff,#0d99ff);-webkit-background-clip:text;color:transparent">clear</span><br>ga raavatleda?</div>`);rise(t1,.6);
  select(B,{x:60,y:80,w:840,h:240,t:.9,d:1.6,tag:'Text · Inter Black',dim:'840 × 240'});
  // noisy waveform component
- const wv=add(B,`<div class="card" style="left:70px;top:400px;width:820px;height:260px;padding:30px"><div class="mono" style="font-size:20px;color:#757575">◆ Component / Waveform — noisy</div><div class="bars" style="display:flex;align-items:center;gap:8px;height:170px;margin-top:10px"></div></div>`);rise(wv,L(s,0)+.3);
+ const wv=add(B,`<div class="card" style="left:70px;top:400px;width:820px;height:260px;padding:30px"><div class="mono" style="font-size:20px;color:#757575">YOUR VOICE NOW · NOISY</div><div class="bars" style="display:flex;align-items:center;gap:8px;height:170px;margin-top:10px"></div></div>`);rise(wv,L(s,0)+.3);
  const bars=wv.querySelector('.bars');for(let i=0;i<46;i++){const b=add(bars,`<div style="flex:1;border-radius:4px;background:#f24822;height:${20+Math.abs(Math.sin(i*2.7)*Math.cos(i*1.1))*150}px"></div>`);const kf=[];for(let k=0;k<=6;k++)kf.push({transform:`scaleY(${.3+Math.abs(Math.sin(i*1.9+k*2.7))})`});A(b,kf,L(s,0)+.5,.6,'linear','none',{iterations:12});}
  const t2=L(s,1);
  const mic=add(B,`<div class="card" style="left:70px;top:720px;width:400px;height:400px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px"><svg width="140" height="140" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="#1e1e1e"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" fill="none" stroke="#1e1e1e" stroke-width="2" stroke-linecap="round"/></svg><div class="D" style="font-size:44px">Costly mic?</div><div class="abs" style="left:40px;right:40px;top:196px;height:8px;border-radius:4px;background:#f24822;transform:rotate(-20deg)" id="strike"></div></div>`);
@@ -174,7 +186,7 @@ const sx=x=>FX+x+60,sy=y=>FY+y; // board coords → screen (board at x=60 on scr
 /* T3 pause */
 (()=>{const s=sc.t3,B=s.b;
  const h=add(B,`<div class="abs" style="left:70px;top:70px"><div class="mono" style="font-size:24px;color:#14ae5c;font-weight:700">TRICK 03</div><div class="D" style="font-size:110px;margin-top:10px">Pause 0.5s</div></div>`);rise(h,s.start+.4);
- const tl=add(B,`<div class="card" style="left:70px;top:330px;width:820px;height:420px;padding:30px"><div class="mono" style="font-size:20px;color:#757575">▶ Timeline / Voice</div><div class="row" style="position:relative;margin-top:30px;height:280px"></div></div>`);rise(tl,L(s,0));
+ const tl=add(B,`<div class="card" style="left:70px;top:330px;width:820px;height:420px;padding:30px"><div class="mono" style="font-size:20px;color:#757575">VOICE TIMELINE</div><div class="row" style="position:relative;margin-top:30px;height:280px"></div></div>`);rise(tl,L(s,0));
  const row=tl.querySelector('.row');let x=0;const segs=[150,170,140,160];const gap=56;
  segs.forEach((w,g)=>{const grp=add(row,`<div class="abs" style="left:${x}px;top:40px;width:${w}px;height:200px;display:flex;align-items:center;gap:5px"></div>`);for(let i=0;i<Math.floor(w/11);i++)add(grp,`<div style="flex:1;border-radius:3px;background:#9747ff;height:${30+Math.abs(Math.sin((g*20+i)*1.3))*160}px"></div>`);
   A(grp,[{opacity:0,transform:'scaleY(0)'},{opacity:1,transform:'scaleY(1)'}],L(s,0)+.3+g*.15,.4,E.back);
@@ -202,9 +214,9 @@ const sx=x=>FX+x+60,sy=y=>FY+y; // board coords → screen (board at x=60 on scr
 /* CTA save & share with hover/pressed states */
 (()=>{const s=sc.cta,B=s.b;
  const h=add(B,`<div class="abs" style="left:70px;top:70px"><div class="D" style="font-size:110px">Save &amp;<br>share</div></div>`);rise(h,s.start+.4);
- const comp=(x,lbl,svg,col,t)=>{const c=add(B,`<div class="card" style="left:${x}px;top:420px;width:390px;height:440px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px"><div class="ic" style="width:180px;height:180px;border-radius:44px;background:#f3f3f6;display:flex;align-items:center;justify-content:center">${svg}</div><div class="D" style="font-size:54px">${lbl}</div><div class="mono st" style="font-size:20px;color:#757575">state: default</div></div>`);rise(c,L(s,0)+(x>300?.2:0));
+ const comp=(x,lbl,svg,col,t)=>{const c=add(B,`<div class="card" style="left:${x}px;top:420px;width:390px;height:440px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px"><div class="ic" style="width:180px;height:180px;border-radius:44px;background:#f3f3f6;display:flex;align-items:center;justify-content:center">${svg}</div><div class="D" style="font-size:54px">${lbl}</div><div class="st" style="display:none"></div></div>`);rise(c,L(s,0)+(x>300?.2:0));
   const ic=c.querySelector('.ic');A(ic,[{background:'#f3f3f6',transform:'scale(1)'},{background:col,transform:'scale(1.08)'},{background:col,transform:'scale(1)'}],t,.4,E.back,'forwards');
-  const st=c.querySelector('.st');A(st,[{opacity:1},{opacity:0}],t,.01,'linear','forwards');const st2=add(c,`<div class="mono" style="position:absolute;bottom:56px;font-size:20px;color:${col};opacity:0">state: pressed ✓</div>`);A(st2,[{opacity:0},{opacity:1}],t,.01,'linear','forwards');
+  const st=c.querySelector('.st');A(st,[{opacity:1},{opacity:0}],t,.01,'linear','forwards');
   select(B,{x:x-10,y:410,w:410,h:460,t:t-.6,d:1.4,tag:'Component / Button'});return c;};
  const bm=`<svg width="90" height="90" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z" fill="none" stroke="#1e1e1e" stroke-width="2" stroke-linejoin="round"/></svg>`;
  const sh=`<svg width="90" height="90" viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" fill="none" stroke="#1e1e1e" stroke-width="2" stroke-linejoin="round"/></svg>`;
@@ -222,7 +234,7 @@ const sx=x=>FX+x+60,sy=y=>FY+y; // board coords → screen (board at x=60 on scr
  A(btn,[{transform:'scale(1)'},{transform:'scale(.94)'},{transform:'scale(1)'}],tap,.3,E.io,'forwards');
  A(btn,[{background:'linear-gradient(135deg,#9747ff,#0d99ff)'},{background:'linear-gradient(135deg,#14ae5c,#0acf83)'}],tap+.05,.3,E.io,'forwards');
  A(btn.querySelector('.a'),[{opacity:1},{opacity:0}],tap,.12,E.io,'forwards');A(btn.querySelector('.b'),[{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1)'}],tap+.1,.4,E.back);
- const vs=add(B,`<div class="abs mono" style="left:230px;top:1030px;width:500px;text-align:center;font-size:20px;color:#9747ff">◆ Variant: Default → Following</div>`);A(vs,[{opacity:0},{opacity:1}],tap+.3,.3,E.io);
+ const vs=add(B,`<div class="abs" style="display:none"></div>`);A(vs,[{opacity:0},{opacity:1}],tap+.3,.3,E.io);
 })();
 
 /* cursor choreography (screen coords) */
