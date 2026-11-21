@@ -50,7 +50,7 @@
   function filmTitle() {
     if (state.kind === "demo") return "The Little Projector";
     if (state.kind === "story") return "The Last Ticket";
-    if (state.kind === "movie") return "The Last Ticket (video)";
+    if (state.kind === "movie") return state.src.includes("Jatayu") ? "Jatayu's Last Flight" : "The Last Ticket (video)";
     if (state.kind === "file") return state.file ? state.file.name : null;
     if (state.kind === "url") return state.url ? (ytId(state.url) ? "YouTube video" : state.url.split("/").pop().split("?")[0] || "Video link") : null;
   }
