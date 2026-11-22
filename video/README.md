@@ -10,6 +10,10 @@ npm run studio     # opens Remotion Studio in the browser: preview and edit live
 npm run render     # renders out/CinematicIntro.mp4 (1920x1080)
 npm run render:all # also renders the vertical 1080x1920 version for Reels/Shorts
 ```
+Natural voices (Microsoft Edge, free): `python3 scripts/edge_say.py --voice en-IN-PrabhatNeural --text "..." --write-media out.mp3`.
+Indian voices: en-IN-PrabhatNeural, en-IN-NeerjaNeural, te-IN-MohanNeural, te-IN-ShrutiNeural, hi-IN-MadhurNeural, hi-IN-SwaraNeural.
+The script sends the text to Microsoft's online voice service. Install with `pip install edge-tts`.
+
 If Remotion can't download its own browser, point it at an installed Chrome:
 `REMOTION_BROWSER=/path/to/chrome npm run render`.
 
