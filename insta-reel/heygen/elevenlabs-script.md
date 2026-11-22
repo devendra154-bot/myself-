@@ -56,7 +56,7 @@ Ippudu naa HeyGen sample chudandi!
 
 1. The reel ends on "Ippudu naa HeyGen sample chudandi!" with a play button + down arrow and a ~2 s clean hold.
 2. Cut on that hold and add **your HeyGen sample clip** right after it.
-3. Add your **follow card / "Follow cheyyandi"** at the very end.
+3. Add **heygen_follow_end.png** (same background, in this folder) at the very end — hold it 3–4 s.
 
 ## Post caption (ready to paste)
 
