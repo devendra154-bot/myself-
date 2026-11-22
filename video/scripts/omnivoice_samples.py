@@ -22,6 +22,22 @@ SAMPLES = [
     ("6_whisper_female", "female, young adult, whisper", "English",
      "Shh... listen carefully. The bravest heart in the sky is about to fly."),
 ]
+TELUGU = [
+    ("te1_narrator_male", "male, middle-aged, moderate pitch, indian accent", "Telugu",
+     "మేఘాల పైన, రావణుడి బంగారు పుష్పక విమానం లంక వైపు వేగంగా దూసుకెళ్తోంది."),
+    ("te2_sita_female", "female, young adult, high pitch, indian accent", "Telugu",
+     "రక్షించండి! ఎవరైనా నన్ను కాపాడండి, దయచేసి!"),
+    ("te3_ravana_deep", "male, middle-aged, very low pitch, indian accent", "Telugu",
+     "హ హ హ! నన్ను ఎవ్వరూ ఆపలేరు! నేనే రావణుడిని!"),
+    ("te4_jatayu_elderly", "male, elderly, low pitch, indian accent", "Telugu",
+     "ఆగు, రావణా! ఆమెని వదిలెయ్! ఇదే నా చివరి హెచ్చరిక!"),
+    ("te5_ending_female", "female, middle-aged, moderate pitch, indian accent", "Telugu",
+     "సీతమ్మను కాపాడటానికి జటాయువు తన ప్రాణాలను అర్పించాడు. ఆకాశంలోని అత్యంత ధైర్యవంతుడు అతనే."),
+    ("te6_whisper_female", "female, young adult, whisper", "Telugu",
+     "శ్... జాగ్రత్తగా వినండి. ఒక గొప్ప కథ మొదలవబోతోంది."),
+]
+if len(sys.argv) > 1 and sys.argv[1] == "telugu":
+    SAMPLES = TELUGU; sys.argv.pop(1)
 only = sys.argv[1] if len(sys.argv) > 1 else None
 t0 = time.time()
 model = OmniVoice.from_pretrained("k2-fsa/OmniVoice", device_map="cpu", dtype=torch.float32)
