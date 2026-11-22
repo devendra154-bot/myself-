@@ -1,0 +1,133 @@
+{
+ "fps": 30,
+ "intro": 8.0,
+ "total": 80.636,
+ "scenes": [
+  {
+   "start": 8.0,
+   "dur": 8.138,
+   "lines": [
+    {
+     "who": "narrator",
+     "text": "High above the clouds, Ravana's golden flying chariot raced towards Lanka.",
+     "file": "jatayu/s0_0_narrator.mp3",
+     "start": 0.6,
+     "end": 6.888
+    }
+   ]
+  },
+  {
+   "start": 16.138,
+   "dur": 14.79,
+   "lines": [
+    {
+     "who": "narrator",
+     "text": "Inside, he held Sita captive.",
+     "file": "jatayu/s1_0_narrator.mp3",
+     "start": 0.6,
+     "end": 3.864
+    },
+    {
+     "who": "sita",
+     "text": "Help! Someone, please save me!",
+     "file": "jatayu/s1_1_sita.mp3",
+     "start": 4.214,
+     "end": 8.294
+    },
+    {
+     "who": "ravana",
+     "text": "Ha ha ha! No one can stop Ravana!",
+     "file": "jatayu/s1_2_ravana.mp3",
+     "start": 8.644,
+     "end": 13.54
+    }
+   ]
+  },
+  {
+   "start": 30.928,
+   "dur": 11.752,
+   "lines": [
+    {
+     "who": "narrator",
+     "text": "But the mighty bird Jatayu, friend of King Dasharatha, heard her cry.",
+     "file": "jatayu/s2_0_narrator.mp3",
+     "start": 0.6,
+     "end": 6.288
+    },
+    {
+     "who": "jatayu",
+     "text": "Stop, Ravana! Let her go!",
+     "file": "jatayu/s2_1_jatayu.mp3",
+     "start": 6.638,
+     "end": 10.502
+    }
+   ]
+  },
+  {
+   "start": 42.68,
+   "dur": 10.84,
+   "lines": [
+    {
+     "who": "narrator",
+     "text": "Jatayu attacked with his claws and wings, and broke Ravana's chariot.",
+     "file": "jatayu/s3_0_narrator.mp3",
+     "start": 0.6,
+     "end": 6.552
+    },
+    {
+     "who": "ravana",
+     "text": "You foolish old bird!",
+     "file": "jatayu/s3_1_ravana.mp3",
+     "start": 6.902,
+     "end": 9.59
+    }
+   ]
+  },
+  {
+   "start": 53.52,
+   "dur": 6.698,
+   "lines": [
+    {
+     "who": "narrator",
+     "text": "Then Ravana raised his sword, and cut Jatayu's wing.",
+     "file": "jatayu/s4_0_narrator.mp3",
+     "start": 0.6,
+     "end": 5.448
+    }
+   ]
+  },
+  {
+   "start": 60.218,
+   "dur": 12.328,
+   "lines": [
+    {
+     "who": "narrator",
+     "text": "Jatayu fell to the earth, and Ravana flew away with Sita.",
+     "file": "jatayu/s5_0_narrator.mp3",
+     "start": 0.6,
+     "end": 5.64
+    },
+    {
+     "who": "narrator",
+     "text": "But brave Jatayu held on to life, to tell Rama the truth.",
+     "file": "jatayu/s5_1_narrator.mp3",
+     "start": 5.99,
+     "end": 11.078
+    }
+   ]
+  },
+  {
+   "start": 72.546,
+   "dur": 8.09,
+   "lines": [
+    {
+     "who": "narrator",
+     "text": "Jatayu gave his life protecting Sita. The bravest heart in the sky.",
+     "file": "jatayu/s6_0_narrator.mp3",
+     "start": 0.6,
+     "end": 6.84
+    }
+   ]
+  }
+ ]
+}

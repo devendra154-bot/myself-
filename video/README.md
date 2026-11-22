@@ -26,3 +26,13 @@ If Remotion can't download its own browser, point it at an installed Chrome:
 ## License note
 Remotion is free for individuals and companies with up to 3 employees.
 Larger companies need a paid company license (see remotion.dev/license).
+
+## Jatayu's Last Flight (Remotion version)
+A vertical 1080x1920 Ramayana short with a cinematic intro, natural Indian voices, music and sound effects.
+```bash
+python3 scripts/jatayu_audio.py                     # voices (Edge TTS) + timeline + music/SFX bed
+npx remotion render JatayuFilm out/Jatayus_Last_Flight_HD.mp4
+```
+- `scripts/jatayu_audio.py`: the script, voices per character, and the sound design. Scene lengths follow the narration.
+- `src/jatayu/JatayuFilm.tsx`: intro, scenes, subtitles, god-rays, grain, camera push-in, audio.
+- `src/jatayu/art.js`: the character and scene drawings (Ravana is a cartoon of the creator).
