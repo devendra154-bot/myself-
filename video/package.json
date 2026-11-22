@@ -1,0 +1,17 @@
+{
+  "name": "devinventor-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DevInventor cinematic videos made with Remotion (React).",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render CinematicIntro out/CinematicIntro.mp4",
+    "render:all": "remotion render CinematicIntro out/CinematicIntro.mp4 && remotion render CinematicIntroVertical out/CinematicIntroVertical.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.545",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "remotion": "^4.0.545"
+  }
+}
