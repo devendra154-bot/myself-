@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<title>The Extra Seat - Part 3 (renderer)</title>
+<style>
+@font-face{font-family:Anton;src:url(fonts/anton-latin-400-normal.woff2)}
+@font-face{font-family:NotoTe;font-weight:900;src:url(fonts/noto-sans-telugu-telugu-900-normal.woff2);unicode-range:U+0C00-0C7F,U+200C-200D,U+25CC}
+@font-face{font-family:NotoTe;font-weight:900;src:url(fonts/noto-sans-telugu-latin-900-normal.woff2);unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:Rama;src:url(fonts/ramabhadra-telugu-400-normal.woff2)}
+html,body{margin:0;background:#000}
+canvas{display:block}
+</style></head>
+<body>
+<canvas id="cv" width="1080" height="1920"></canvas>
+<script>
+// ======================================================================
+//  The Extra Seat - Part 3 : procedural 2D cartoon renderer
+//  renderFrame(t) draws the frame at time t (seconds). TL = timeline.json
+// ======================================================================
+const W = 1080, H = 1920;
+const cv = document.getElementById('cv'), X = cv.getContext('2d');
+const bufA = document.createElement('canvas'), bufB = document.createElement('canvas');
+bufA.width = bufB.width = W; bufA.height = bufB.height = H;
+let TL = null;
+const INK = '#2a1a12';
+
+// ---------- maths ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = k => { k = clamp(k); return k * k * (3 - 2 * k); };
+const easeOut = k => 1 - Math.pow(1 - clamp(k), 3);
+const hash = i => { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+
+// ---------- timeline helpers ----------
+const L = id => TL.lines.find(l => l.id === id);
+function mouthAt(t, who) {
+  const f = Math.round(t * TL.fps);
+  if (TL.speaker[f] !== who) return 0;
+  const v = TL.mouth[f] || 0;
+  return clamp(v * 1.15);
+}
+
+// ---------- drawing helpers ----------
+function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect(x, y, w, h, r); }
+function fillStroke(c, fill, lw = 6, stroke = INK) { c.fillStyle = fill; c.fill(); if (lw) { c.lineWidth = lw; c.strokeStyle = stroke; c.lineJoin = 'round'; c.stroke(); } }
+function ell(c, x, y, rx, ry, rot = 0) { c.beginPath(); c.ellipse(x, y, Math.abs(rx), Math.abs(ry), rot, 0, Math.PI * 2); }
+function vgrad(c, y0, y1, stops) { const g = c.createLinearGradient(0, y0, 0, y1); stops.forEach((s, i) => g.addColorStop(s[0], s[1])); return g; }
+function shade(c, path, color, alpha) { c.save(); path(); c.clip(); c.globalAlpha = alpha; c.fillStyle = color; c.fillRect(-5000, -5000, 10000, 10000); c.restore(); }
+
+// ---------- environment ----------
+function rain(c, t, n, alpha, ang = 0.18, len = 60, speed = 1900, seed = 0) {
+  c.save(); c.strokeStyle = `rgba(210,225,255,${alpha})`; c.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const h1 = hash(i + seed), h2 = hash(i * 3.7 + seed), h3 = hash(i * 7.3 + seed);
+    const sp = speed * (0.7 + h3 * 0.6);
+    const y = ((h2 * (H + 300) + t * sp) % (H + 300)) - 150;
+    const x = ((h1 * (W + 400) + y * ang) % (W + 400)) - 200;
+    c.lineWidth = 1.5 + h3 * 2.5;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x - ang * len * (0.6 + h3), y - len * (0.6 + h3)); c.stroke();
+  }
+  c.restore();
+}
+function windowRain(c, x, y, w, h, t, seed, a = 0.5) {
+  c.save(); rr(c, x, y, w, h, 10); c.clip();
+  for (let i = 0; i < 9; i++) {
+    const hx = hash(i + seed), hs = hash(i * 5.1 + seed);
+    const yy = y + ((hs * h + t * (40 + hs * 90)) % (h + 40)) - 20;
+    const xx = x + hx * w;
+    c.strokeStyle = `rgba(230,240,255,${a})`; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(xx, yy - 40 - hs * 50); c.lineTo(xx + 2, yy); c.stroke();
+    ell(c, xx + 2, yy + 3, 5, 6); c.fillStyle = `rgba(240,248,255,${a + 0.2})`; c.fill();
+  }
+  c.restore();
+}
+function palm(c, x, y, s, col = '#1d2a2a') {
+  c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = col; c.strokeStyle = col;
+  c.lineWidth = 16; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(18, -140, 6, -300); c.stroke();
+  for (let i = 0; i < 7; i++) {
+    const a = -Math.PI / 2 + (i - 3) * 0.45;
+    c.beginPath(); c.moveTo(6, -300);
+    c.quadraticCurveTo(6 + Math.cos(a) * 90, -300 + Math.sin(a) * 90 - 30, 6 + Math.cos(a) * 170, -300 + Math.sin(a) * 140 + 60);
+    c.lineWidth = 12; c.stroke();
+  }
+  c.restore();
+}
+function house(c, x, y, w, h, wall, roof, lit) {
+  c.fillStyle = wall; c.fillRect(x, y - h, w, h);
+  c.beginPath(); c.moveTo(x - 20, y - h); c.lineTo(x + w / 2, y - h - h * 0.55); c.lineTo(x + w + 20, y - h); c.closePath(); c.fillStyle = roof; c.fill();
+  c.fillStyle = lit ? '#ffcf6b' : '#1a1a24'; c.fillRect(x + w * 0.2, y - h * 0.65, w * 0.22, h * 0.3);
+  c.fillStyle = '#1a1310'; c.fillRect(x + w * 0.58, y - h * 0.55, w * 0.22, h * 0.55);
+  if (lit) { const g = c.createRadialGradient(x + w * 0.31, y - h * 0.5, 0, x + w * 0.31, y - h * 0.5, 90); g.addColorStop(0, 'rgba(255,200,90,0.35)'); g.addColorStop(1, 'rgba(255,200,90,0)'); c.fillStyle = g; c.fillRect(x - 80, y - h - 80, w + 160, h + 160); }
+}
+function gopuram(c, x, y, s, col) {
+  c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = col;
+  for (let i = 0; i < 6; i++) { const w = 160 - i * 22; c.fillRect(-w / 2, -i * 40 - 40, w, 42); }
+  c.beginPath(); c.moveTo(-30, -280); c.quadraticCurveTo(0, -330, 30, -280); c.fill();
+  c.restore();
+}
+
+// ---------- the bus ----------
+function busSide(c, x, y, s, t, o = {}) {
+  // x,y = bottom-left of body at road level, faces right
+  c.save(); c.translate(x, y); c.scale(s, s);
+  const Lb = 900, Hb = 330;
+  // shadow
+  ell(c, Lb / 2, 8, Lb * 0.55, 22); c.fillStyle = 'rgba(0,0,0,0.35)'; c.fill();
+  // body
+  rr(c, 0, -Hb - 40, Lb, Hb, 38); fillStroke(c, '#f2e2bd', 8);
+  c.save(); rr(c, 0, -Hb - 40, Lb, Hb, 38); c.clip();
+  c.fillStyle = '#c7302c'; c.fillRect(0, -150, Lb, 120);
+  c.fillStyle = '#e8b13a'; c.fillRect(0, -160, Lb, 14);
+  c.fillStyle = 'rgba(0,0,0,0.12)'; c.fillRect(0, -70, Lb, 40);
+  c.restore();
+  // roof rack
+  rr(c, 60, -Hb - 62, Lb - 160, 24, 8); fillStroke(c, '#7a5b3a', 5);
+  // windows
+  for (let i = 0; i < 6; i++) {
+    const wx = 70 + i * 118; rr(c, wx, -Hb - 10, 96, 120, 12);
+    fillStroke(c, o.warm ? '#ffd58a' : '#3b5a7a', 6);
+    // passenger silhouettes
+    if (!o.empty) { c.save(); rr(c, wx, -Hb - 10, 96, 120, 12); c.clip(); c.fillStyle = o.warm ? 'rgba(120,70,30,0.6)' : 'rgba(15,25,40,0.65)'; ell(c, wx + 48, -Hb + 70, 26, 30); c.fill(); c.fillRect(wx + 14, -Hb + 95, 68, 40); c.restore(); }
+    c.fillStyle = 'rgba(255,255,255,0.25)'; c.beginPath(); c.moveTo(wx + 10, -Hb + 100); c.lineTo(wx + 40, -Hb - 2); c.lineTo(wx + 55, -Hb - 2); c.lineTo(wx + 25, -Hb + 100); c.fill();
+  }
+  // door + windscreen
+  rr(c, 780, -Hb - 10, 80, 250, 10); fillStroke(c, o.warm ? '#ffd58a' : '#2f4a66', 6);
+  rr(c, 862, -Hb - 14, 36, 150, 12); fillStroke(c, '#5d86ad', 5);
+  // destination board
+  rr(c, 300, -Hb - 34, 300, 26, 6); fillStroke(c, '#151515', 4);
+  c.fillStyle = '#ffb02e'; c.font = '900 20px NotoTe'; c.textAlign = 'center'; c.fillText('6:00 PM  •  రామాపురం', 450, -Hb - 14);
+  // headlight
+  ell(c, 888, -70, 14, 18); fillStroke(c, '#fff3b0', 4);
+  if (o.lights) { const g = c.createRadialGradient(900, -70, 0, 900, -70, 300); g.addColorStop(0, 'rgba(255,240,170,0.55)'); g.addColorStop(1, 'rgba(255,240,170,0)'); c.fillStyle = g; c.beginPath(); c.moveTo(895, -80); c.lineTo(1300, -170); c.lineTo(1300, 60); c.closePath(); c.fill(); }
+  // wheels
+  for (const wx of [170, 700]) {
+    ell(c, wx, -20, 64, 64); fillStroke(c, '#1b1b1b', 6);
+    ell(c, wx, -20, 30, 30); fillStroke(c, '#9a9a9a', 4);
+    const a = (o.wheel || 0);
+    c.strokeStyle = '#444'; c.lineWidth = 6;
+    for (let k = 0; k < 3; k++) { const aa = a + k * 2.094; c.beginPath(); c.moveTo(wx, -20); c.lineTo(wx + Math.cos(aa) * 28, -20 + Math.sin(aa) * 28); c.stroke(); }
+  }
+  c.restore();
+}
+function busRear(c, x, y, s, warm) {
+  c.save(); c.translate(x, y); c.scale(s, s);
+  ell(c, 0, 6, 230, 22); c.fillStyle = 'rgba(0,0,0,0.3)'; c.fill();
+  rr(c, -200, -420, 400, 400, 36); fillStroke(c, '#f2e2bd', 8);
+  c.save(); rr(c, -200, -420, 400, 400, 36); c.clip(); c.fillStyle = '#c7302c'; c.fillRect(-200, -150, 400, 130); c.fillStyle = '#e8b13a'; c.fillRect(-200, -160, 400, 12); c.restore();
+  rr(c, -160, -380, 320, 170, 16); fillStroke(c, warm ? '#ffcf7a' : '#3b5a7a', 6);
+  // the family in the rear window: son, grandfather, little girl
+  c.save(); rr(c, -160, -380, 320, 170, 16); c.clip(); c.fillStyle = 'rgba(70,35,15,0.85)';
+  ell(c, -70, -270, 34, 40); c.fill(); c.fillRect(-120, -235, 100, 60);
+  ell(c, 60, -265, 32, 38); c.fill(); c.fillRect(12, -232, 96, 60);
+  ell(c, -2, -238, 22, 25); c.fill(); c.fillRect(-28, -216, 52, 40);
+  c.restore();
+  for (const sx of [-150, 150]) { rr(c, sx - 26, -110, 52, 30, 8); fillStroke(c, '#ff4a3a', 4); }
+  ell(c, -130, -10, 46, 30); c.fillStyle = '#151515'; c.fill(); ell(c, 130, -10, 46, 30); c.fill();
+  c.restore();
+}
+
+// ---------- characters ----------
+const CH = {
+  thatha: { skin: '#c4875a', skinD: '#9e6540', shirt: '#b49a62', shirtD: '#8f7746', hair: '#f1f1ee' },
+  srinu:  { skin: '#b5774b', skinD: '#8d5532', shirt: '#3e6db3', shirtD: '#2b4f85', hair: '#17110e' },
+  paapa:  { skin: '#c88958', skinD: '#a0663c', shirt: '#f2c230', shirtD: '#cf9b17', hair: '#1a120e' },
+};
+function eye(c, x, y, r, o) {
+  const blink = o.blink;
+  if (o.eyes === 'closed' || blink) {
+    c.strokeStyle = INK; c.lineWidth = r * 0.35; c.lineCap = 'round';
+    c.beginPath(); c.arc(x, y - (o.eyes === 'happy' ? r * 0.3 : 0), r * 0.9, 0.15 * Math.PI, 0.85 * Math.PI, o.eyes === 'happy'); c.stroke(); return;
+  }
+  if (o.eyes === 'happy') { c.strokeStyle = INK; c.lineWidth = r * 0.38; c.lineCap = 'round'; c.beginPath(); c.arc(x, y + r * 0.35, r * 0.85, 1.15 * Math.PI, 1.85 * Math.PI); c.stroke(); return; }
+  const wide = o.eyes === 'wide' ? 1.25 : 1;
+  ell(c, x, y, r * 0.95 * wide, r * 1.15 * wide); fillStroke(c, '#fff', r * 0.22);
+  const px = x + (o.look || 0) * r * 0.35, py = y + r * 0.15;
+  ell(c, px, py, r * 0.55, r * 0.62); c.fillStyle = '#3a2416'; c.fill();
+  ell(c, px, py, r * 0.3, r * 0.34); c.fillStyle = '#0d0806'; c.fill();
+  ell(c, px - r * 0.2, py - r * 0.25, r * 0.17, r * 0.17); c.fillStyle = '#fff'; c.fill();
+  if (o.wet) { ell(c, px, py + r * 0.65, r * 0.6, r * 0.18); c.fillStyle = 'rgba(160,210,255,0.7)'; c.fill(); }
+  if (o.eyes === 'sad') { // heavy upper lid
+    c.save(); ell(c, x, y, r * 0.95, r * 1.15); c.clip(); c.fillStyle = o.lid; c.fillRect(x - r * 1.2, y - r * 1.4, r * 2.4, r * 0.95); c.restore();
+    c.strokeStyle = INK; c.lineWidth = r * 0.22; c.beginPath(); c.moveTo(x - r, y - r * 0.45); c.lineTo(x + r, y - r * 0.45); c.stroke();
+  }
+}
+function tearDrop(c, x, y, r, k) {
+  if (k <= 0) return;
+  const yy = y + k * r * 3.2;
+  c.save(); c.globalAlpha = clamp(k * 3) * clamp((1.15 - k) * 4);
+  c.beginPath(); c.moveTo(x, yy - r * 0.9); c.quadraticCurveTo(x + r * 0.6, yy, x, yy + r * 0.45); c.quadraticCurveTo(x - r * 0.6, yy, x, yy - r * 0.9);
+  c.fillStyle = '#9fd6ff'; c.fill(); c.lineWidth = 2.5; c.strokeStyle = '#4a8ac2'; c.stroke();
+  c.strokeStyle = 'rgba(160,215,255,0.6)'; c.lineWidth = r * 0.25; c.beginPath(); c.moveTo(x, y); c.lineTo(x, yy - r); c.stroke();
+  c.restore();
+}
+// generic head+bust. (x,y) = head centre, R = head radius
+function person(c, kind, x, y, R, o = {}) {
+  const p = CH[kind] || o.pal;
+  const lw = Math.max(3, R * 0.07);
+  c.save(); c.translate(x, y);
+  // ---- bust ----
+  if (o.bust !== false) {
+    const sw = kind === 'paapa' ? R * 1.25 : R * 1.75;
+    const path = () => { c.beginPath(); c.moveTo(-R * 0.35, R * 0.75); c.quadraticCurveTo(-sw, R * 1.0, -sw, R * 2.2); c.lineTo(-sw * 1.05, R * 4.2); c.lineTo(sw * 1.05, R * 4.2); c.lineTo(sw, R * 2.2); c.quadraticCurveTo(sw, R * 1.0, R * 0.35, R * 0.75); c.closePath(); };
+    path(); fillStroke(c, o.wetShirt ? p.shirtD : p.shirt, lw);
+    shade(c, path, p.shirtD, 0.55 * (o.lightSide ?? 1) * 0.6);
+    c.save(); path(); c.clip(); c.fillStyle = p.shirtD; c.globalAlpha = 0.6; c.fillRect(0, R * 0.7, sw * 1.2, R * 4); c.restore();
+    // collar
+    c.beginPath(); c.moveTo(-R * 0.45, R * 0.72); c.lineTo(0, R * 1.35); c.lineTo(R * 0.45, R * 0.72); fillStroke(c, kind === 'paapa' ? '#fff3c4' : p.shirt, lw * 0.8);
+    if (kind === 'thatha') { // bag strap + badge + pocket pen
+      c.strokeStyle = '#5b3a22'; c.lineWidth = R * 0.28; c.beginPath(); c.moveTo(-sw * 0.85, R * 1.1); c.lineTo(sw * 0.7, R * 4.1); c.stroke();
+      rr(c, R * 0.55, R * 1.6, R * 0.5, R * 0.32, 4); fillStroke(c, '#d9d2c0', lw * 0.6);
+      c.fillStyle = '#c7302c'; c.fillRect(-R * 0.95, R * 1.5, R * 0.08, R * 0.5);
+    }
+    if (kind === 'srinu') { c.strokeStyle = '#2b2b2b'; c.lineWidth = R * 0.25; c.beginPath(); c.moveTo(-sw * 0.6, R * 1.0); c.lineTo(-sw * 0.75, R * 4.1); c.stroke(); c.beginPath(); c.moveTo(sw * 0.6, R * 1.0); c.lineTo(sw * 0.75, R * 4.1); c.stroke(); }
+    if (o.wetShirt) { for (let i = 0; i < 6; i++) { ell(c, (hash(i + 3) - 0.5) * sw * 1.6, R * (1.4 + hash(i) * 2.4), R * 0.08, R * 0.12); c.fillStyle = 'rgba(180,220,255,0.6)'; c.fill(); } }
+    // neck
+    rr(c, -R * 0.3, R * 0.45, R * 0.6, R * 0.5, R * 0.2); fillStroke(c, p.skinD, lw * 0.8);
+  }
+  // ---- head ----
+  c.rotate(o.tilt || 0);
+  const hx = 0;
+  if (kind === 'paapa') { // pigtails behind head
+    for (const s of [-1, 1]) { ell(c, s * R * 1.05, R * 0.15, R * 0.32, R * 0.5, s * 0.4); fillStroke(c, p.hair, lw); ell(c, s * R * 0.88, -R * 0.2, R * 0.18, R * 0.14); fillStroke(c, '#e2363b', lw * 0.7); }
+  }
+  // ears
+  for (const s of [-1, 1]) { ell(c, s * R * 0.98, R * 0.08, R * 0.2, R * 0.27); fillStroke(c, p.skin, lw); }
+  ell(c, hx, 0, R, R * (kind === 'paapa' ? 1.0 : 1.08)); fillStroke(c, p.skin, lw);
+  shade(c, () => ell(c, hx, 0, R, R * 1.08), p.skinD, 0.35);
+  c.save(); ell(c, hx, 0, R, R * 1.08); c.clip(); ell(c, hx - R * 0.25, -R * 0.15, R * 0.95, R * 1.05); c.fillStyle = p.skin; c.fill(); c.restore();
+  // hair
+  if (kind === 'thatha') {
+    for (const s of [-1, 1]) { c.beginPath(); c.ellipse(s * R * 0.9, -R * 0.32, R * 0.17, R * 0.26, s * 0.25, 0, Math.PI * 2); fillStroke(c, '#e4e4de', lw * 0.7); }
+    c.strokeStyle = 'rgba(90,50,30,0.45)'; c.lineWidth = lw * 0.6; c.beginPath(); c.moveTo(-R * 0.35, -R * 0.62); c.quadraticCurveTo(0, -R * 0.7, R * 0.35, -R * 0.62); c.stroke(); c.beginPath(); c.moveTo(-R * 0.28, -R * 0.5); c.quadraticCurveTo(0, -R * 0.57, R * 0.28, -R * 0.5); c.stroke();
+    ell(c, -R * 0.3, -R * 0.75, R * 0.25, R * 0.1, -0.3); c.fillStyle = 'rgba(255,255,255,0.35)'; c.fill();
+  } else {
+    c.beginPath(); c.moveTo(-R * 1.02, R * 0.05);
+    c.bezierCurveTo(-R * 1.15, -R * 1.25, R * 1.15, -R * 1.35, R * 1.02, R * 0.0);
+    if (kind === 'paapa') { c.quadraticCurveTo(R * 0.7, -R * 0.55, 0, -R * 0.62); c.quadraticCurveTo(-R * 0.7, -R * 0.55, -R * 1.02, R * 0.05); }
+    else { c.quadraticCurveTo(R * 0.85, -R * 0.45, R * 0.4, -R * 0.55); c.quadraticCurveTo(R * 0.1, -R * 0.35, -R * 0.2, -R * 0.62); c.quadraticCurveTo(-R * 0.75, -R * 0.45, -R * 1.02, R * 0.05); }
+    fillStroke(c, p.hair, lw);
+    ell(c, R * 0.25, -R * 0.82, R * 0.35, R * 0.1, 0.2); c.fillStyle = 'rgba(255,255,255,0.18)'; c.fill();
+    if (o.wet) { c.strokeStyle = p.hair; c.lineWidth = lw * 1.4; c.lineCap = 'round'; for (const s of [-0.35, 0.05, 0.4]) { c.beginPath(); c.moveTo(R * s, -R * 0.5); c.quadraticCurveTo(R * (s + 0.08), -R * 0.25, R * (s - 0.05), -R * 0.12); c.stroke(); } }
+  }
+  // brows
+  const er = R * (kind === 'paapa' ? 0.24 : 0.2);
+  const ey = -R * 0.02, ex = R * 0.38;
+  const sad = o.eyes === 'sad' || o.brow === 'sad';
+  c.strokeStyle = kind === 'thatha' ? '#e8e8e2' : INK; c.lineWidth = R * (kind === 'thatha' ? 0.13 : 0.1); c.lineCap = 'round';
+  for (const s of [-1, 1]) {
+    const inner = sad ? -R * 0.42 : (o.eyes === 'wide' ? -R * 0.5 : -R * 0.33);
+    const outer = sad ? -R * 0.3 : (o.eyes === 'wide' ? -R * 0.48 : -R * 0.36);
+    c.beginPath(); c.moveTo(s * R * 0.16, inner); c.lineTo(s * R * 0.6, outer); c.stroke();
+  }
+  const eo = { ...o, lid: p.skin };
+  eye(c, -ex, ey, er, eo); eye(c, ex, ey, er, eo);
+  if (kind === 'thatha') { // round glasses
+    c.strokeStyle = '#3a3a3a'; c.lineWidth = R * 0.05;
+    for (const s of [-1, 1]) { ell(c, s * ex, ey + R * 0.02, R * 0.29, R * 0.27); c.stroke(); }
+    c.beginPath(); c.moveTo(-ex + R * 0.29, ey); c.lineTo(ex - R * 0.29, ey); c.stroke();
+    c.strokeStyle = 'rgba(90,50,30,0.35)'; c.lineWidth = lw * 0.5; for (const s of [-1, 1]) { c.beginPath(); c.arc(s * R * 0.72, R * 0.05, R * 0.12, -0.6, 0.9); c.stroke(); }
+  }
+  // nose
+  c.strokeStyle = p.skinD; c.lineWidth = lw * 0.9; c.beginPath(); c.moveTo(R * 0.03, R * 0.12); c.quadraticCurveTo(R * 0.16, R * 0.34, R * -0.02, R * 0.38); c.stroke();
+  // cheeks
+  ell(c, -R * 0.55, R * 0.38, R * 0.16, R * 0.09); c.fillStyle = 'rgba(230,90,80,0.28)'; c.fill();
+  ell(c, R * 0.55, R * 0.38, R * 0.16, R * 0.09); c.fill();
+  if (kind === 'srinu' && !o.noStubble) { c.save(); ell(c, 0, R * 0.62, R * 0.62, R * 0.36); c.clip(); c.fillStyle = 'rgba(40,25,20,0.16)'; c.fillRect(-R, R * 0.3, 2 * R, R); c.restore(); }
+  if (kind === 'paapa') { ell(c, 0, -R * 0.36, R * 0.05, R * 0.05); c.fillStyle = '#d62a2a'; c.fill(); }
+  // mouth
+  const m = o.mouth || 0, my = R * 0.6;
+  if (m > 0.06) {
+    const mh = R * (0.06 + m * 0.3), mw = R * (0.2 + m * 0.08);
+    ell(c, 0, my, mw, mh); fillStroke(c, '#5b1a1a', lw * 0.8);
+    c.save(); ell(c, 0, my, mw, mh); c.clip(); ell(c, 0, my + mh * 0.75, mw * 0.8, mh * 0.55); c.fillStyle = '#d0575a'; c.fill(); c.fillStyle = '#fff'; c.fillRect(-mw, my - mh, 2 * mw, mh * 0.3); c.restore();
+  } else {
+    c.strokeStyle = '#5b1a1a'; c.lineWidth = lw * 0.9; c.beginPath();
+    const smile = o.smile ?? 0;
+    c.moveTo(-R * 0.2, my - smile * R * 0.05); c.quadraticCurveTo(0, my + smile * R * 0.16, R * 0.2, my - smile * R * 0.05); c.stroke();
+  }
+  if (kind === 'thatha') { // big white mustache (drawn over mouth top)
+    c.beginPath(); c.moveTo(0, my - R * 0.15);
+    c.bezierCurveTo(-R * 0.25, my - R * 0.3, -R * 0.55, my - R * 0.15, -R * 0.55, my + R * 0.02);
+    c.quadraticCurveTo(-R * 0.3, my - R * 0.02, 0, my - R * 0.06);
+    c.quadraticCurveTo(R * 0.3, my - R * 0.02, R * 0.55, my + R * 0.02);
+    c.bezierCurveTo(R * 0.55, my - R * 0.15, R * 0.25, my - R * 0.3, 0, my - R * 0.15);
+    fillStroke(c, '#f4f4f0', lw * 0.7);
+  }
+  // tears
+  if (o.tear) { tearDrop(c, -ex - er * 0.2, ey + er * 1.2, R * 0.09, o.tear); if (o.tear2 !== undefined) tearDrop(c, ex + er * 0.2, ey + er * 1.2, R * 0.09, o.tear2); }
+  c.restore();
+}
+// a small full-body runner (for the long shot), (x,y)=feet
+function runner(c, x, y, s, t, o = {}) {
+  c.save(); c.translate(x, y); c.scale(s, s);
+  const ph = t * 9.5, sw = Math.sin(ph);
+  ell(c, 0, 4, 60, 12); c.fillStyle = 'rgba(0,0,0,0.3)'; c.fill();
+  c.strokeStyle = '#2d3550'; c.lineCap = 'round'; c.lineWidth = 28;
+  c.beginPath(); c.moveTo(0, -150); c.lineTo(sw * 45, -70); c.lineTo(sw * 55, 0); c.stroke();
+  c.beginPath(); c.moveTo(0, -150); c.lineTo(-sw * 45, -70); c.lineTo(-sw * 60, -5); c.stroke();
+  // torso
+  rr(c, -45, -300, 90, 160, 30); fillStroke(c, '#2b4f85', 6);
+  // the girl on his hip
+  c.save(); c.translate(-40, -250); person(c, 'paapa', 0, -34, 26, { mouth: 0, eyes: 'open' }); c.restore();
+  // arms (right arm waving)
+  c.strokeStyle = '#b5774b'; c.lineWidth = 20;
+  const wave = o.wave ? Math.sin(t * 14) * 0.5 : 0;
+  c.beginPath(); c.moveTo(35, -280); c.lineTo(80, -340 + wave * 30); c.lineTo(70 + wave * 40, -420); c.stroke();
+  c.beginPath(); c.moveTo(-35, -280); c.lineTo(-60, -230); c.stroke();
+  person(c, 'srinu', 0, -360, 46, { bust: false, mouth: o.mouth || 0, eyes: o.mouth > 0.1 ? 'wide' : 'open', wet: true });
+  c.restore();
+}
+
+// ---------- bus interior (camera at front looking down the aisle) ----------
+function interior(c, t, o = {}) {
+  const warm = o.warm || 0, vpX = 540, vpY = 760;
+  // walls / ceiling / floor
+  c.fillStyle = vgrad(c, 0, H, [[0, lerp(0, 1, warm) > 0.5 ? '#5a4030' : '#2d3442'], [1, '#141820']]); c.fillRect(0, 0, W, H);
+  const cool = ['#3a4458', '#2a3140', '#46516a'], wrm = ['#8a6440', '#6a4a30', '#a37a50'];
+  const col = i => warm > 0.5 ? wrm[i] : cool[i];
+  // ceiling
+  c.beginPath(); c.moveTo(0, 0); c.lineTo(W, 0); c.lineTo(vpX + 200, vpY - 230); c.lineTo(vpX - 200, vpY - 230); c.closePath(); c.fillStyle = col(2); c.fill();
+  // floor
+  c.beginPath(); c.moveTo(0, H); c.lineTo(W, H); c.lineTo(vpX + 200, vpY + 150); c.lineTo(vpX - 200, vpY + 150); c.closePath(); c.fillStyle = col(1); c.fill();
+  c.beginPath(); c.moveTo(360, H); c.lineTo(720, H); c.lineTo(vpX + 50, vpY + 150); c.lineTo(vpX - 50, vpY + 150); c.closePath(); c.fillStyle = 'rgba(0,0,0,0.25)'; c.fill();
+  // back wall + rear window
+  c.fillStyle = col(0); c.fillRect(vpX - 200, vpY - 230, 400, 380);
+  rr(c, vpX - 150, vpY - 200, 300, 150, 14); fillStroke(c, warm > 0.5 ? '#ffd27a' : '#53708f', 5);
+  // side walls with windows
+  for (const sd of [-1, 1]) {
+    c.beginPath(); c.moveTo(sd < 0 ? 0 : W, 0); c.lineTo(vpX + sd * 200, vpY - 230); c.lineTo(vpX + sd * 200, vpY + 150); c.lineTo(sd < 0 ? 0 : W, H); c.closePath(); c.fillStyle = col(0); c.fill();
+    for (let i = 0; i < 4; i++) {
+      const z0 = i / 4, z1 = (i + 0.78) / 4;
+      const px = z => lerp(sd < 0 ? 0 : W, vpX + sd * 200, Math.pow(z, 0.7));
+      const pyT = z => lerp(150, vpY - 200, Math.pow(z, 0.7)), pyB = z => lerp(900, vpY + 10, Math.pow(z, 0.7));
+      c.beginPath(); c.moveTo(px(z0), pyT(z0)); c.lineTo(px(z1), pyT(z1)); c.lineTo(px(z1), pyB(z1)); c.lineTo(px(z0), pyB(z0)); c.closePath();
+      const g = c.createLinearGradient(0, pyT(z0), 0, pyB(z0));
+      if (warm > 0.5) { g.addColorStop(0, '#ffb35a'); g.addColorStop(1, '#ffe2a0'); } else { g.addColorStop(0, '#4c6d90'); g.addColorStop(1, '#6f8fae'); }
+      fillStroke(c, g, 6);
+      if (!warm) { c.save(); c.clip(); for (let k = 0; k < 6; k++) { const xx = lerp(px(z0), px(z1), hash(k + i * 9 + (sd + 2) * 50)); const yy = lerp(pyT(z0), pyB(z0), (hash(k * 3 + i) + t * (0.15 + hash(k) * 0.2)) % 1); c.strokeStyle = 'rgba(220,235,255,0.55)'; c.lineWidth = 3; c.beginPath(); c.moveTo(xx, yy - 40); c.lineTo(xx, yy); c.stroke(); } c.restore(); }
+    }
+  }
+  // light from windows
+  if (warm > 0) { c.save(); c.globalAlpha = 0.25 * warm; c.fillStyle = '#ffd38a'; for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(W, 150 + k * 190); c.lineTo(W, 300 + k * 190); c.lineTo(300 + k * 60, 1500 + k * 80); c.lineTo(200 + k * 60, 1400 + k * 80); c.closePath(); c.fill(); } c.restore(); }
+  // handrail
+  c.strokeStyle = '#bfc4c8'; c.lineWidth = 10; for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(vpX + sd * 160, vpY - 200); c.lineTo(vpX + sd * 380, 80); c.stroke(); }
+  // seats rows (far -> near)
+  const rows = [
+    { z: 0.88, s: 0.32 }, { z: 0.74, s: 0.42 }, { z: 0.56, s: 0.58 }, { z: 0.3, s: 0.85 },
+  ];
+  const pal = [
+    { skin: '#b97c50', skinD: '#8e5734', shirt: '#7a3b6e', shirtD: '#5a2850', hair: '#1a1210' },
+    { skin: '#c99063', skinD: '#9c6a44', shirt: '#2f8a6a', shirtD: '#1f634b', hair: '#241812' },
+    { skin: '#a96e45', skinD: '#7f4f2e', shirt: '#d06a2c', shirtD: '#9c4b1c', hair: '#151010' },
+    { skin: '#c78a5c', skinD: '#9b6440', shirt: '#4a59a8', shirtD: '#35407b', hair: '#d9d9d9' },
+  ];
+  rows.forEach((r, ri) => {
+    for (const sd of [-1, 1]) {
+      const sx = lerp(sd < 0 ? 170 : 910, vpX + sd * 120, r.z), sy = lerp(1580, vpY + 120, r.z), s = r.s;
+      const isEmpty = (ri === 3 && sd === 1);
+      const seatW = 300 * s, seatH = 420 * s;
+      // seat back
+      rr(c, sx - seatW / 2, sy - seatH, seatW, seatH, 26 * s); fillStroke(c, '#7b2b2b', 6 * s);
+      rr(c, sx - seatW / 2 + 16 * s, sy - seatH + 16 * s, seatW - 32 * s, 90 * s, 16 * s); c.fillStyle = '#e9dcc0'; c.fill();
+      if (isEmpty) {
+        o.seatX = sx; o.seatY = sy; o.seatS = s;
+        if (o.glow) { const g = c.createRadialGradient(sx, sy - seatH * 0.5, 0, sx, sy - seatH * 0.5, seatW); g.addColorStop(0, `rgba(255,220,140,${0.35 * o.glow})`); g.addColorStop(1, 'rgba(255,220,140,0)'); c.fillStyle = g; c.fillRect(sx - seatW * 1.2, sy - seatH * 1.3, seatW * 2.4, seatH * 1.6); }
+        const chalk = o.chalk ?? 1;
+        if (chalk > 0) { c.save(); c.globalAlpha = chalk; c.fillStyle = '#f7f3ea'; c.font = `${Math.round(54 * s)}px Rama`; c.textAlign = 'center'; c.fillText('శ్రీను కోసం', sx, sy - seatH * 0.45); c.restore(); }
+        if (o.inSeat) o.inSeat(c, sx, sy, s);
+      } else if (!(o.hideNear && ri === 3)) {
+        const k = (ri * 2 + (sd + 1) / 2) % 4;
+        const bob = Math.sin(t * 2.2 + ri + sd) * 3 * s;
+        person(c, null, sx, sy - seatH * 0.62 + bob, 70 * s, { pal: pal[k], eyes: o.happy ? 'happy' : (hash(ri * 7 + sd) > 0.5 ? 'closed' : 'open'), smile: o.happy ? 1 : 0.2, look: -sd * 0.6, blink: ((t * 0.4 + hash(ri + sd)) % 1) < 0.04 });
+        if (o.clap) { const cl = Math.abs(Math.sin(t * 11 + ri)); c.fillStyle = pal[k].skin; for (const hs of [-1, 1]) { ell(c, sx + hs * (18 + cl * 22) * s, sy - seatH * 0.05, 22 * s, 30 * s); fillStroke(c, pal[k].skin, 4 * s); } }
+      }
+      // cushion
+      rr(c, sx - seatW / 2 - 8 * s, sy - 30 * s, seatW + 16 * s, 60 * s, 18 * s); fillStroke(c, '#5e1f1f', 6 * s);
+    }
+  });
+}
+
+// ---------- scenes ----------
+// each: (c, lt, t) -> draws full frame; lt = local seconds since scene start
+const SC = [];
+function sky(c, top, mid, bot, hy = 1100) { c.fillStyle = vgrad(c, 0, hy, [[0, top], [0.6, mid], [1, bot]]); c.fillRect(0, 0, W, H); }
+
+// S1: dusk village, bus arrives, title card
+SC.push({ id: 'title', draw(c, lt, t) {
+  const cam = 1 + lt * 0.015; c.save(); c.translate(W / 2, H / 2); c.scale(cam, cam); c.translate(-W / 2, -H / 2);
+  sky(c, '#1d2346', '#7c4a6e', '#f09a5a', 1150);
+  ell(c, 760, 980, 90, 90); c.fillStyle = 'rgba(255,190,110,0.55)'; c.fill();
+  c.fillStyle = '#3a2a45'; c.beginPath(); c.moveTo(0, 1060); for (let x = 0; x <= W; x += 60) c.lineTo(x, 1040 - Math.sin(x * 0.006) * 60 - hash(x) * 20); c.lineTo(W, 1300); c.lineTo(0, 1300); c.fill();
+  gopuram(c, 820, 1110, 0.9, '#2a1f35');
+  c.fillStyle = '#20202c'; c.fillRect(0, 1100, W, 900);
+  house(c, 40, 1180, 190, 150, '#c9a27a', '#7a3a2a', true); house(c, 300, 1160, 150, 120, '#b4b8c0', '#5a3a2a', false); house(c, 800, 1190, 210, 160, '#d8b98c', '#8a3b28', true);
+  palm(c, 260, 1210, 1.0); palm(c, 980, 1230, 1.15); palm(c, 640, 1150, 0.7, '#251f30');
+  // road
+  c.fillStyle = '#2e2e38'; c.fillRect(0, 1260, W, 420); c.fillStyle = 'rgba(255,190,110,0.15)'; c.fillRect(0, 1262, W, 12);
+  for (let i = 0; i < 8; i++) { c.fillStyle = '#d8c690'; c.fillRect(((i * 220 - lt * 60) % 1300) - 100, 1520, 110, 12); }
+  // puddle reflections
+  ell(c, 300, 1600, 160, 18); c.fillStyle = 'rgba(240,150,90,0.25)'; c.fill(); ell(c, 820, 1640, 120, 14); c.fill();
+  const bx = lerp(1150, 120, easeOut(lt / 4.0));
+  busSide(c, bx - 900 * 0.85 + 900 * 0.85, 1500, 0.85, t, { lights: true, wheel: -lt * 6 });
+  rain(c, t, 90, 0.35, 0.15, 50);
+  c.restore();
+  // title text
+  const a = seg(lt, 0.2, 0.9) * (1 - seg(lt, 3.2, 3.9));
+  if (a > 0) {
+    c.save(); c.globalAlpha = a; c.textAlign = 'center';
+    c.shadowColor = 'rgba(0,0,0,0.7)'; c.shadowBlur = 30;
+    c.font = '150px Anton'; c.fillStyle = '#fff4dc'; c.fillText('THE EXTRA', W / 2, 460 + (1 - a) * 30);
+    c.fillStyle = '#ffb648'; c.fillText('SEAT', W / 2, 620 + (1 - a) * 30);
+    c.font = '900 76px NotoTe'; c.fillStyle = '#fff'; c.fillText('పార్ట్ 3  •  ముగింపు', W / 2, 760);
+    c.restore();
+  }
+}});
+// S2: interior wide, the empty seat
+SC.push({ id: 'seatWide', draw(c, lt, t) {
+  const z = 1 + lt * 0.03; c.save(); c.translate(700, 1150); c.scale(z, z); c.translate(-760, -1150);
+  interior(c, t, { glow: 0.6 + 0.4 * Math.sin(lt * 2) }); c.restore();
+}});
+// S3: Ramulu holds his son's old photo
+SC.push({ id: 'photo', draw(c, lt, t) {
+  const dur = 7.55, z = 1 + lt * 0.012;
+  c.save(); c.translate(W / 2, H / 2); c.scale(z, z); c.translate(-W / 2, -H / 2);
+  c.fillStyle = vgrad(c, 0, H, [[0, '#2d3442'], [1, '#161a22']]); c.fillRect(0, 0, W, H);
+  // window behind with rain
+  rr(c, 90, 260, 900, 620, 30); fillStroke(c, vgrad(c, 260, 880, [[0, '#3f5c7c'], [1, '#6c8cab']]), 10);
+  windowRain(c, 90, 260, 900, 620, t, 4, 0.55);
+  c.fillStyle = '#7b2b2b'; rr(c, 120, 900, 840, 300, 40); c.fill();
+  const look = lt > 3.8 ? 'down' : 'front';
+  person(c, 'thatha', 540, 860, 175, { mouth: 0, eyes: lt > 3.8 ? 'sad' : 'open', look: 0, blink: (lt % 3.1) < 0.12, smile: lt > 4.6 ? 0.35 : 0, tilt: lt > 3.8 ? 0.06 : 0 });
+  // hands holding the photo
+  const py = lerp(1500, 1390, ease(lt / 1.5));
+  c.save(); c.translate(540, py); c.rotate(-0.06);
+  rr(c, -190, -150, 380, 280, 12); fillStroke(c, '#f3ead6', 8);
+  rr(c, -165, -125, 330, 210, 6); fillStroke(c, '#d8c29a', 4);
+  // the boy in the photo (sepia)
+  c.save(); rr(c, -165, -125, 330, 210, 6); c.clip(); c.fillStyle = '#c9ad7f'; c.fillRect(-165, -125, 330, 210);
+  c.filter = 'sepia(1) saturate(0.6)'; person(c, 'srinu', 0, -20, 62, { mouth: 0, smile: 1, eyes: 'open', noStubble: true }); c.filter = 'none'; c.restore();
+  c.font = '34px Rama'; c.fillStyle = '#6b4a2a'; c.textAlign = 'center'; c.fillText('శ్రీను - 2016', 0, 118);
+  for (const s of [-1, 1]) { ell(c, s * 200, 40, 50, 70, s * 0.3); fillStroke(c, CH.thatha.skin, 7); }
+  c.restore();
+  c.restore();
+}});
+// S4a: exterior, heavy rain, lightning, last day
+SC.push({ id: 'storm', draw(c, lt, t) {
+  const flash = Math.max(0, 1 - Math.abs(lt - 0.15) * 6) + Math.max(0, 0.6 - Math.abs(lt - 0.5) * 8);
+  sky(c, '#1a1f2c', '#2f3a4e', '#4b5a70', 1150);
+  c.fillStyle = '#232a36'; c.beginPath(); c.moveTo(0, 1080); for (let x = 0; x <= W; x += 60) c.lineTo(x, 1050 - Math.sin(x * 0.005 + 1) * 50); c.lineTo(W, 1300); c.lineTo(0, 1300); c.fill();
+  if (flash > 0.2) { c.strokeStyle = `rgba(230,240,255,${flash})`; c.lineWidth = 7; c.beginPath(); c.moveTo(700, 0); c.lineTo(660, 200); c.lineTo(720, 260); c.lineTo(640, 520); c.lineTo(690, 560); c.lineTo(620, 800); c.stroke(); }
+  c.fillStyle = '#1c2029'; c.fillRect(0, 1150, W, 800);
+  // bus shelter
+  c.fillStyle = '#5a5f6a'; c.fillRect(60, 900, 14, 380); c.fillRect(380, 900, 14, 380);
+  c.beginPath(); c.moveTo(30, 900); c.lineTo(430, 880); c.lineTo(430, 920); c.lineTo(30, 940); c.closePath(); fillStroke(c, '#8a3b28', 6);
+  c.font = '900 40px NotoTe'; c.fillStyle = '#f1e5c8'; c.textAlign = 'center'; c.fillText('రామాపురం', 230, 990);
+  // clock post
+  c.fillStyle = '#3d424c'; c.fillRect(960, 820, 16, 460); ell(c, 968, 800, 70, 70); fillStroke(c, '#f4efe2', 8);
+  c.strokeStyle = INK; c.lineWidth = 8; c.beginPath(); c.moveTo(968, 800); c.lineTo(968, 748); c.moveTo(968, 800); c.lineTo(968, 850); c.stroke();
+  c.fillStyle = '#2a2f3a'; c.fillRect(0, 1280, W, 640);
+  busSide(c, 100, 1500, 0.95, t, { lights: true, wheel: 0 });
+  ell(c, 540, 1600, 420, 30); c.fillStyle = 'rgba(255,220,150,0.12)'; c.fill();
+  // farewell garland on the windscreen + caption sign
+  c.save(); c.translate(100 + 868 * 0.95, 1500 - 300 * 0.95); for (let i = 0; i < 9; i++) { ell(c, Math.sin(i * 0.4) * 10, i * 20, 11, 11); c.fillStyle = i % 2 ? '#ff9f1c' : '#ffd23f'; c.fill(); } c.restore();
+  rain(c, t, 220, 0.5, 0.2, 80, 2300);
+  rain(c, t, 60, 0.7, 0.2, 140, 3200, 50);
+  // last day stamp
+  const a = seg(lt, 0.35, 0.8);
+  if (a > 0) { c.save(); c.globalAlpha = a; c.translate(540, 520); c.rotate(-0.08); c.scale(1 + (1 - a) * 0.4, 1 + (1 - a) * 0.4); rr(c, -330, -80, 660, 160, 18); c.fillStyle = 'rgba(20,10,8,0.6)'; c.fill(); c.lineWidth = 8; c.strokeStyle = '#ffb648'; c.stroke(); c.font = '900 80px NotoTe'; c.fillStyle = '#ffd88f'; c.textAlign = 'center'; c.fillText('చివరి రోజు', 0, 28); c.restore(); }
+  if (flash > 0) { c.fillStyle = `rgba(220,230,255,${flash * 0.45})`; c.fillRect(0, 0, W, H); }
+}});
+// S4b: interior again, slow push to the seat
+SC.push({ id: 'seatPush', draw(c, lt, t) {
+  const o = {}; const z = 1.1 + lt * 0.12;
+  c.save(); c.translate(760, 1180); c.scale(z, z); c.translate(-760, -1180); interior(c, t, { glow: 0.9 }); c.restore();
+}});
+// S5a: cloth wiping the seat (close-up)
+SC.push({ id: 'wipe', draw(c, lt, t) {
+  c.fillStyle = vgrad(c, 0, H, [[0, '#2a3140'], [1, '#141820']]); c.fillRect(0, 0, W, H);
+  rr(c, 60, 120, 960, 520, 30); fillStroke(c, vgrad(c, 120, 640, [[0, '#3f5c7c'], [1, '#6c8cab']]), 10); windowRain(c, 60, 120, 960, 520, t, 9, 0.6);
+  rr(c, 140, 640, 800, 900, 60); fillStroke(c, '#7b2b2b', 10);
+  rr(c, 190, 690, 700, 200, 30); c.fillStyle = '#e9dcc0'; c.fill();
+  c.fillStyle = '#f7f3ea'; c.font = '120px Rama'; c.textAlign = 'center'; c.fillText('శ్రీను కోసం', 540, 1180);
+  rr(c, 100, 1480, 880, 170, 40); fillStroke(c, '#5e1f1f', 10);
+  // hand + cloth
+  const hx = 540 + Math.sin(lt * 4.2) * 230, hy = 1050 + Math.cos(lt * 4.2) * 30;
+  c.save(); c.translate(hx, hy); c.rotate(Math.sin(lt * 4.2) * 0.15);
+  c.beginPath(); c.moveTo(-120, -60); c.quadraticCurveTo(0, -95, 120, -50); c.lineTo(130, 70); c.quadraticCurveTo(0, 95, -130, 60); c.closePath(); fillStroke(c, '#e7e2d6', 8);
+  c.strokeStyle = '#b84a3a'; c.lineWidth = 8; c.beginPath(); c.moveTo(-110, -30); c.lineTo(115, -20); c.moveTo(-115, 30); c.lineTo(120, 40); c.stroke();
+  // arm + sleeve
+  c.beginPath(); c.moveTo(60, 40); c.lineTo(420, 700); c.lineTo(250, 760); c.lineTo(-40, 60); c.closePath(); fillStroke(c, CH.thatha.skin, 8);
+  c.beginPath(); c.moveTo(280, 400); c.lineTo(520, 760); c.lineTo(200, 900); c.lineTo(120, 480); c.closePath(); fillStroke(c, CH.thatha.shirt, 8);
+  c.restore();
+}});
+// S5b: close-up face, tear
+SC.push({ id: 'tear', draw(c, lt, t) {
+  const z = 1 + lt * 0.02; c.save(); c.translate(W / 2, 900); c.scale(z, z); c.translate(-W / 2, -900);
+  c.fillStyle = vgrad(c, 0, H, [[0, '#273042'], [1, '#10131a']]); c.fillRect(0, 0, W, H);
+  const g = c.createRadialGradient(780, 500, 0, 780, 500, 700); g.addColorStop(0, 'rgba(120,160,210,0.35)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  windowRain(c, 0, 0, W, 700, t, 21, 0.3);
+  person(c, 'thatha', 540, 860, 330, { mouth: 0, eyes: 'sad', blink: Math.abs(lt - 2.1) < 0.1, tear: seg(lt, 1.0, 3.2), tear2: seg(lt, 1.8, 3.5), smile: -0.6, tilt: -0.04 });
+  c.restore();
+}});
+// S6: rear door view, runner coming through the rain
+SC.push({ id: 'runner', draw(c, lt, t) {
+  const v07 = L('v07').start - L('v06').start + 0.2; // local time of shout (scene starts ~0.2 before v06)
+  const shake = Math.sin(t * 31) * 2 + Math.sin(t * 17) * 2;
+  c.save(); c.translate(shake * seg(lt, 0, 1), 0);
+  sky(c, '#20283a', '#3a4860', '#58698a', 980);
+  c.fillStyle = '#28303f'; c.beginPath(); c.moveTo(0, 980); for (let x = 0; x <= W; x += 60) c.lineTo(x, 960 - Math.sin(x * 0.007) * 40); c.lineTo(W, 1100); c.lineTo(0, 1100); c.fill();
+  c.fillStyle = '#1e232d'; c.fillRect(0, 980, W, 1000);
+  // road receding
+  c.beginPath(); c.moveTo(140, H); c.lineTo(940, H); c.lineTo(580, 990); c.lineTo(500, 990); c.closePath(); c.fillStyle = '#343a46'; c.fill();
+  for (let i = 0; i < 7; i++) { const k = ((i / 7 + lt * 0.12) % 1); const y = lerp(995, H, k * k); const w = lerp(4, 40, k * k); c.fillStyle = 'rgba(230,220,180,0.7)'; c.fillRect(540 - w / 2, y, w, lerp(6, 90, k * k)); }
+  palm(c, 120, 1100, 0.8, '#1a2028'); palm(c, 980, 1080, 0.7, '#1a2028'); palm(c, 330, 1010, 0.35, '#202733'); palm(c, 760, 1005, 0.3, '#202733');
+  ell(c, 380, 1500, 140, 20); c.fillStyle = 'rgba(160,180,210,0.25)'; c.fill(); ell(c, 720, 1380, 100, 14); c.fill();
+  // runner approaches
+  const k = ease(seg(lt, 0.9, v07 + 1.2));
+  const ry = lerp(1010, 1950, k), rs = lerp(0.12, 2.5, k * k);
+  runner(c, 540 + Math.sin(lt * 3) * 10 * k, ry, rs, t, { wave: lt > 1.6, mouth: mouthAt(t, 'son') });
+  rain(c, t, 200, 0.45, 0.12, 70, 2200);
+  // door frame foreground
+  c.fillStyle = '#121418'; c.fillRect(0, 0, 120, H); c.fillRect(W - 120, 0, 120, H); c.fillRect(0, 0, W, 110);
+  c.fillStyle = '#c7302c'; c.fillRect(0, 0, 120, H); c.fillStyle = 'rgba(0,0,0,0.4)'; c.fillRect(90, 0, 30, H);
+  c.strokeStyle = '#c9ced3'; c.lineWidth = 18; c.beginPath(); c.moveTo(W - 160, 200); c.lineTo(W - 160, 1500); c.stroke();
+  // Ramulu's hand on the rail
+  ell(c, W - 160, 900, 50, 40); fillStroke(c, CH.thatha.skin, 7);
+  c.restore();
+}});
+// S7: at the door - Srinu with the girl, Ramulu stunned
+SC.push({ id: 'door', draw(c, lt, t) {
+  const z = 1.03 - lt * 0.01; c.save(); c.translate(W / 2, H / 2); c.scale(z, z); c.translate(-W / 2, -H / 2);
+  c.fillStyle = '#f2e2bd'; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#c7302c'; c.fillRect(0, 1300, W, 300); c.fillStyle = '#e8b13a'; c.fillRect(0, 1280, W, 22);
+  // door opening
+  rr(c, 520, 220, 520, 1500, 20); c.fillStyle = '#3a3226'; c.fill();
+  c.fillStyle = 'rgba(255,210,140,0.35)'; c.fillRect(520, 220, 520, 1500);
+  // Ramulu inside, at top of steps
+  person(c, 'thatha', 820, 560, 150, { eyes: 'wide', mouth: 0, look: -0.8, tear: seg(lt, 1.5, 3.0) });
+  // steps
+  for (let i = 0; i < 3; i++) { c.fillStyle = i % 2 ? '#56595e' : '#6a6e74'; c.fillRect(520, 1150 + i * 190, 520, 40); }
+  // Srinu on the step, girl on his arm
+  person(c, 'srinu', 470, 900, 150, { eyes: 'open', look: 0.8, wet: true, wetShirt: true, mouth: 0, smile: 0.3, brow: 'sad' });
+  person(c, 'paapa', 270, 1150, 95, { eyes: 'open', look: 0.9, smile: 0.6, blink: (lt % 2.4) < 0.1 });
+  ell(c, 330, 1420, 60, 45); fillStroke(c, CH.srinu.skin, 6);
+  c.restore();
+  rain(c, t, 130, 0.35, 0.1, 60, 2000);
+  c.fillStyle = 'rgba(30,40,60,0.12)'; c.fillRect(0, 0, W, H);
+}});
+// S8: two-shot dialogue, ends leaning into a hug
+SC.push({ id: 'talk', draw(c, lt, t) {
+  const v10 = L('v10').start, hugK = ease(seg(t, L('v10').end - 1.2, L('v10').end + 0.6));
+  const focusR = ease(seg(t, v10 - 0.2, v10 + 0.4)); // camera shifts to Ramulu when he speaks
+  c.save(); const z = 1.05 + 0.08 * focusR; c.translate(W / 2, 950); c.scale(z, z); c.translate(-W / 2 - (focusR - 0.5) * 60, -950);
+  c.fillStyle = vgrad(c, 0, H, [[0, '#3b4a5e'], [1, '#1c222c']]); c.fillRect(0, 0, W, H);
+  for (let i = 0; i < 3; i++) { rr(c, -40 + i * 400, 200, 330, 380, 24); fillStroke(c, vgrad(c, 200, 580, [[0, '#5a7a9c'], [1, '#8aa8c4']]), 8); windowRain(c, -40 + i * 400, 200, 330, 380, t, i * 13, 0.35); }
+  // the empty seat between them in the background
+  rr(c, 380, 640, 320, 470, 30); fillStroke(c, '#7b2b2b', 7); rr(c, 400, 660, 280, 90, 16); c.fillStyle = '#e9dcc0'; c.fill();
+  c.fillStyle = '#f7f3ea'; c.font = '50px Rama'; c.textAlign = 'center'; c.fillText('శ్రీను కోసం', 540, 900);
+  const sx = lerp(290, 400, hugK), rx = lerp(800, 690, hugK);
+  person(c, 'srinu', sx, 960, 160, { mouth: mouthAt(t, 'son'), eyes: hugK > 0.6 ? 'happy' : 'open', look: 0.7, wet: true, wetShirt: true, brow: 'sad', tear: seg(t, L('v10').start + 1, L('v10').end), tilt: 0.12 * hugK });
+  person(c, 'paapa', sx - 190, 1300, 90, { look: 0.8, smile: 0.8, eyes: hugK > 0.5 ? 'happy' : 'open', blink: (lt % 2.7) < 0.1 });
+  person(c, 'thatha', rx, 930, 165, { mouth: mouthAt(t, 'father'), eyes: hugK > 0.6 ? 'happy' : (t > v10 ? 'sad' : 'wide'), look: -0.7, tear: seg(t, v10 + 0.5, v10 + 2.5), tear2: seg(t, v10 + 1.4, v10 + 3.4), smile: 0.5, tilt: -0.12 * hugK });
+  c.restore();
+  const warmth = hugK; c.fillStyle = `rgba(255,190,110,${0.18 * warmth})`; c.fillRect(0, 0, W, H);
+}});
+// S9: chalk wiped, the granddaughter takes the extra seat
+SC.push({ id: 'sit', draw(c, lt, t) {
+  const sitK = easeOut(seg(lt, 1.8, 2.8));
+  const z = 1.85 - 0.5 * ease(seg(lt, 2.5, 5.0));
+  c.save(); c.translate(760, 1180); c.scale(z, z); c.translate(-760, -1180);
+  interior(c, t, {
+    warm: 1, glow: 1, chalk: 1 - seg(lt, 0.4, 1.7), happy: lt > 2.4, clap: lt > 2.8,
+    inSeat: (cc, sx, sy, s) => {
+      if (sitK > 0) person(cc, 'paapa', sx, sy - 420 * s * 0.5 + (1 - sitK) * 300 * s, 72 * s, { eyes: lt > 3 ? 'happy' : 'open', smile: 1, look: -0.3 });
+      if (lt < 1.9) { // Ramulu's hand wiping the chalk
+        const hx = sx + Math.sin(lt * 7) * 80 * s, hy = sy - 420 * s * 0.45;
+        cc.save(); cc.translate(hx, hy); cc.beginPath(); cc.moveTo(-60 * s, -30 * s); cc.lineTo(60 * s, -25 * s); cc.lineTo(65 * s, 35 * s); cc.lineTo(-65 * s, 30 * s); cc.closePath(); fillStroke(cc, '#e7e2d6', 5 * s);
+        cc.beginPath(); cc.moveTo(30 * s, 20 * s); cc.lineTo(400 * s, 500 * s); cc.lineTo(300 * s, 560 * s); cc.lineTo(-20 * s, 30 * s); cc.closePath(); fillStroke(cc, CH.thatha.skin, 5 * s); cc.restore();
+      }
+    }
+  });
+  c.restore();
+  // sparkles
+  if (lt > 2.2) for (let i = 0; i < 26; i++) { const a = hash(i) * 6.28, r = 120 + ((lt - 2.2) * 160 + hash(i * 3) * 300) % 520; const x = 760 + Math.cos(a) * r, y = 1000 + Math.sin(a) * r * 0.8; const s = 6 + hash(i * 5) * 10; c.save(); c.globalAlpha = 0.8 * (1 - r / 520); c.fillStyle = '#fff1b8'; c.translate(x, y); c.rotate(lt * 2 + i); c.fillRect(-s, -2, 2 * s, 4); c.fillRect(-2, -s, 4, 2 * s); c.restore(); }
+  c.fillStyle = 'rgba(255,170,80,0.12)'; c.fillRect(0, 0, W, H);
+}});
+// S10: sunset after the rain, bus drives away, end card
+SC.push({ id: 'sunset', draw(c, lt, t) {
+  sky(c, '#3b3a78', '#e0717a', '#ffc36e', 1050);
+  const sg = c.createRadialGradient(540, 1020, 0, 540, 1020, 500); sg.addColorStop(0, 'rgba(255,240,180,0.95)'); sg.addColorStop(0.2, 'rgba(255,200,120,0.6)'); sg.addColorStop(1, 'rgba(255,160,100,0)'); c.fillStyle = sg; c.fillRect(0, 0, W, H);
+  // rainbow
+  c.save(); c.globalAlpha = 0.35 * seg(lt, 0, 1.5); const rc = ['#ff5a5a', '#ffa64d', '#ffe066', '#7ed957', '#4dc3ff', '#7a6cff']; rc.forEach((col, i) => { c.strokeStyle = col; c.lineWidth = 22; c.beginPath(); c.arc(540, 1100, 760 - i * 22, Math.PI, 2 * Math.PI); c.stroke(); }); c.restore();
+  c.fillStyle = '#5a3a5e'; c.beginPath(); c.moveTo(0, 1050); for (let x = 0; x <= W; x += 60) c.lineTo(x, 1030 - Math.sin(x * 0.006 + 2) * 50); c.lineTo(W, 1200); c.lineTo(0, 1200); c.fill();
+  gopuram(c, 170, 1060, 0.6, '#3e2848');
+  c.fillStyle = '#3a2a3e'; c.fillRect(0, 1050, W, 900);
+  // wet road with sun reflection
+  c.beginPath(); c.moveTo(60, H); c.lineTo(1020, H); c.lineTo(560, 1055); c.lineTo(520, 1055); c.closePath(); c.fillStyle = '#4a3a4e'; c.fill();
+  c.save(); c.beginPath(); c.moveTo(60, H); c.lineTo(1020, H); c.lineTo(560, 1055); c.lineTo(520, 1055); c.closePath(); c.clip(); const rg = c.createLinearGradient(0, 1055, 0, H); rg.addColorStop(0, 'rgba(255,220,150,0.8)'); rg.addColorStop(1, 'rgba(255,150,100,0.1)'); c.fillStyle = rg; c.fillRect(440, 1055, 200, 900); c.restore();
+  palm(c, 120, 1250, 1.1, '#2a1d2e'); palm(c, 960, 1300, 1.25, '#2a1d2e'); palm(c, 300, 1100, 0.45, '#3a2840'); palm(c, 790, 1095, 0.4, '#3a2840');
+  const k = ease(seg(lt, 0, 6.5));
+  busRear(c, 540, lerp(1820, 1120, k), lerp(1.4, 0.18, Math.pow(k, 0.8)), true);
+  // birds
+  for (let i = 0; i < 5; i++) { const bx = 200 + i * 90 + lt * 40, by = 520 + Math.sin(i * 2) * 40; const f = Math.sin(lt * 8 + i) * 12; c.strokeStyle = '#3a2440'; c.lineWidth = 5; c.beginPath(); c.moveTo(bx - 22, by - f); c.quadraticCurveTo(bx - 8, by - 8, bx, by); c.quadraticCurveTo(bx + 8, by - 8, bx + 22, by - f); c.stroke(); }
+  // end card
+  const a = seg(lt, 4.4, 5.3);
+  if (a > 0) {
+    c.save(); c.fillStyle = `rgba(20,10,25,${0.35 * a})`; c.fillRect(0, 0, W, H);
+    c.globalAlpha = a; c.textAlign = 'center'; c.shadowColor = 'rgba(0,0,0,0.6)'; c.shadowBlur = 30;
+    c.font = '140px Anton'; c.fillStyle = '#fff4dc'; c.fillText('THE EXTRA SEAT', W / 2, 520);
+    c.font = '900 84px NotoTe'; c.fillStyle = '#ffd27a'; c.fillText('ముగింపు', W / 2, 650);
+    c.font = '900 46px NotoTe'; c.fillStyle = '#fff'; c.fillText('మీ వాళ్ళ కోసం ఒక సీటు ఉంచండి ❤', W / 2, 760);
+    c.restore();
+  }
+}});
+
+// scene start times (seconds); each scene runs until the next one starts
+function sceneTimes() {
+  const s = id => L(id).start;
+  return [
+    ['title', 0], ['seatWide', s('v02') + 2.6], ['photo', s('v03') - 0.15], ['storm', s('v04') - 0.2],
+    ['seatPush', s('v04') + 3.2], ['wipe', s('v05') - 0.15], ['tear', s('v05') + 3.6], ['runner', s('v06') - 0.2],
+    ['door', s('v08') - 0.15], ['talk', s('v09') - 0.2], ['sit', s('v11') - 0.2], ['sunset', s('v12') - 0.15],
+  ];
+}
+let SCT = null;
+const XF = 0.35; // crossfade seconds
+
+function caption(c, t) {
+  const ln = TL.lines.find(l => t >= l.start - 0.05 && t <= l.end + 0.25);
+  if (!ln) return;
+  const a = clamp((t - ln.start + 0.05) / 0.15) * clamp((ln.end + 0.25 - t) / 0.2);
+  c.save(); c.globalAlpha = a; c.font = '900 56px NotoTe'; c.textAlign = 'center'; c.lineJoin = 'round';
+  c.font = '900 52px NotoTe';
+  const words = ln.te.split(' '), rows = []; let cur = '';
+  for (const w of words) { const tryS = cur ? cur + ' ' + w : w; if (c.measureText(tryS).width > 900 && cur) { rows.push(cur); cur = w; } else cur = tryS; }
+  rows.push(cur);
+  const tag = ln.who === 'son' ? 'శ్రీను' : ln.who === 'father' ? 'రాములు తాతయ్య' : null;
+  const lh = 70, y0 = 1575 - (rows.length - 1) * lh;
+  // soft dark band behind the text for readability
+  const g = c.createLinearGradient(0, y0 - 130, 0, 1640); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.4, 'rgba(0,0,0,0.35)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, y0 - 130, W, 1640 - y0 + 130);
+  if (tag) { c.font = '900 36px NotoTe'; c.fillStyle = ln.who === 'son' ? '#8fc3ff' : '#ffd27a'; c.strokeStyle = 'rgba(0,0,0,0.85)'; c.lineWidth = 9; c.strokeText(tag, W / 2, y0 - 66); c.fillText(tag, W / 2, y0 - 66); c.font = '900 52px NotoTe'; }
+  rows.forEach((r, i) => { c.strokeStyle = 'rgba(0,0,0,0.9)'; c.lineWidth = 13; c.strokeText(r, W / 2, y0 + i * lh); c.fillStyle = ln.who === 'narrator' ? '#ffffff' : '#fff6d8'; c.fillText(r, W / 2, y0 + i * lh); });
+  c.restore();
+}
+const grain = [];
+function makeGrain() { for (let k = 0; k < 6; k++) { const g = document.createElement('canvas'); g.width = 270; g.height = 480; const gc = g.getContext('2d'); const im = gc.createImageData(270, 480); for (let i = 0; i < im.data.length; i += 4) { const v = Math.random() * 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 14; } gc.putImageData(im, 0, 0); grain.push(g); } }
+function post(c, t) {
+  const v = c.createRadialGradient(W / 2, H * 0.45, H * 0.28, W / 2, H * 0.5, H * 0.75); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.55)'); c.fillStyle = v; c.fillRect(0, 0, W, H);
+  c.imageSmoothingEnabled = false; c.drawImage(grain[Math.floor(t * 24) % grain.length], 0, 0, W, H); c.imageSmoothingEnabled = true;
+}
+function drawScene(i, c, t) { const [id, st] = SCT[i]; const sc = SC.find(s => s.id === id); c.save(); sc.draw(c, t - st, t); c.restore(); }
+window.renderFrame = function (t) {
+  let i = 0; while (i + 1 < SCT.length && t >= SCT[i + 1][1]) i++;
+  const ca = bufA.getContext('2d');
+  drawScene(i, ca, t);
+  X.clearRect(0, 0, W, H); X.drawImage(bufA, 0, 0);
+  if (i + 1 < SCT.length && t > SCT[i + 1][1] - XF) {
+    // crossfade into the next scene
+    const cb = bufB.getContext('2d'); drawScene(i + 1, cb, t);
+    X.globalAlpha = clamp((t - (SCT[i + 1][1] - XF)) / XF); X.drawImage(bufB, 0, 0); X.globalAlpha = 1;
+  }
+  // fade in from black / out to black
+  post(X, t);
+  caption(X, t);
+  const fade = Math.max(clamp(1 - t / 0.6), clamp((t - (TL.duration - 0.7)) / 0.7));
+  if (fade > 0) { X.fillStyle = `rgba(0,0,0,${fade})`; X.fillRect(0, 0, W, H); }
+};
+window.init = async function (timeline) {
+  TL = timeline; SCT = sceneTimes(); makeGrain();
+  await Promise.all([document.fonts.load('150px Anton'), document.fonts.load('900 56px NotoTe', 'తెలుగు'), document.fonts.load('60px Rama', 'తెలుగు')]);
+  return SCT;
+};
+</script>
+</body></html>
