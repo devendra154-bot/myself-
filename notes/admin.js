@@ -113,10 +113,11 @@
     return `<div class="lesson-card" data-li="${li}">
       <div class="row" style="flex-wrap:nowrap"><input data-lk="title" value="${esc(l.title)}" placeholder="Lesson title" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-weight:600">
         <button class="mini" data-act="lessonUp" ${li ? "" : "disabled"} title="Move up">↑</button><button class="mini" data-act="lessonDown" ${li < n - 1 ? "" : "disabled"} title="Move down">↓</button><button class="mini del" data-act="delLesson" title="Delete lesson">✕</button></div>
-      <label class="field">Notes
-        <textarea data-lk="notes" placeholder="Paste or type the lesson notes…">${esc(l.notes)}</textarea></label>
+      <label class="field">📄 PDF link (Google Drive)<input data-lk="pdf" value="${esc(l.pdf || "")}" placeholder="Paste the Drive link: Share → Anyone with the link → Copy link"></label>
+      <p class="help">Students see this PDF exactly as it is, inside the lesson.</p>
+      <label class="field">Text (optional: only if you want summary / quiz / handwritten tools)
+        <textarea data-lk="notes" placeholder="Leave empty to show only the PDF. Or paste text / use Upload below.">${esc(l.notes)}</textarea></label>
       <p class="help">Tips: <code># Heading</code> · <code>- point</code> · put each formula on its own line, e.g. <code>Ohm's law: V = IR</code>, <code>v² = u² + 2as</code>, <code>2H2 + O2 → 2H2O</code>. Use <code>^2</code> for powers and <code>_</code> for subscripts.</p>
-      <label class="field">PDF link for students (optional)<input data-lk="pdf" value="${esc(l.pdf || "")}" placeholder="https://… (Google Drive link set to 'Anyone with the link', or a GitHub file link)"></label>
       <div class="row between"><span class="stats" data-stats>${stats(l.notes)}</span><span class="row"><label class="btn btn-ghost sm" style="cursor:pointer">📎 Upload PDF / Word / photos<input type="file" accept=".pdf,.docx,.txt,.md,image/*" multiple hidden data-act="upload"></label><button class="btn btn-ghost sm" data-act="preview">Preview</button></span></div>
       <div class="preview" data-preview hidden></div>
     </div>`;
