@@ -2,17 +2,17 @@
  "updated": "2026-11-24",
  "courses": [
   {
-   "id": "chemistry-1st-lesson",
-   "title": "Chemistry 1st lesson",
+   "id": "engineering-chemistry",
+   "title": "Engineering Chemistry",
    "subject": "Chemistry",
    "description": "Unit 1 notes",
    "units": [
     {
-     "title": "Unit 1:",
+     "title": "Unit 1: Basic Concepts of Chemistry",
      "lessons": [
       {
-       "id": "item",
-       "title": "1",
+       "id": "atomic-structure",
+       "title": "Atomic Structure",
        "notes": "",
        "pdf": "https://drive.google.com/file/d/1aXv40eSg5xGyUsbM0j6g43FnHGlg-x2P/view?usp=drivesdk"
       }
