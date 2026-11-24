@@ -38,6 +38,25 @@
      ]
     }
    ]
+  },
+  {
+   "id": "chemistry-unit-3",
+   "title": "Chemistry  unit 3",
+   "subject": "Chemistry",
+   "description": "Unit 3",
+   "units": [
+    {
+     "title": "Unit 2: electro chemistry",
+     "lessons": [
+      {
+       "id": "electro-chemistry",
+       "title": "Electro chemistry",
+       "notes": "",
+       "pdf": "https://drive.google.com/file/d/1oX3YTS6C3xKOlF7cfVsZ44BObxggaYHl/view?usp=drivesdk"
+      }
+     ]
+    }
+   ]
   }
  ]
 }
