@@ -113,10 +113,11 @@
     return `<div class="lesson-card" data-li="${li}">
       <div class="row" style="flex-wrap:nowrap"><input data-lk="title" value="${esc(l.title)}" placeholder="Lesson title" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-weight:600">
         <button class="mini" data-act="lessonUp" ${li ? "" : "disabled"} title="Move up">↑</button><button class="mini" data-act="lessonDown" ${li < n - 1 ? "" : "disabled"} title="Move down">↓</button><button class="mini del" data-act="delLesson" title="Delete lesson">✕</button></div>
-      <label class="field">Notes
-        <textarea data-lk="notes" placeholder="Paste or type the lesson notes…">${esc(l.notes)}</textarea></label>
+      <label class="field">📄 PDF link (Google Drive)<input data-lk="pdf" value="${esc(l.pdf || "")}" placeholder="Paste the Drive link: Share → Anyone with the link → Copy link"></label>
+      <p class="help">Students see this PDF exactly as it is, inside the lesson.</p>
+      <label class="field">Text (optional: only if you want summary / quiz / handwritten tools)
+        <textarea data-lk="notes" placeholder="Leave empty to show only the PDF. Or paste text / use Upload below.">${esc(l.notes)}</textarea></label>
       <p class="help">Tips: <code># Heading</code> · <code>- point</code> · put each formula on its own line, e.g. <code>Ohm's law: V = IR</code>, <code>v² = u² + 2as</code>, <code>2H2 + O2 → 2H2O</code>. Use <code>^2</code> for powers and <code>_</code> for subscripts.</p>
-      <label class="field">PDF link for students (optional)<input data-lk="pdf" value="${esc(l.pdf || "")}" placeholder="https://… (Google Drive link set to 'Anyone with the link', or a GitHub file link)"></label>
       <div class="row between"><span class="stats" data-stats>${stats(l.notes)}</span><span class="row"><label class="btn btn-ghost sm" style="cursor:pointer">📎 Upload PDF / Word / photos<input type="file" accept=".pdf,.docx,.txt,.md,image/*" multiple hidden data-act="upload"></label><button class="btn btn-ghost sm" data-act="preview">Preview</button></span></div>
       <div class="preview" data-preview hidden></div>
     </div>`;
@@ -241,6 +242,72 @@
     a.download = "courses.json";
     document.body.appendChild(a); a.click(); a.remove();
   };
+
+  // ---------- one-button publish (GitHub contents API) ----------
+  const TOKEN = "dvn_gh_token";
+  const apiUrl = () => `https://api.github.com/repos/${CFG.repo}/contents/${CFG.coursesPath}`;
+  const b64 = (text) => {
+    const bytes = new TextEncoder().encode(text);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  };
+  const gh = (method, url, token, body) => fetch(url, {
+    method,
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", ...(body ? { "Content-Type": "application/json" } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+  });
+  const showGh = () => { const has = !!store.get(TOKEN); $("#ghSetup").hidden = has; $("#ghReady").hidden = !has; };
+  $("#ghSave").onclick = async () => {
+    const t = $("#ghToken").value.trim();
+    if (!/^(github_pat_|ghp_)\w{20,}/.test(t)) return toast("That doesn't look like a GitHub key. It starts with github_pat_");
+    $("#ghSave").disabled = true;
+    try {
+      const r = await gh("GET", `${apiUrl()}?ref=${CFG.branch || "main"}`, t);
+      if (r.status === 401) throw new Error("GitHub says this key is wrong or expired. Make a new key.");
+      if (r.status === 404 || r.status === 403) throw new Error("This key can't open the website files. In the key settings choose the 'myself-' repository and Contents: Read and write.");
+      if (!r.ok) throw new Error("GitHub error " + r.status + ". Try again.");
+      store.set(TOKEN, t);
+      $("#ghToken").value = "";
+      showGh();
+      toast("Key saved ✓ Now you can publish with one button.");
+    } catch (err) { toast(err.message); }
+    finally { $("#ghSave").disabled = false; }
+  };
+  $("#ghForget").onclick = () => { if (confirm("Remove the GitHub key from this device?")) { store.del(TOKEN); showGh(); } };
+  $("#publishNow").onclick = async () => {
+    const json = ready();
+    if (!json) return toast("Fix the items in red first");
+    const t = store.get(TOKEN);
+    const btn = $("#publishNow"), st = $("#pubStatus");
+    btn.disabled = true; btn.textContent = "Publishing…";
+    try {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const cur = await gh("GET", `${apiUrl()}?ref=${CFG.branch || "main"}`, t);
+        if (cur.status === 401) throw new Error("Your GitHub key has expired or is wrong. Remove it and add a new one.");
+        if (!cur.ok && cur.status !== 404) throw new Error("Couldn't reach GitHub (" + cur.status + "). Check your internet and try again.");
+        const sha = cur.ok ? (await cur.json()).sha : undefined;
+        const put = await gh("PUT", apiUrl(), t, { message: `Update courses from admin page (${new Date().toLocaleString("en-IN")})`, content: b64(json), branch: CFG.branch || "main", ...(sha ? { sha } : {}) });
+        if (put.status === 409 && attempt === 0) continue; // someone saved in between: fetch again and retry
+        if (put.status === 403 || put.status === 404) throw new Error("This key can't save files. Give it Contents: Read and write for the 'myself-' repository.");
+        if (!put.ok) throw new Error("GitHub didn't accept the save (" + put.status + "). Try again in a minute.");
+        published = JSON.stringify(JSON.parse(json).courses);
+        store.del(DRAFT);
+        $("#banner").innerHTML = "";
+        st.innerHTML = `✅ Published at ${new Date().toLocaleTimeString("en-IN")}. Students will see it in about 1 minute.`;
+        toast("Published! ✅ Live in about 1 minute.");
+        return;
+      }
+      throw new Error("Couldn't save because the file changed on GitHub. Please try again.");
+    } catch (err) {
+      st.textContent = err.message;
+      toast(err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = "🚀 Publish now";
+    }
+  };
+  showGh();
 
   addEventListener("beforeunload", (e) => { if (JSON.stringify(data.courses) !== published && store.get(DRAFT)) { e.preventDefault(); e.returnValue = ""; } });
 

@@ -16,6 +16,15 @@
   const done = (() => { try { return new Set(JSON.parse(localStorage.getItem("dvn_lessons_done") || "[]")); } catch { return new Set(); } })();
   const saveDone = () => { try { localStorage.setItem("dvn_lessons_done", JSON.stringify([...done])); } catch {} };
 
+  /** Google Drive or direct PDF link → { embed, open }. Drive files must be shared "Anyone with the link". */
+  function pdfLinks(url) {
+    if (!url || !/^https?:\/\//i.test(url)) return null;
+    const m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{10,})/);
+    if (m) return { embed: `https://drive.google.com/file/d/${m[1]}/preview`, open: `https://drive.google.com/file/d/${m[1]}/view` };
+    if (/\.pdf(\?|#|$)/i.test(url)) return { embed: `https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(url)}`, open: url };
+    return { embed: null, open: url };
+  }
+
   let data = { courses: [] };
 
   function list() {
@@ -59,19 +68,27 @@
       const l = lessons.find((x) => x.id === lid);
       if (!l) return;
       $$(".lesson-btn", view).forEach((b) => b.classList.toggle("on", b.dataset.l === lid));
-      const formulas = E.formulaList ? E.formulaList(l.notes) : [];
+      const formulas = l.notes && !l.pdf && E.formulaList ? E.formulaList(l.notes) : [];
+      const pdf = pdfLinks(l.pdf);
       const key = `${c.id}/${l.id}`;
       const idx = lessons.indexOf(l);
       $("#lessonBox", view).innerHTML = `
         <div class="lesson-top"><h3>${esc(l.title)}</h3><span class="muted small">${formulas.length ? `🧮 ${formulas.length} formula${formulas.length === 1 ? "" : "s"}` : ""}</span></div>
-        <div class="lesson-actions">
-          <button class="btn sm" data-a="study">📋 Summary &amp; tools</button>
-          <button class="btn btn-ghost sm" data-a="quiz">✅ Quiz</button>
-          <button class="btn btn-ghost sm" data-a="cards">🃏 Flashcards</button>
-          <button class="btn btn-ghost sm" data-a="hand">✍️ Handwritten (full lesson)</button>
-          ${l.pdf && /^https?:\/\//i.test(l.pdf) ? `<a class="btn btn-ghost sm" href="${esc(l.pdf)}" target="_blank" rel="noopener">📄 Open PDF</a>` : ""}
-        </div>
-        <div class="lesson-body">${l.notes ? F.notes(l.notes) : `<p class="muted">This lesson is a PDF. Tap <b>Open PDF</b> to read it.</p>`}</div>
+        ${pdf ? `
+          ${pdf.embed ? `<div class="pdf-frame"><iframe src="${esc(pdf.embed)}" title="${esc(l.title)} (PDF)" loading="lazy" allow="fullscreen" allowfullscreen></iframe></div>` : ""}
+          <div class="pdf-bar">
+            <a class="btn sm" href="${esc(pdf.open)}" target="_blank" rel="noopener">⤢ Full screen / Open PDF</a>
+            <span class="muted small">PDF not showing? Tap <b>Full screen / Open PDF</b>.</span>
+          </div>` : ""}
+        ${l.notes ? `
+          <div class="lesson-actions">
+            <span class="muted small">${pdf ? "Optional study tools:" : ""}</span>
+            <button class="btn ${pdf ? "btn-ghost" : ""} sm" data-a="study">📋 Summary</button>
+            <button class="btn btn-ghost sm" data-a="quiz">✅ Quiz</button>
+            <button class="btn btn-ghost sm" data-a="cards">🃏 Flashcards</button>
+            <button class="btn btn-ghost sm" data-a="hand">✍️ Handwritten notes</button>
+          </div>
+          ${pdf ? `<details class="lesson-text"><summary>📝 Text version</summary><div class="lesson-body">${F.notes(l.notes)}</div></details>` : `<div class="lesson-body">${F.notes(l.notes)}</div>`}` : ""}
         <div class="lesson-foot">
           <button class="btn btn-ghost sm" data-a="prev" ${idx ? "" : "disabled"}>← Previous</button>
           <button class="btn ${done.has(key) ? "btn-ghost" : ""} sm" data-a="done">${done.has(key) ? "✓ Completed" : "Mark as completed"}</button>
