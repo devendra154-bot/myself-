@@ -19,6 +19,7 @@
   <nav class="nav">
     <a href="#top" class="logo">DEVINVENT<span>O</span>R <em>Notes</em></a>
     <ul class="nav-links" id="navLinks">
+      <li><a href="#courses">Courses</a></li>
       <li><a href="#study">Summarise</a></li>
       <li><a href="#study" data-tool="mindmap">Visualise</a></li>
       <li><a href="#handwrite">Handwritten</a></li>
@@ -56,6 +57,18 @@
   </div>
 </section>
 
+<!-- ============ COURSES ============ -->
+<section class="courses" id="courses">
+  <div class="container">
+    <div class="sec-head">
+      <p class="eyebrow">Courses</p>
+      <h2>Ready-made courses</h2>
+      <p class="muted">Pick a course and a lesson. Read it, then study it with the summary, quiz, flashcards or handwritten notes.</p>
+    </div>
+    <div id="coursesView"><p class="empty">Loading courses…</p></div>
+  </div>
+</section>
+
 <!-- ============ PART 1: STUDY ============ -->
 <section class="study" id="study">
   <div class="container">
@@ -73,10 +86,11 @@
           <span class="muted small" id="wordCount">0 words</span>
         </div>
         <label class="drop" id="drop">
-          <input type="file" id="file" accept=".pdf,.docx,.txt,.md,image/*" hidden>
+          <input type="file" id="file" accept=".pdf,.docx,.txt,.md,image/*" multiple hidden>
           <span class="drop-ico">📎</span>
-          <span><b>Upload PDF, Word, text or a photo of notes</b><small>or drag &amp; drop here</small></span>
+          <span><b>Upload PDF, Word, text or photos of notes</b><small>pick several photos at once · or drag &amp; drop here</small></span>
         </label>
+        <label class="btn btn-ghost sm camera-btn"><input type="file" id="camera" accept="image/*" capture="environment" hidden>📷 Take photo of notes</label>
         <div class="progress" id="progress" hidden><div class="progress-bar"><i id="progressBar"></i></div><span id="progressText">Reading…</span></div>
         <textarea id="notes" placeholder="Paste your notes here… (a unit, a chapter, or your class notes)&#10;&#10;Tip: headings on their own line and points starting with - or 1. give the best results."></textarea>
         <div class="row">
@@ -101,7 +115,8 @@
             <div class="seg" id="length"><button data-v="short">Short</button><button data-v="medium" class="active">Medium</button><button data-v="detailed">Detailed</button></div>
             <div class="row">
               <button class="btn btn-ghost sm" id="copySummary">Copy</button>
-              <button class="btn sm" id="toHand">✍️ Make handwritten</button>
+              <button class="btn btn-ghost sm" id="toHandFull" title="Write the complete notes, every formula included">✍️ Full notes</button>
+              <button class="btn sm" id="toHand">✍️ Summary</button>
             </div>
           </div>
           <div id="summaryOut" class="out"><p class="empty">Add your notes on the left, then your summary appears here.</p></div>
@@ -203,6 +218,7 @@
       <a href="../ai/">AI telecalling</a>
       <a href="https://instagram.com/devinventor2010" target="_blank" rel="noopener">Instagram</a>
       <a href="mailto:2465devendra@gmail.com">2465devendra@gmail.com</a>
+      <a href="admin.html" class="admin-link">Admin</a>
     </div>
   </div>
   <p class="copy">© <span id="yr">2026</span> DevInventor</p>
@@ -212,8 +228,11 @@
 <script src="config.js"></script>
 <script src="sample.js"></script>
 <script src="engine.js"></script>
+<script src="format.js"></script>
+<script src="readers.js"></script>
 <script src="visual.js"></script>
 <script src="handwrite.js"></script>
 <script src="app.js"></script>
+<script src="courses.js"></script>
 </body>
 </html>
