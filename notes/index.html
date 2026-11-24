@@ -86,10 +86,11 @@
           <span class="muted small" id="wordCount">0 words</span>
         </div>
         <label class="drop" id="drop">
-          <input type="file" id="file" accept=".pdf,.docx,.txt,.md,image/*" hidden>
+          <input type="file" id="file" accept=".pdf,.docx,.txt,.md,image/*" multiple hidden>
           <span class="drop-ico">📎</span>
-          <span><b>Upload PDF, Word, text or a photo of notes</b><small>or drag &amp; drop here</small></span>
+          <span><b>Upload PDF, Word, text or photos of notes</b><small>pick several photos at once · or drag &amp; drop here</small></span>
         </label>
+        <label class="btn btn-ghost sm camera-btn"><input type="file" id="camera" accept="image/*" capture="environment" hidden>📷 Take photo of notes</label>
         <div class="progress" id="progress" hidden><div class="progress-bar"><i id="progressBar"></i></div><span id="progressText">Reading…</span></div>
         <textarea id="notes" placeholder="Paste your notes here… (a unit, a chapter, or your class notes)&#10;&#10;Tip: headings on their own line and points starting with - or 1. give the best results."></textarea>
         <div class="row">
@@ -228,6 +229,7 @@
 <script src="sample.js"></script>
 <script src="engine.js"></script>
 <script src="format.js"></script>
+<script src="readers.js"></script>
 <script src="visual.js"></script>
 <script src="handwrite.js"></script>
 <script src="app.js"></script>

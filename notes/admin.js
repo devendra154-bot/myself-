@@ -116,7 +116,8 @@
       <label class="field">Notes
         <textarea data-lk="notes" placeholder="Paste or type the lesson notes…">${esc(l.notes)}</textarea></label>
       <p class="help">Tips: <code># Heading</code> · <code>- point</code> · put each formula on its own line, e.g. <code>Ohm's law: V = IR</code>, <code>v² = u² + 2as</code>, <code>2H2 + O2 → 2H2O</code>. Use <code>^2</code> for powers and <code>_</code> for subscripts.</p>
-      <div class="row between"><span class="stats" data-stats>${stats(l.notes)}</span><span class="row"><label class="btn btn-ghost sm" style="cursor:pointer">Upload .txt<input type="file" accept=".txt,.md,text/plain" hidden data-act="upload"></label><button class="btn btn-ghost sm" data-act="preview">Preview</button></span></div>
+      <label class="field">PDF link for students (optional)<input data-lk="pdf" value="${esc(l.pdf || "")}" placeholder="https://… (Google Drive link set to 'Anyone with the link', or a GitHub file link)"></label>
+      <div class="row between"><span class="stats" data-stats>${stats(l.notes)}</span><span class="row"><label class="btn btn-ghost sm" style="cursor:pointer">📎 Upload PDF / Word / photos<input type="file" accept=".pdf,.docx,.txt,.md,image/*" multiple hidden data-act="upload"></label><button class="btn btn-ghost sm" data-act="preview">Preview</button></span></div>
       <div class="preview" data-preview hidden></div>
     </div>`;
   }
@@ -145,12 +146,24 @@
           t = setTimeout(() => { $("[data-stats]", lc).innerHTML = stats(l.notes); const p = $("[data-preview]", lc); if (!p.hidden) p.innerHTML = F.notes(l.notes); }, 400);
         });
         $("[data-act=preview]", lc).onclick = () => { const p = $("[data-preview]", lc); p.hidden = !p.hidden; p.innerHTML = F.notes(l.notes); };
+        $("[data-lk=pdf]", lc).addEventListener("input", (e) => { l.pdf = e.target.value.trim(); save(); });
         $("[data-act=upload]", lc).onchange = async (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          ta.value = (ta.value.trim() ? ta.value.trim() + "\n\n" : "") + E.clean(await file.text());
-          ta.dispatchEvent(new Event("input"));
-          toast("Text added from " + file.name);
+          const files = [...e.target.files];
+          const st = $("[data-stats]", lc);
+          let added = 0;
+          for (let i = 0; i < files.length; i++) {
+            const tag = files.length > 1 ? `(${i + 1}/${files.length}) ` : "";
+            try {
+              const r = await window.NotesReaders.read(files[i], (p, t) => (st.textContent = `${tag}${t}`));
+              ta.value = (ta.value.trim() ? ta.value.trim() + "\n\n" : "") + E.clean(r.text);
+              ta.dispatchEvent(new Event("input"));
+              added++;
+              if (r.warning && /may be wrong/.test(r.warning)) toast(r.warning);
+            } catch (err) { toast(`${tag}${err.message}`); }
+          }
+          e.target.value = "";
+          st.innerHTML = stats(l.notes);
+          if (added) toast(`Text added from ${added} file${added > 1 ? "s" : ""}. Check it, then publish.`);
         };
         const move = (d) => { const i = +lc.dataset.li; [u.lessons[i], u.lessons[i + d]] = [u.lessons[i + d], u.lessons[i]]; save(); renderForm(); };
         $("[data-act=lessonUp]", lc).onclick = () => move(-1);
@@ -190,10 +203,12 @@
           title: u.title.trim(),
           lessons: u.lessons.map((l, li) => {
             if (!l.title.trim()) errors.push(`"${c.title}" → ${u.title || "unit " + (ui + 1)}: lesson ${li + 1} has no title.`);
-            if (!l.notes.trim()) errors.push(`"${c.title}" → "${l.title || "lesson " + (li + 1)}" has no notes.`);
+            if (!l.notes.trim() && !(l.pdf || "").trim()) errors.push(`"${c.title}" → "${l.title || "lesson " + (li + 1)}" has no notes or PDF link.`);
             const lid = l.id && !lessonIds.has(l.id) ? (lessonIds.add(l.id), l.id) : uniq(slug(l.title), lessonIds);
             l.id = lid;
-            return { id: lid, title: l.title.trim(), notes: l.notes.trim() };
+            const pdf = (l.pdf || "").trim();
+            if (pdf && !/^https?:\/\//i.test(pdf)) errors.push(`"${l.title || "lesson " + (li + 1)}": the PDF link must start with https://`);
+            return pdf ? { id: lid, title: l.title.trim(), notes: l.notes.trim(), pdf } : { id: lid, title: l.title.trim(), notes: l.notes.trim() };
           }),
         };
       });

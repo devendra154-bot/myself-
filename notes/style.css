@@ -252,3 +252,5 @@ li.f-li{font-family:var(--mono);font-size:14px;background:#fff8d6;border-radius:
   .course-layout{grid-template-columns:minmax(0,1fr)}
   .unit-list{position:static}
 }
+
+.camera-btn{margin-top:8px;cursor:pointer}

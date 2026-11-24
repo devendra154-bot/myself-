@@ -9,12 +9,12 @@
     set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
   };
 
-  const toast = (msg) => {
+  const toast = (msg, ms = 2600) => {
     const t = $("#toast");
     t.textContent = msg;
     t.classList.add("show");
     clearTimeout(toast.t);
-    toast.t = setTimeout(() => t.classList.remove("show"), 2600);
+    toast.t = setTimeout(() => t.classList.remove("show"), ms);
   };
 
   $("#yr").textContent = new Date().getFullYear();
@@ -48,77 +48,47 @@
     if (pct !== null) { $("#progressBar").style.width = `${Math.round(pct * 100)}%`; $("#progressText").textContent = text; }
   };
 
-  async function readPDF(file) {
-    await H.loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
-    const pdfjs = window.pdfjsLib;
-    pdfjs.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    const doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
-    const pages = [];
-    for (let p = 1; p <= doc.numPages; p++) {
-      progress(p / doc.numPages, `Reading page ${p} of ${doc.numPages}…`);
-      const content = await (await doc.getPage(p)).getTextContent();
-      // Rebuild lines from text positions so headings and points stay on their own lines.
-      let lastY = null, line = "", lines = [];
-      for (const item of content.items) {
-        const y = Math.round(item.transform[5]);
-        if (lastY !== null && Math.abs(y - lastY) > 3) { lines.push(line.trim()); line = ""; }
-        line += item.str + (item.hasEOL ? "\n" : "");
-        lastY = y;
+  /** Read one or more files (PDF, Word, text, photos) and add their text to the notes. */
+  async function handleFiles(fileList) {
+    const files = [...(fileList || [])].filter(Boolean);
+    if (!files.length) return;
+    const parts = [];
+    let lastWarning = "";
+    let failed = 0;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const label = files.length > 1 ? `(${i + 1}/${files.length}) ` : "";
+      try {
+        progress(0.02, `${label}Opening ${file.name || "photo"}…`);
+        const r = await window.NotesReaders.read(file, (p, t) => progress(p, label + t));
+        const text = E.clean(r.text);
+        if (!text) throw new Error("No text found in this file.");
+        parts.push(text);
+        if (r.warning) lastWarning = r.warning;
+      } catch (err) {
+        failed++;
+        toast(`${label}${err.message || "Could not read this file."}`, 6000);
+        if (files.length > 1) await new Promise((res) => setTimeout(res, 1500));
       }
-      lines.push(line.trim());
-      pages.push(lines.join("\n"));
     }
-    if (!pages.join("").trim()) throw new Error("This PDF has no text layer (it is scanned). Take screenshots and upload them as photos instead.");
-    return pages.join("\n\n");
+    progress(null);
+    $("#file").value = "";
+    $("#camera").value = "";
+    if (!parts.length) return;
+    const add = parts.join("\n\n");
+    notes.value = notes.value.trim() ? notes.value.trim() + "\n\n" + add : add;
+    notes.dispatchEvent(new Event("input"));
+    refresh();
+    const n = parts.length;
+    toast(failed ? `Added text from ${n} of ${files.length} files.` : lastWarning || (n > 1 ? `Added text from ${n} files.` : "Text added."), 5000);
   }
 
-  async function readDOCX(file) {
-    await H.loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
-    const res = await window.mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
-    return res.value;
-  }
-
-  async function readImage(file) {
-    progress(0.02, "Loading the photo reader (first time only, ~10 MB)…");
-    await H.loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js");
-    const { data } = await window.Tesseract.recognize(file, "eng", {
-      logger: (m) => { if (m.status === "recognizing text") progress(m.progress, `Reading text from photo… ${Math.round(m.progress * 100)}%`); },
-    });
-    return data.text;
-  }
-
-  async function handleFile(file) {
-    if (!file) return;
-    if (file.size > 25 * 1024 * 1024) return toast("File is too big (max 25 MB).");
-    const name = file.name.toLowerCase();
-    try {
-      progress(0.05, `Opening ${file.name}…`);
-      let text;
-      if (name.endsWith(".pdf") || file.type === "application/pdf") text = await readPDF(file);
-      else if (name.endsWith(".docx")) text = await readDOCX(file);
-      else if (file.type.startsWith("image/")) text = await readImage(file);
-      else if (name.endsWith(".txt") || name.endsWith(".md") || file.type.startsWith("text/")) text = await file.text();
-      else if (name.endsWith(".doc")) throw new Error("Old .doc files aren't supported. Save it as .docx or PDF and try again.");
-      else throw new Error("Unsupported file. Use PDF, DOCX, TXT or a photo.");
-      text = E.clean(text);
-      if (!text) throw new Error("No text found in this file.");
-      notes.value = notes.value.trim() ? notes.value.trim() + "\n\n" + text : text;
-      notes.dispatchEvent(new Event("input"));
-      refresh();
-      toast(file.type.startsWith("image/") ? "Text read from photo. Please check it for mistakes." : `Added text from ${file.name}`);
-    } catch (err) {
-      toast(err.message || "Could not read this file.");
-    } finally {
-      progress(null);
-      $("#file").value = "";
-    }
-  }
-
-  $("#file").onchange = (e) => handleFile(e.target.files[0]);
+  $("#file").onchange = (e) => handleFiles(e.target.files);
+  $("#camera").onchange = (e) => handleFiles(e.target.files);
   const drop = $("#drop");
   ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
   ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
-  drop.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
+  drop.addEventListener("drop", (e) => handleFiles(e.dataTransfer.files));
 
   // ---------------- tools ----------------
   let tool = "summary";

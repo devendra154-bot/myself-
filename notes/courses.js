@@ -20,7 +20,7 @@
 
   function list() {
     if (!data.courses.length) {
-      view.innerHTML = `<p class="empty">No courses yet. New courses appear here as soon as they are published.</p>`;
+      view.innerHTML = `<p class="empty">📚 Courses are coming soon. Meanwhile, upload your own notes or photos below to make summaries, quizzes and handwritten notes.</p>`;
       return;
     }
     view.innerHTML = `<div class="course-grid">${data.courses.map((c) => {
@@ -69,8 +69,9 @@
           <button class="btn btn-ghost sm" data-a="quiz">✅ Quiz</button>
           <button class="btn btn-ghost sm" data-a="cards">🃏 Flashcards</button>
           <button class="btn btn-ghost sm" data-a="hand">✍️ Handwritten (full lesson)</button>
+          ${l.pdf && /^https?:\/\//i.test(l.pdf) ? `<a class="btn btn-ghost sm" href="${esc(l.pdf)}" target="_blank" rel="noopener">📄 Open PDF</a>` : ""}
         </div>
-        <div class="lesson-body">${F.notes(l.notes)}</div>
+        <div class="lesson-body">${l.notes ? F.notes(l.notes) : `<p class="muted">This lesson is a PDF. Tap <b>Open PDF</b> to read it.</p>`}</div>
         <div class="lesson-foot">
           <button class="btn btn-ghost sm" data-a="prev" ${idx ? "" : "disabled"}>← Previous</button>
           <button class="btn ${done.has(key) ? "btn-ghost" : ""} sm" data-a="done">${done.has(key) ? "✓ Completed" : "Mark as completed"}</button>
