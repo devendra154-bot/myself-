@@ -242,6 +242,72 @@
     document.body.appendChild(a); a.click(); a.remove();
   };
 
+  // ---------- one-button publish (GitHub contents API) ----------
+  const TOKEN = "dvn_gh_token";
+  const apiUrl = () => `https://api.github.com/repos/${CFG.repo}/contents/${CFG.coursesPath}`;
+  const b64 = (text) => {
+    const bytes = new TextEncoder().encode(text);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  };
+  const gh = (method, url, token, body) => fetch(url, {
+    method,
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", ...(body ? { "Content-Type": "application/json" } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+  });
+  const showGh = () => { const has = !!store.get(TOKEN); $("#ghSetup").hidden = has; $("#ghReady").hidden = !has; };
+  $("#ghSave").onclick = async () => {
+    const t = $("#ghToken").value.trim();
+    if (!/^(github_pat_|ghp_)\w{20,}/.test(t)) return toast("That doesn't look like a GitHub key. It starts with github_pat_");
+    $("#ghSave").disabled = true;
+    try {
+      const r = await gh("GET", `${apiUrl()}?ref=${CFG.branch || "main"}`, t);
+      if (r.status === 401) throw new Error("GitHub says this key is wrong or expired. Make a new key.");
+      if (r.status === 404 || r.status === 403) throw new Error("This key can't open the website files. In the key settings choose the 'myself-' repository and Contents: Read and write.");
+      if (!r.ok) throw new Error("GitHub error " + r.status + ". Try again.");
+      store.set(TOKEN, t);
+      $("#ghToken").value = "";
+      showGh();
+      toast("Key saved ✓ Now you can publish with one button.");
+    } catch (err) { toast(err.message); }
+    finally { $("#ghSave").disabled = false; }
+  };
+  $("#ghForget").onclick = () => { if (confirm("Remove the GitHub key from this device?")) { store.del(TOKEN); showGh(); } };
+  $("#publishNow").onclick = async () => {
+    const json = ready();
+    if (!json) return toast("Fix the items in red first");
+    const t = store.get(TOKEN);
+    const btn = $("#publishNow"), st = $("#pubStatus");
+    btn.disabled = true; btn.textContent = "Publishing…";
+    try {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const cur = await gh("GET", `${apiUrl()}?ref=${CFG.branch || "main"}`, t);
+        if (cur.status === 401) throw new Error("Your GitHub key has expired or is wrong. Remove it and add a new one.");
+        if (!cur.ok && cur.status !== 404) throw new Error("Couldn't reach GitHub (" + cur.status + "). Check your internet and try again.");
+        const sha = cur.ok ? (await cur.json()).sha : undefined;
+        const put = await gh("PUT", apiUrl(), t, { message: `Update courses from admin page (${new Date().toLocaleString("en-IN")})`, content: b64(json), branch: CFG.branch || "main", ...(sha ? { sha } : {}) });
+        if (put.status === 409 && attempt === 0) continue; // someone saved in between: fetch again and retry
+        if (put.status === 403 || put.status === 404) throw new Error("This key can't save files. Give it Contents: Read and write for the 'myself-' repository.");
+        if (!put.ok) throw new Error("GitHub didn't accept the save (" + put.status + "). Try again in a minute.");
+        published = JSON.stringify(JSON.parse(json).courses);
+        store.del(DRAFT);
+        $("#banner").innerHTML = "";
+        st.innerHTML = `✅ Published at ${new Date().toLocaleTimeString("en-IN")}. Students will see it in about 1 minute.`;
+        toast("Published! ✅ Live in about 1 minute.");
+        return;
+      }
+      throw new Error("Couldn't save because the file changed on GitHub. Please try again.");
+    } catch (err) {
+      st.textContent = err.message;
+      toast(err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = "🚀 Publish now";
+    }
+  };
+  showGh();
+
   addEventListener("beforeunload", (e) => { if (JSON.stringify(data.courses) !== published && store.get(DRAFT)) { e.preventDefault(); e.returnValue = ""; } });
 
   if (signedIn()) showEditor();

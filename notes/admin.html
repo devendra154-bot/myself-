@@ -80,6 +80,17 @@
         </div>
         <div class="card publish">
           <b>Publish to the website</b>
+          <div id="ghSetup">
+            <p class="help">One-time setup: paste your GitHub key. <a href="guide.html" target="_blank" rel="noopener">📖 Picture guide</a></p>
+            <input type="password" id="ghToken" placeholder="GitHub key (starts with github_pat_)" autocomplete="off" style="width:100%;margin-top:6px;border:1px solid var(--line);border-radius:10px;padding:9px 12px">
+            <div class="row" style="margin-top:8px"><button class="btn sm" id="ghSave">Save key</button><a class="btn btn-ghost sm" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Get a key ↗</a></div>
+          </div>
+          <div id="ghReady" hidden>
+            <button class="btn btn-brand" id="publishNow" style="width:100%;margin-top:10px">🚀 Publish now</button>
+            <p class="help" id="pubStatus">Saves your courses straight to the website. Live in about 1 minute.</p>
+            <button class="link-btn small" id="ghForget" style="font-size:12.5px">Remove key from this device</button>
+          </div>
+          <details style="margin-top:12px"><summary class="help" style="cursor:pointer">Other way: copy and paste</summary>
           <ol>
             <li><button class="btn btn-brand sm" id="copyJson">1. Copy courses</button></li>
             <li><a class="btn sm" id="openGh" target="_blank" rel="noopener">2. Open GitHub ↗</a></li>
@@ -87,6 +98,7 @@
           </ol>
           <p class="help">The website updates about 1 minute later. You must be signed in to GitHub with the account that owns the website.</p>
           <div class="row" style="margin-top:8px"><button class="btn btn-ghost sm" id="download">Download courses.json</button></div>
+          </details>
           <p class="err" id="pubErr" hidden></p>
         </div>
       </aside>
