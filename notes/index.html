@@ -19,6 +19,7 @@
   <nav class="nav">
     <a href="#top" class="logo">DEVINVENT<span>O</span>R <em>Notes</em></a>
     <ul class="nav-links" id="navLinks">
+      <li><a href="#courses">Courses</a></li>
       <li><a href="#study">Summarise</a></li>
       <li><a href="#study" data-tool="mindmap">Visualise</a></li>
       <li><a href="#handwrite">Handwritten</a></li>
@@ -53,6 +54,18 @@
         <div><b>Part 2 · Handwritten notes</b><p>Realistic handwriting on ruled, plain, grid or assignment paper. Download PDF or images.</p></div>
       </a>
     </div>
+  </div>
+</section>
+
+<!-- ============ COURSES ============ -->
+<section class="courses" id="courses">
+  <div class="container">
+    <div class="sec-head">
+      <p class="eyebrow">Courses</p>
+      <h2>Ready-made courses</h2>
+      <p class="muted">Pick a course and a lesson. Read it, then study it with the summary, quiz, flashcards or handwritten notes.</p>
+    </div>
+    <div id="coursesView"><p class="empty">Loading courses…</p></div>
   </div>
 </section>
 
@@ -101,7 +114,8 @@
             <div class="seg" id="length"><button data-v="short">Short</button><button data-v="medium" class="active">Medium</button><button data-v="detailed">Detailed</button></div>
             <div class="row">
               <button class="btn btn-ghost sm" id="copySummary">Copy</button>
-              <button class="btn sm" id="toHand">✍️ Make handwritten</button>
+              <button class="btn btn-ghost sm" id="toHandFull" title="Write the complete notes, every formula included">✍️ Full notes</button>
+              <button class="btn sm" id="toHand">✍️ Summary</button>
             </div>
           </div>
           <div id="summaryOut" class="out"><p class="empty">Add your notes on the left, then your summary appears here.</p></div>
@@ -203,6 +217,7 @@
       <a href="../ai/">AI telecalling</a>
       <a href="https://instagram.com/devinventor2010" target="_blank" rel="noopener">Instagram</a>
       <a href="mailto:2465devendra@gmail.com">2465devendra@gmail.com</a>
+      <a href="admin.html" class="admin-link">Admin</a>
     </div>
   </div>
   <p class="copy">© <span id="yr">2026</span> DevInventor</p>
@@ -212,8 +227,10 @@
 <script src="config.js"></script>
 <script src="sample.js"></script>
 <script src="engine.js"></script>
+<script src="format.js"></script>
 <script src="visual.js"></script>
 <script src="handwrite.js"></script>
 <script src="app.js"></script>
+<script src="courses.js"></script>
 </body>
 </html>

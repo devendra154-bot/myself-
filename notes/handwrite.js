@@ -59,10 +59,15 @@
       if (!l.trim()) return { kind: "blank", text: "" };
       if (/^#\s+/.test(l)) return { kind: "h1", text: l.replace(/^#\s+/, "") };
       if (/^#{2,6}\s+/.test(l)) return { kind: "h2", text: l.replace(/^#{2,6}\s+/, "") };
+      const isF = root.NotesEngine && root.NotesEngine.isFormula;
+      if (/^=\s+/.test(l.trim())) return { kind: "formula", text: l.trim().replace(/^=\s+/, "") };
       if (/^\s*([-*•]|\d{1,2}[.)])\s+/.test(l)) {
         const num = l.match(/^\s*(\d{1,2}[.)])/);
-        return { kind: "li", marker: num ? num[1] : "•", text: l.replace(/^\s*([-*•]|\d{1,2}[.)])\s+/, "") };
+        const t = l.replace(/^\s*([-*•]|\d{1,2}[.)])\s+/, "");
+        if (isF && isF(t)) return { kind: "formula", text: t };
+        return { kind: "li", marker: num ? num[1] : "•", text: t };
       }
+      if (isF && isF(l)) return { kind: "formula", text: l.trim() };
       return { kind: "p", text: l.trim() };
     });
   }
@@ -113,21 +118,54 @@
       return { px: s, css: `${kind === "h1" || kind === "h2" ? "bold " : ""}${Math.round(s)}px "${o.font}", cursive` };
     };
 
+    /** Split a word into normal / superscript / subscript pieces. chem = write H2O as H₂O. */
+    const pieces = (word, chem) => {
+      const out = [];
+      const re = chem
+        ? /\^\{([^}]+)\}|\^([A-Za-z0-9+\-−]+)|_\{([^}]+)\}|_([A-Za-z0-9]+)|(?<=[A-Za-z)\]])(\d+)/g
+        : /\^\{([^}]+)\}|\^([A-Za-z0-9+\-−]+)|_\{([^}]+)\}|_([A-Za-z0-9]+(?:\([a-z]+\))?)/g;
+      let last = 0, mm;
+      while ((mm = re.exec(word))) {
+        if (mm.index > last) out.push({ t: word.slice(last, mm.index) });
+        if (mm[1] || mm[2]) out.push({ t: mm[1] || mm[2], sup: true });
+        else out.push({ t: mm[3] || mm[4] || mm[5], sub: true });
+        last = re.lastIndex;
+      }
+      if (last < word.length) out.push({ t: word.slice(last) });
+      return out.length ? out : [{ t: word }];
+    };
+    const smallFont = (css) => css.replace(/(\d+)px/, (_, n) => Math.round(n * 0.68) + "px");
+    const measureWord = (word, f, chem) => pieces(word, chem).reduce((w, p) => { ctx.font = p.sup || p.sub ? smallFont(f.css) : f.css; return w + ctx.measureText(p.t).width; }, 0);
+
     /** Draw one word with a little natural wobble; returns its width. */
-    const drawWord = (word, x, baseline, f, color) => {
+    const drawWord = (word, x, baseline, f, color, chem = false) => {
       pageUsed = true;
       const scale = 1 + (rand() - 0.5) * 0.08 * m;
       ctx.save();
-      ctx.font = f.css;
       ctx.fillStyle = color;
       ctx.globalAlpha = 0.86 + rand() * 0.14;
       ctx.translate(x, baseline + (rand() - 0.5) * 6 * m);
       ctx.rotate((rand() - 0.5) * 0.045 * m);
       ctx.scale(scale, scale);
-      ctx.fillText(word, 0, 0);
-      const w = ctx.measureText(word).width * scale;
+      let w = 0;
+      for (const p of pieces(word, chem)) {
+        ctx.font = p.sup || p.sub ? smallFont(f.css) : f.css;
+        ctx.fillText(p.t, w, p.sup ? -f.px * 0.38 : p.sub ? f.px * 0.22 : 0);
+        w += ctx.measureText(p.t).width;
+      }
       ctx.restore();
-      return w;
+      return w * scale;
+    };
+
+    /** Yellow highlighter stroke behind a formula line. */
+    const highlight = (x1, x2, baseY) => {
+      ctx.save();
+      ctx.fillStyle = "rgba(255, 224, 80, 0.38)";
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x1 - 10, baseY - size * 1.02, x2 - x1 + 20, size * 1.25, 8);
+      else ctx.rect(x1 - 10, baseY - size * 1.02, x2 - x1 + 20, size * 1.25);
+      ctx.fill();
+      ctx.restore();
     };
 
     const space = () => (size * 0.32) * (1 + (rand() - 0.5) * 0.5 * m);
@@ -145,20 +183,32 @@
         indent = Math.max(markerW + size * 0.45, size * 0.9);
         x += indent;
       }
+      const isFormula = block.kind === "formula";
+      const chem = isFormula && /→|⟶|⇌|->/.test(block.text) && !/=/.test(block.text);
+      if (isFormula) { indent = size * 1.2; x += indent; }
       const lineStartX = layout.left + indent;
       const isHead = block.kind === "h1" || block.kind === "h2";
       let curStart = x, lastSpace = 0, lineWords = 0;
-      for (const word of block.text.split(/\s+/).filter(Boolean)) {
-        ctx.font = f.css;
-        const w = ctx.measureText(word).width * 1.04;
+      const words = block.text.split(/\s+/).filter(Boolean);
+      const highlightLine = (from) => {
+        if (!isFormula) return;
+        let lw = 0;
+        for (let k = from; k < words.length; k++) { const ww = measureWord(words[k], f, chem) * 1.04 + size * 0.32; if (x + lw + ww > layout.right && k > from) break; lw += ww; }
+        highlight(x, x + lw - size * 0.32, y - 7);
+      };
+      highlightLine(0);
+      for (let wi = 0; wi < words.length; wi++) {
+        const word = words[wi];
+        const w = measureWord(word, f, chem) * 1.04;
         if (lineWords > 0 && x + w > layout.right) {
           if (isHead) underline(curStart, x - lastSpace, y, color);
           nextLine();
           x = lineStartX + (rand() - 0.5) * 6 * m;
           curStart = x;
           lineWords = 0;
+          highlightLine(wi);
         }
-        const drawn = drawWord(word, x, y - 7, f, color);
+        const drawn = drawWord(word, x, y - 7, f, color, chem);
         lastSpace = space();
         x += drawn + lastSpace;
         lineWords++;

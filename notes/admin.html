@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin · DevInventor Notes</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Caveat:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  body{background:var(--canvas)}
+  .admin-top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+  .admin-top .in{max-width:1240px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px}
+  .admin-top .who{margin-left:auto;font-size:13px;color:var(--muted)}
+  .wrap{max-width:1240px;margin:0 auto;padding:24px 20px 80px}
+  .gate{max-width:440px;margin:70px auto}
+  .gate h1{font-size:24px;letter-spacing:-.02em;margin-bottom:6px}
+  .gate input{width:100%;margin:14px 0 10px;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:15px;outline:none}
+  .gate input:focus{border-color:var(--b)}
+  .note{font-size:13px;color:var(--muted);background:var(--canvas);border-radius:10px;padding:10px 12px;margin-top:14px;line-height:1.55}
+  .layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:18px;align-items:start}
+  .side{position:sticky;top:76px;display:flex;flex-direction:column;gap:14px}
+  .clist button.ci{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;font-size:14px;color:#3a3a45}
+  .clist button.ci:hover{background:var(--canvas)}
+  .clist button.ci.on{background:var(--b50);color:var(--b700);font-weight:600}
+  .clist small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+  .field{display:block;font-size:13px;font-weight:600;color:#3a3a45;margin-top:12px}
+  .field input,.field textarea,.field select{display:block;width:100%;margin-top:6px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-weight:400;font-size:14.5px;outline:none;background:#fff}
+  .field input:focus,.field textarea:focus{border-color:var(--b)}
+  .unit-card{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:16px;background:#fcfcfd}
+  .unit-card>.row{flex-wrap:nowrap}
+  .unit-card>.row input{flex:1;font-weight:600}
+  .lesson-card{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;background:#fff}
+  .lesson-card textarea{min-height:200px;font-family:var(--mono);font-size:13.5px}
+  .mini{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:#fff;display:inline-grid;place-items:center;font-size:14px;flex:none}
+  .mini:hover{border-color:var(--b100);background:var(--b50)}
+  .mini.del:hover{border-color:#f1b5b5;background:#fdecec;color:var(--bad)}
+  .stats{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .stats b{color:var(--ok)}
+  .preview{border:1px dashed var(--line);border-radius:10px;padding:12px;margin-top:8px;background:#fcfcfd}
+  .publish ol{padding-left:20px;font-size:14px;line-height:1.7}
+  .banner{background:#fff8ee;border:1px solid #f3dfbf;border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .err{color:var(--bad);font-size:13.5px;margin-top:8px}
+  .help{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.6}
+  .help code{display:inline;background:var(--canvas);padding:1px 5px;margin:0;border:0;border-radius:5px;font-family:var(--mono);font-size:12px}
+  .unit-card .row input,.lesson-card .row input{min-width:0}
+  .admin-top .in{flex-wrap:wrap}
+  @media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.side{position:static}}
+  @media (max-width:560px){.admin-top .who,.badge-admin{display:none}.wrap{padding:16px 12px 60px}.card{padding:14px}}
+</style>
+</head>
+<body>
+<header class="admin-top"><div class="in">
+  <a href="index.html" class="logo">DEVINVENT<span>O</span>R <em>Notes</em></a>
+  <span class="badge-admin muted small">Admin</span>
+  <span class="who" id="who"></span>
+  <button class="btn btn-ghost sm" id="signOut" hidden>Sign out</button>
+</div></header>
+
+<main class="wrap">
+  <div class="card gate" id="gate">
+    <h1>Admin sign in</h1>
+    <p class="muted">Post notes as courses: Course → Units → Lessons.</p>
+    <form id="gateForm">
+      <input type="email" id="email" placeholder="Admin email" autocomplete="email" required>
+      <button class="btn btn-brand" style="width:100%">Continue</button>
+      <p class="err" id="gateErr" hidden></p>
+    </form>
+    <p class="note">🔒 Courses are published through <b>GitHub</b>. Only the GitHub account that owns this website can save changes, so nobody else can change your courses even if they open this page.</p>
+  </div>
+
+  <div id="editor" hidden>
+    <div id="banner"></div>
+    <div class="layout">
+      <aside class="side">
+        <div class="card clist">
+          <div class="row between" style="margin-bottom:8px"><b>Courses</b><button class="btn sm" id="newCourse">+ New</button></div>
+          <div id="clist"></div>
+        </div>
+        <div class="card publish">
+          <b>Publish to the website</b>
+          <ol>
+            <li><button class="btn btn-brand sm" id="copyJson">1. Copy courses</button></li>
+            <li><a class="btn sm" id="openGh" target="_blank" rel="noopener">2. Open GitHub ↗</a></li>
+            <li>On GitHub: select all text (Ctrl+A), paste (Ctrl+V), then click <b>Commit changes</b>.</li>
+          </ol>
+          <p class="help">The website updates about 1 minute later. You must be signed in to GitHub with the account that owns the website.</p>
+          <div class="row" style="margin-top:8px"><button class="btn btn-ghost sm" id="download">Download courses.json</button></div>
+          <p class="err" id="pubErr" hidden></p>
+        </div>
+      </aside>
+      <section class="card" id="form"></section>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="config.js"></script>
+<script src="engine.js"></script>
+<script src="format.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

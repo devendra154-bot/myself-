@@ -2,7 +2,7 @@
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-  const E = window.NotesEngine, V = window.NotesVisual, H = window.NotesHandwrite;
+  const E = window.NotesEngine, V = window.NotesVisual, H = window.NotesHandwrite, F = window.NotesFormat;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const store = {
     get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -179,9 +179,9 @@
     el.innerHTML = `
       <div class="sum-stats"><span>📄 ${s.stats.words} words → ${s.stats.summaryWords} words</span><span class="good">${s.stats.saved}% shorter</span></div>
       <h3 class="sum-title">${esc(s.title)}</h3>
-      ${s.sections.map((sec) => `<div class="sum-sec">${sec.title && sec.title.toLowerCase() !== s.title.toLowerCase() && !sec.title.toLowerCase().endsWith(s.title.toLowerCase()) ? `<h4>${esc(sec.title)}</h4>` : ""}<ul>${sec.points.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>`).join("")}
+      ${s.sections.map((sec) => `<div class="sum-sec">${sec.title && sec.title.toLowerCase() !== s.title.toLowerCase() && !sec.title.toLowerCase().endsWith(s.title.toLowerCase()) ? `<h4>${esc(sec.title)}</h4>` : ""}<ul>${sec.points.map((p) => (E.isFormula(p) ? `<li class="f-li">${F.formula(p)}</li>` : `<li>${esc(p)}</li>`)).join("")}</ul></div>`).join("")}
       ${s.definitions.length ? `<div class="box def"><h4>📌 Definitions</h4><dl>${s.definitions.map((d) => `<dt>${esc(d.term)}</dt><dd>${esc(d.definition)}.</dd>`).join("")}</dl></div>` : ""}
-      ${s.formulas.length ? `<div class="box formula"><h4>🧮 Formulas</h4>${s.formulas.map((f) => `<code>${esc(f)}</code>`).join("")}</div>` : ""}
+      ${s.formulas.length ? `<div class="box formula"><h4>🧮 Formulas</h4>${s.formulas.map((f) => `<code>${F.formula(f)}</code>`).join("")}</div>` : ""}
       ${s.keyTerms.length ? `<div class="box"><h4>🔑 Key terms</h4><div class="chips">${s.keyTerms.map((k) => `<span>${esc(k)}</span>`).join("")}</div></div>` : ""}
       ${s.examQuestions.length ? `<div class="box exam"><h4>🎯 Likely exam questions</h4><ol>${s.examQuestions.map((q) => `<li><button class="link-btn" data-q="${esc(q.q)}" data-m="${q.marks}">${esc(q.q)}</button> ${marks(q.marks)}</li>`).join("")}</ol><p class="muted small">Tap a question to get an answer from your notes.</p></div>` : ""}`;
     $$("[data-q]", el).forEach((b) => (b.onclick = () => {
@@ -222,6 +222,7 @@
     try { await navigator.clipboard.writeText(text); toast("Copied"); } catch { toast("Couldn't copy. Select the text and copy it manually."); }
   }
   $("#copySummary").onclick = () => (lastSummary ? copy(E.summaryToText(lastSummary)) : toast("Add notes first"));
+  $("#toHandFull").onclick = () => (notes.value.trim() ? sendToHandwriting(notes.value.trim()) : toast("Add notes first"));
   $("#toHand").onclick = () => (lastSummary ? sendToHandwriting(E.summaryToText(lastSummary)) : toast("Add notes first"));
   $("#dlMap").onclick = () => (lastMapSVG ? V.downloadSVGasPNG(lastMapSVG, "mind-map.png") : toast("Nothing to download yet"));
   $("#dlFlow").onclick = () => (lastFlowSVG ? V.downloadSVGasPNG(lastFlowSVG, "flowchart.png") : toast("Nothing to download yet"));
@@ -283,6 +284,18 @@
     $("#handwrite").scrollIntoView({ behavior: "smooth" });
     makeHandwriting();
   }
+
+  /** Used by the courses section. */
+  window.NotesApp = {
+    loadNotes(text, tool = "summary") {
+      notes.value = text;
+      notes.dispatchEvent(new Event("input"));
+      openTool(tool);
+      $("#study").scrollIntoView({ behavior: "smooth" });
+    },
+    handwrite: (text) => sendToHandwriting(text),
+    toast,
+  };
 
   refresh();
 })();
