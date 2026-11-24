@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to use · DevInventor Notes</title>
+<meta name="description" content="Picture guide: how students use DevInventor Notes for courses, summaries, quizzes and handwritten notes.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Caveat:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  body{background:var(--canvas);font-family:Inter,sans-serif}
+  .g-wrap{max-width:980px;margin:0 auto;padding:24px 16px 80px}
+  .g-head{text-align:center;margin:10px 0 26px}
+  .g-head h1{font-size:clamp(24px,4vw,34px);letter-spacing:-.01em}
+  .g-head p{color:var(--muted);margin-top:6px}
+  .g-part{margin-top:34px;padding:0}
+  .g-part h2{font-size:21px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .g-part>p{color:var(--muted);margin-bottom:14px}
+  .tag{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--b50);color:var(--b700)}
+  .tag.once{background:#fff3df;color:#b4610f}
+  .steps-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+  .step-g{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .step-g h3{font-size:16px;display:flex;gap:10px;align-items:flex-start;line-height:1.4}
+  .num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--b);color:#fff;display:grid;place-items:center;font:700 14px Inter}
+  .step-g p{font-size:14px;color:#3a3a45;line-height:1.6}
+  /* phone mock */
+  .phone-m{border:7px solid #1e1e24;border-radius:22px;background:#fff;overflow:hidden;font:13px/1.4 Inter,sans-serif;color:#222}
+  .bar-m{background:#f6f8fa;border-bottom:1px solid #e5e7eb;padding:7px 10px;font-size:11.5px;color:#57606a;display:flex;gap:6px;align-items:center}
+  .phone-m,.scr,.step-g{min-width:0}
+  .inp{overflow-wrap:anywhere}
+  .bar-m .url{min-width:0;flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:2px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .scr{padding:12px;display:flex;flex-direction:column;gap:8px;min-height:150px}
+  .lbl{font-size:11px;font-weight:600;color:#57606a}
+  .inp{border:1px solid #d0d7de;border-radius:7px;padding:6px 9px;font-size:12.5px;color:#222;background:#fff}
+  .inp.ph{color:#9aa0a6}
+  .bt{display:inline-block;border-radius:7px;padding:6px 11px;font-size:12.5px;font-weight:600;border:1px solid #d0d7de;background:#f6f8fa;width:fit-content}
+  .bt.green{background:#1f883d;color:#fff;border-color:#1f883d}
+  .bt.purple{background:#7a50dc;color:#fff;border-color:#7a50dc}
+  .radio{display:flex;gap:6px;align-items:center;font-size:12.5px}
+  .radio i{width:12px;height:12px;border-radius:50%;border:1.5px solid #888;display:inline-block}
+  .radio.on i{border:4px solid #0969da}
+  .hl{position:relative;outline:3px solid #ff9f1a;outline-offset:3px;border-radius:8px;animation:blink 1.4s infinite}
+  @keyframes blink{50%{outline-color:rgba(255,159,26,.25)}}
+  .hand{font-size:22px;line-height:1;margin-left:4px}
+  .muted-m{color:#8c959f;font-size:11.5px}
+  .ok-m{background:#dafbe1;color:#1a7f37;border-radius:7px;padding:6px 9px;font-size:12.5px;font-weight:600}
+  .warn{background:#fff8ee;border:1px solid #f3dfbf;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.6;margin-top:14px}
+  .tip{background:#ecfaf3;border:1px solid #c5ecd9;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.6;margin-top:14px}
+  .back{display:inline-block;margin-bottom:6px}
+  .jump{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+  .jump a{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;text-decoration:none;color:inherit}
+  .pdf-m{background:#525659;border-radius:8px;padding:10px;height:110px}
+  .pdf-m div{background:#fff;height:100%;border-radius:3px;padding:8px;font-size:10.5px;color:#444;line-height:1.5}
+  .tabs-m{display:flex;flex-wrap:wrap;gap:5px}
+  .tabs-m span{border:1px solid #d0d7de;border-radius:999px;padding:3px 9px;font-size:11.5px;background:#fff}
+  .tabs-m span.on{background:#7a50dc;color:#fff;border-color:#7a50dc}
+  .card-m{background:#f2ecff;border-radius:10px;padding:10px}
+  .card-m b{color:#673fc4;display:block}
+  .f-m{background:#fff6c2;border-radius:5px;padding:3px 8px;font-family:Georgia,serif;width:fit-content}
+  .opt{border:1px solid #d0d7de;border-radius:7px;padding:5px 9px;font-size:12.5px}
+  .opt.ok{background:#dafbe1;border-color:#1a7f37;color:#1a7f37;font-weight:600}
+  .hw-m{background:repeating-linear-gradient(#fff 0 21px,#cfe0f5 21px 22px);border-left:2px solid #f2a7a7;padding:4px 10px;font:700 17px/22px Caveat,cursive;color:#1d3fa8;min-height:110px}
+  .hw-m .r{color:#c62828}
+  .done-b{background:#16915f;color:#fff;border-radius:18px;padding:20px;text-align:center;font-size:20px;font-weight:800;margin-top:34px}
+  .done-b small{display:block;font-size:14px;font-weight:600;opacity:.9;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="g-wrap">
+  <a href="./" class="back btn btn-ghost sm">← Back to DevInventor Notes</a>
+  <div class="g-head">
+    <h1>📖 How to use DevInventor Notes</h1>
+    <p>A picture guide for students. Tap where it glows orange 👆 Free, no login.</p>
+    <div class="jump"><a href="#p1">1 · Read course notes</a><a href="#p2">2 · Study your own notes</a><a href="#p3">3 · Handwritten notes</a></div>
+  </div>
+
+  <section class="g-part" id="p1">
+    <h2>Part 1: Read ready-made notes <span class="tag">Courses</span></h2>
+    <p>Chapter notes added by DevInventor, open as PDFs.</p>
+    <div class="steps-g">
+      <div class="step-g">
+        <h3><span class="num">1</span>Open Courses</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes</span></div><div class="scr">
+          <div class="tabs-m"><span>Study</span><span class="on hl">Courses</span><span>Handwritten</span></div>
+          <b style="font-size:15px">Ready-made courses</b>
+          <div class="card-m hl"><span class="muted-m">🧪 CHEMISTRY</span><b>Engineering Chemistry</b><span class="muted-m">1 lesson</span></div>
+        </div></div>
+        <p>Tap <b>Courses</b> in the menu (or scroll down). Tap the course for your subject.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">2</span>Pick a unit and lesson</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#courses</span></div><div class="scr">
+          <b>Engineering Chemistry</b>
+          <span class="lbl">Unit 1: Basic Concepts of Chemistry</span>
+          <div class="opt hl">○ Atomic Structure</div>
+          <div class="opt">○ Chemical Bonding</div>
+        </div></div>
+        <p>Lessons are grouped in units. Tap a lesson to open it.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">3</span>Read the PDF</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#courses</span></div><div class="scr">
+          <b>Atomic Structure</b>
+          <div class="pdf-m"><div><b>1. BASIC CONCEPTS OF CHEMISTRY</b><br>Atomic Number: the no. of protons…<br>A = Z + no. of neutrons</div></div>
+          <span class="bt hl">⤢ Full screen / Open PDF</span>
+        </div></div>
+        <p>The notes open as a normal PDF. Scroll the pages. For a bigger view, tap <b>⤢ Full screen / Open PDF</b>.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">4</span>Mark it done</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#courses</span></div><div class="scr">
+          <div><span class="bt">← Previous</span> <span class="bt purple hl">Mark as completed</span></div>
+          <div class="opt ok">✓ Atomic Structure</div>
+          <span class="bt">Next →</span>
+        </div></div>
+        <p>Tap <b>Mark as completed</b> after reading. A ✓ shows next to finished lessons, so you know where you stopped.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="g-part" id="p2">
+    <h2>Part 2: Study your own notes <span class="tag">Study</span></h2>
+    <p>Add any notes, then use the six tools to revise faster.</p>
+    <div class="steps-g">
+      <div class="step-g">
+        <h3><span class="num">1</span>Add your notes</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#study</span></div><div class="scr">
+          <b>Your notes</b>
+          <div class="inp ph hl">📄 Drop a PDF, Word file or photo</div>
+          <span class="bt hl">📷 Take photo of notes</span>
+          <div class="inp ph">…or paste your notes here</div>
+        </div></div>
+        <p>Upload a <b>PDF</b>, <b>Word</b> file or <b>photo</b>, take a photo with your camera, or paste text. Tap <b>Try sample notes</b> to test first.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">2</span>📋 Summary</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#study</span></div><div class="scr">
+          <div class="tabs-m"><span class="on hl">📋 Summary</span><span>❓ Ask</span><span>🗺️ Mind map</span><span>🃏 Cards</span><span>✅ Quiz</span></div>
+          <div class="tabs-m"><span>Short</span><span class="on">Medium</span><span>Detailed</span></div>
+          <span>• Ohm's law: current is proportional to voltage</span>
+          <span class="f-m">V = IR</span>
+        </div></div>
+        <p>Get the key points in <b>Short</b>, <b>Medium</b> or <b>Detailed</b> length. Formulas and equations are highlighted in yellow.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">3</span>❓ Ask a question</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#study</span></div><div class="scr">
+          <div class="inp">What is Ohm's law?</div>
+          <div><span class="bt">5 marks ▾</span> <span class="bt purple hl">Ask</span></div>
+          <span class="muted-m">Answer comes only from your notes</span>
+        </div></div>
+        <p>Type a question and choose <b>2, 5 or 10 marks</b>. The answer is built only from your own notes, so it matches your syllabus.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">4</span>🗺️ Mind map &amp; 🔀 Flowchart</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#study</span></div><div class="scr">
+          <div class="tabs-m"><span class="on">🗺️ Mind map</span><span>🔀 Flowchart</span></div>
+          <div style="text-align:center;font-size:12px">⬤ Unit 1<br>↙ &nbsp; ↓ &nbsp; ↘<br>Atom · Bonds · Formulas</div>
+          <span class="bt hl">Download PNG</span>
+        </div></div>
+        <p>See the whole chapter as a picture. Pinch to zoom, then <b>Download PNG</b> to keep it.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">5</span>🃏 Flashcards</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#study</span></div><div class="scr">
+          <div class="card-m" style="text-align:center;padding:18px"><b>Formula for power?</b><span class="muted-m">tap to flip</span></div>
+          <div class="f-m hl" style="margin:auto">P = VI</div>
+        </div></div>
+        <p>Tap a card to see the answer. Great for formulas and definitions before an exam.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">6</span>✅ Quiz</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#study</span></div><div class="scr">
+          <b>Q1. Which is the correct formula?</b>
+          <div class="opt">P = V/I</div>
+          <div class="opt ok hl">P = VI ✓</div>
+          <div class="opt">P = V + I</div>
+        </div></div>
+        <p>Answer multiple-choice questions made from your notes, including formula questions, and see your score.</p>
+      </div>
+    </div>
+    <div class="tip">💡 <b>Tips for photos:</b> good light, page flat, whole page in the frame. Printed text and neat handwriting read best. Check the text it finds and fix mistakes before you study.</div>
+  </section>
+
+  <section class="g-part" id="p3">
+    <h2>Part 3: Make handwritten notes <span class="tag">Optional</span></h2>
+    <p>Only if you want them: turn any notes into neat handwritten pages.</p>
+    <div class="steps-g">
+      <div class="step-g">
+        <h3><span class="num">1</span>Send notes to handwriting</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#study</span></div><div class="scr">
+          <span class="lbl">After your summary</span>
+          <div><span class="bt hl">✍️ Full notes</span> <span class="bt purple hl">✍️ Summary</span></div>
+        </div></div>
+        <p><b>✍️ Full notes</b> writes everything. <b>✍️ Summary</b> writes only the short version. Or type your own text in the handwriting box.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">2</span>Choose the style</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#handwrite</span></div><div class="scr">
+          <span class="lbl">Handwriting · Paper · Ink</span>
+          <div class="inp hl">Ruled notebook ▾ · Blue ink ▾</div>
+          <span class="lbl">Text size · Line spacing · Messiness</span>
+          <span class="bt purple hl">✍️ Make handwritten notes</span>
+        </div></div>
+        <p>Pick the handwriting, paper (ruled, assignment, plain, grid) and ink colour, then tap <b>Make handwritten notes</b>.</p>
+      </div>
+      <div class="step-g">
+        <h3><span class="num">3</span>Download</h3>
+        <div class="phone-m"><div class="bar-m"><span class="url">devendra154-bot.github.io/myself-/notes/#handwrite</span></div><div class="scr">
+          <div class="hw-m"><span class="r">Ohm's Law</span><br>Current is proportional to voltage.<br>V = IR</div>
+          <div><span class="bt green hl">⬇ Download PDF</span> <span class="bt">⬇ PNG</span></div>
+        </div></div>
+        <p>Save the pages as a <b>PDF</b> or images to revise anywhere, even offline.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="warn">🔒 <b>Your notes stay on your phone.</b> Files are read on your own device and are not uploaded anywhere. Always read the summary once yourself before the exam.</div>
+  <div class="done-b">🎉 That's it! Courses → Lesson → PDF, or Add notes → Summary → Quiz<small>DevInventor Notes · devendra154-bot.github.io/myself-/notes</small></div>
+</div>
+</body>
+</html>
