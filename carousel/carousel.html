@@ -1,0 +1,170 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Carousel – You're using AI wrong</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600&family=Caveat:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000}
+:root{--p:#8b5cf6;--c:#22d3ee;--pk:#f472b6;--ink:#f4f4fb;--mut:#a3a3bd;--card:rgba(255,255,255,.055);--line:rgba(255,255,255,.12)}
+#strip{position:relative;width:8640px;height:1350px;overflow:hidden;font-family:Inter,sans-serif;color:var(--ink);
+ background:linear-gradient(90deg,#0a0716 0%,#0b0d1f 25%,#0a0a18 50%,#0d0a1d 75%,#08101c 100%)}
+.glow{position:absolute;border-radius:50%;filter:blur(30px)}
+#wave{position:absolute;inset:0}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:60px 60px;mask-image:linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent)}
+.slide{position:absolute;top:0;width:1080px;height:1350px;padding:100px 90px}
+.top{display:flex;justify-content:space-between;align-items:center;font:600 26px Inter;color:var(--mut)}
+.logo{font-weight:800;letter-spacing:-.03em;color:var(--ink)}.logo span{color:var(--c)}
+.pg{font-family:"Geist Mono";font-size:24px}
+.grad{background:linear-gradient(90deg,var(--c),var(--p) 55%,var(--pk));-webkit-background-clip:text;background-clip:text;color:transparent}
+.kicker{display:inline-block;font:700 26px "Geist Mono";letter-spacing:.08em;color:var(--c);border:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.08);padding:10px 20px;border-radius:999px;margin-top:70px}
+h2{font-size:92px;line-height:1;font-weight:900;letter-spacing:-.045em;margin-top:30px}
+.lead{font-size:34px;line-height:1.4;color:var(--mut);margin-top:26px;max-width:880px}
+.lead b{color:var(--ink)}
+.num{position:absolute;right:60px;top:150px;font:900 420px/1 Inter;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:2px rgba(139,92,246,.28)}
+.pc{margin-top:40px;border-radius:26px;padding:28px 32px;border:1px solid var(--line);background:var(--card);backdrop-filter:blur(6px)}
+.pc .lab{font:700 22px "Geist Mono";letter-spacing:.08em;margin-bottom:14px}
+.pc p{font:500 31px/1.45 "Geist Mono";color:#e6e6f2}
+.bad{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.07)}.bad .lab{color:#f87171}.bad p{color:#c9c9d6;text-decoration:line-through;text-decoration-color:rgba(248,113,113,.6)}
+.good{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.07);box-shadow:0 0 60px -20px rgba(52,211,153,.5)}.good .lab{color:#34d399}
+.good em{font-style:normal;color:var(--c)}
+.why{position:absolute;left:90px;right:90px;bottom:200px;display:flex;gap:18px;align-items:center;font-size:29px;color:var(--mut);line-height:1.35}
+.why i{font-style:normal;flex:0 0 64px;height:64px;border-radius:18px;display:grid;place-items:center;font-size:32px;background:linear-gradient(135deg,var(--p),var(--c))}
+.why b{color:var(--ink)}
+.swipe{position:absolute;right:90px;bottom:200px;font:700 30px Inter;display:flex;align-items:center;gap:14px}
+.swipe span{width:70px;height:70px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--p),var(--c));font-size:34px}
+/* cover */
+.cover h1{font-size:150px;line-height:.95;font-weight:900;letter-spacing:-.055em;margin-top:150px}
+.cover .lead{font-size:40px;margin-top:40px;max-width:760px}
+.tools{display:flex;gap:14px;margin-top:44px}
+.tools span{font:600 26px Inter;padding:12px 22px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
+.hand{font-family:Caveat;font-weight:700;color:var(--pk)}
+/* final */
+.formula{margin-top:36px;display:grid;gap:16px}
+.formula div{display:flex;align-items:center;gap:22px;padding:22px 28px;border-radius:22px;border:1px solid var(--line);background:var(--card);font-size:34px;font-weight:700}
+.formula div small{font-weight:500;color:var(--mut);font-size:27px;margin-left:auto}
+.formula b{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:linear-gradient(135deg,var(--p),var(--c))}
+.ctas{display:flex;gap:18px;margin-top:46px}
+.ctas div{flex:1;text-align:center;padding:26px;border-radius:22px;font-size:30px;font-weight:800}
+.ctas .s{background:linear-gradient(135deg,var(--p),var(--c))}
+.ctas .f{border:2px solid var(--line)}
+</style></head><body>
+<div id="strip">
+  <div class="grid"></div>
+  <div class="glow" style="width:900px;height:900px;left:620px;top:120px;background:radial-gradient(circle,rgba(139,92,246,.55),transparent 62%)"></div>
+  <div class="glow" style="width:700px;height:700px;left:2480px;top:700px;background:radial-gradient(circle,rgba(34,211,238,.32),transparent 62%)"></div>
+  <div class="glow" style="width:800px;height:800px;left:4000px;top:-200px;background:radial-gradient(circle,rgba(244,114,182,.28),transparent 62%)"></div>
+  <div class="glow" style="width:800px;height:800px;left:5700px;top:650px;background:radial-gradient(circle,rgba(139,92,246,.4),transparent 62%)"></div>
+  <div class="glow" style="width:800px;height:800px;left:7200px;top:-150px;background:radial-gradient(circle,rgba(34,211,238,.3),transparent 62%)"></div>
+  <svg id="wave" width="8640" height="1350"></svg>
+
+  <!-- 1 cover -->
+  <section class="slide cover" style="left:0">
+    <div class="top"><div class="logo">DEVINVENT<span>O</span>R</div><div class="pg">01/08</div></div>
+    <h1>You're<br>using AI<br><span class="grad">wrong.</span></h1>
+    <p class="lead">6 prompt hacks that make AI give you <b>expert-level answers</b> <span class="hand" style="font-size:52px">(not boring ones)</span></p>
+    <div class="tools"><span>ChatGPT</span><span>Claude</span><span>Gemini</span></div>
+    <div class="swipe">Swipe <span>→</span></div>
+  </section>
+
+  <!-- 2 role -->
+  <section class="slide" style="left:1080px">
+    <div class="num">1</div>
+    <div class="top"><div class="logo">DEVINVENT<span>O</span>R</div><div class="pg">02/08</div></div>
+    <div class="kicker">HACK #1</div>
+    <h2>Give it a <span class="grad">role</span></h2>
+    <p class="lead">AI answers like whoever you tell it to be.</p>
+    <div class="pc bad"><div class="lab">✕ WEAK</div><p>Explain Ohm's law.</p></div>
+    <div class="pc good"><div class="lab">✓ STRONG</div><p><em>Act as a friendly physics teacher.</em> Explain Ohm's law to a first-year student with one real-life example.</p></div>
+    <div class="why"><i>💡</i><div>A role sets the <b>tone, depth and vocabulary</b> of the answer.</div></div>
+  </section>
+
+  <!-- 3 context -->
+  <section class="slide" style="left:2160px">
+    <div class="num">2</div>
+    <div class="top"><div class="logo">DEVINVENT<span>O</span>R</div><div class="pg">03/08</div></div>
+    <div class="kicker">HACK #2</div>
+    <h2>Add <span class="grad">context</span></h2>
+    <p class="lead">Tell it who you are and what you need it for.</p>
+    <div class="pc bad"><div class="lab">✕ WEAK</div><p>Make a study plan.</p></div>
+    <div class="pc good"><div class="lab">✓ STRONG</div><p>Make a study plan. <em>I'm a B.Tech student, exam in 10 days, 3 subjects, I can study 4 hours a day, weak in Maths.</em></p></div>
+    <div class="why"><i>🎯</i><div>No context = generic answer. <b>More details = a plan made for you.</b></div></div>
+  </section>
+
+  <!-- 4 format -->
+  <section class="slide" style="left:3240px">
+    <div class="num">3</div>
+    <div class="top"><div class="logo">DEVINVENT<span>O</span>R</div><div class="pg">04/08</div></div>
+    <div class="kicker">HACK #3</div>
+    <h2>Ask for a <span class="grad">format</span></h2>
+    <p class="lead">Decide how the answer should look before you get it.</p>
+    <div class="pc bad"><div class="lab">✕ WEAK</div><p>Compare Python and Java.</p></div>
+    <div class="pc good"><div class="lab">✓ STRONG</div><p>Compare Python and Java <em>in a table with 5 rows: speed, syntax, jobs, uses, learning curve.</em></p></div>
+    <div class="why"><i>📊</i><div>Try: <b>table · bullet points · 5 lines · step-by-step · flashcards</b></div></div>
+  </section>
+
+  <!-- 5 example -->
+  <section class="slide" style="left:4320px">
+    <div class="num">4</div>
+    <div class="top"><div class="logo">DEVINVENT<span>O</span>R</div><div class="pg">05/08</div></div>
+    <div class="kicker">HACK #4</div>
+    <h2>Show an <span class="grad">example</span></h2>
+    <p class="lead">One example beats a paragraph of instructions.</p>
+    <div class="pc bad"><div class="lab">✕ WEAK</div><p>Write Instagram captions for my tech page.</p></div>
+    <div class="pc good"><div class="lab">✓ STRONG</div><p>Write 5 captions <em>in this style: "This free tool does in 10 sec what took me 2 hours 🤯 Save it."</em></p></div>
+    <div class="why"><i>🧩</i><div>AI copies the <b>style, length and energy</b> of your example.</div></div>
+  </section>
+
+  <!-- 6 questions -->
+  <section class="slide" style="left:5400px">
+    <div class="num">5</div>
+    <div class="top"><div class="logo">DEVINVENT<span>O</span>R</div><div class="pg">06/08</div></div>
+    <div class="kicker">HACK #5</div>
+    <h2>Let it <span class="grad">ask you</span> first</h2>
+    <p class="lead">Not sure what details to give? Make AI interview you.</p>
+    <div class="pc good"><div class="lab">✓ ADD THIS LINE</div><p>Before you answer, <em>ask me 3 questions</em> so you understand exactly what I need.</p></div>
+    <div class="pc" style="margin-top:24px"><div class="lab" style="color:var(--mut)">AI REPLIES</div><p style="color:var(--mut)">1. What's the deadline?<br>2. Who is it for?<br>3. Short or detailed?</p></div>
+    <div class="why"><i>🤝</i><div>Works great for <b>resumes, projects and plans.</b></div></div>
+  </section>
+
+  <!-- 7 self check -->
+  <section class="slide" style="left:6480px">
+    <div class="num">6</div>
+    <div class="top"><div class="logo">DEVINVENT<span>O</span>R</div><div class="pg">07/08</div></div>
+    <div class="kicker">HACK #6</div>
+    <h2>Make it <span class="grad">check itself</span></h2>
+    <p class="lead">AI can make mistakes. Ask it to review its own answer.</p>
+    <div class="pc good"><div class="lab">✓ FOLLOW-UP PROMPT</div><p>Review your answer. <em>Find any mistakes or weak points</em>, then give me an improved version.</p></div>
+    <div class="pc good" style="margin-top:24px"><div class="lab">✓ FOR FACTS</div><p>Which parts of this <em>should I double-check</em> from a trusted source?</p></div>
+    <div class="why"><i>🔍</i><div>Always verify <b>facts, numbers and code</b> before you use them.</div></div>
+  </section>
+
+  <!-- 8 formula + CTA -->
+  <section class="slide" style="left:7560px">
+    <div class="top"><div class="logo">DEVINVENT<span>O</span>R</div><div class="pg">08/08</div></div>
+    <h2 style="margin-top:40px">The perfect<br><span class="grad">prompt formula</span></h2>
+    <div class="formula">
+      <div><b>1</b>Role<small>Who should AI be?</small></div>
+      <div><b>2</b>Context<small>Who are you, what's the goal?</small></div>
+      <div><b>3</b>Task<small>What exactly to do</small></div>
+      <div><b>4</b>Format<small>Table, list, steps…</small></div>
+      <div><b>5</b>Example<small>Show the style</small></div>
+    </div>
+    <div class="ctas"><div class="s">🔖 Save for later</div><div class="f">➕ Follow for more</div></div>
+  </section>
+</div>
+<script>
+// one continuous wave + nodes across all 8 slides; a node sits exactly on every seam
+const svg=document.getElementById('wave'),W=8640,NS='http://www.w3.org/2000/svg';
+const y=x=>1230+Math.sin(x/540*Math.PI)*55+Math.sin(x/1700)*25;
+const y2=x=>1255+Math.sin((x+400)/700*Math.PI)*45;
+let d='',d2='';for(let x=0;x<=W;x+=8){d+=(x?'L':'M')+x+' '+y(x).toFixed(1);d2+=(x?'L':'M')+x+' '+y2(x).toFixed(1)}
+svg.innerHTML=`<defs><linearGradient id="g" x1="0" x2="${W}" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#22d3ee"/><stop offset=".33" stop-color="#8b5cf6"/><stop offset=".66" stop-color="#f472b6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+<filter id="bl"><feGaussianBlur stdDeviation="10"/></filter></defs>
+<path d="${d}" stroke="url(#g)" stroke-width="16" fill="none" opacity=".45" filter="url(#bl)"/>
+<path d="${d}" stroke="url(#g)" stroke-width="4" fill="none"/>
+<path d="${d2}" stroke="url(#g)" stroke-width="2" fill="none" opacity=".35" stroke-dasharray="4 14"/>`;
+for(let x=135;x<W;x+=270){const s=x%1080===0;}
+for(let k=1;k<8;k++){const x=k*1080,c=document.createElementNS(NS,'g');
+ c.innerHTML=`<circle cx="${x}" cy="${y(x)}" r="44" fill="#8b5cf6" opacity=".35" filter="url(#bl)"/><circle cx="${x}" cy="${y(x)}" r="20" fill="#0b0b18" stroke="url(#g)" stroke-width="5"/><circle cx="${x}" cy="${y(x)}" r="8" fill="#fff"/>`;svg.appendChild(c)}
+for(let x=270;x<W;x+=270){if(x%1080){const c=document.createElementNS(NS,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y(x));c.setAttribute('r',7);c.setAttribute('fill','#fff');c.setAttribute('opacity','.8');svg.appendChild(c)}}
+</script>
+</body></html>
