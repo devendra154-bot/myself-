@@ -3,6 +3,9 @@
 // AI summaries, put your AI server address here and the app can use it.
 window.NOTES_CONFIG = {
   aiEndpoint: "",
+  // AI photo reader (Sarvam Vision through your Supabase function, see supabase/functions/read-notes).
+  // Empty = photos are read by the free in-browser reader.
+  visionEndpoint: "",
   // Admin who posts courses (see admin.html). Publishing itself needs this account's GitHub login.
   adminEmail: "2465devendra@gmail.com",
   // Where courses.json lives on GitHub (used by the admin page's "Save to GitHub" button).
