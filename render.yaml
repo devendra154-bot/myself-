@@ -29,6 +29,13 @@ services:
         value: low
       - key: ELEVENLABS_TTS_MODEL
         value: eleven_flash_v2_5
+      # elevenlabs or sarvam
+      - key: VOICE_PROVIDER
+        value: sarvam
+      - key: SARVAM_API_KEY
+        sync: false
+      - key: SARVAM_KEYTERMS
+        value: DevInventor
       - key: PUBLIC_URL
         sync: false
       - key: CALLER_ID
@@ -49,3 +56,19 @@ services:
         sync: false
       - key: OUTCOME_WEBHOOK_URL
         sync: false
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
+        generateValue: true
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+      - key: ESCALATION_WHATSAPP
+        sync: false
+      - key: ESCALATION_EMAIL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: WHATSAPP_MODEL
+        value: claude-sonnet-5-5

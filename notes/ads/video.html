@@ -1,0 +1,165 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>DevInventor Notes – Video ad 1080×1920</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Geist+Mono:wght@500&family=Caveat:wght@700&family=Kalam:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ad.css">
+<style>
+body{margin:0}
+.ad{width:1080px;height:1920px;text-align:center}
+.blob{position:absolute;width:900px;height:900px;border-radius:50%;filter:blur(40px);opacity:.55}
+.b1{background:radial-gradient(circle,rgba(122,80,220,.35),transparent 65%);left:-300px;top:-200px;animation:drift 20s linear both}
+.b2{background:radial-gradient(circle,rgba(140,102,228,.3),transparent 65%);right:-350px;bottom:-250px;animation:drift2 20s linear both}
+@keyframes drift{to{transform:translate(380px,600px)}}
+@keyframes drift2{to{transform:translate(-300px,-700px)}}
+.scene{position:absolute;inset:0;padding:120px 80px;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;animation:sIn .45s var(--s) both,sOut .4s var(--e) forwards}
+@keyframes sIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@keyframes sOut{from{opacity:1}to{opacity:0;transform:scale(1.03)}}
+.a{animation:pop .55s var(--d) cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{opacity:0;transform:translateY(40px) scale(.92)}to{opacity:1;transform:none}}
+.fall{animation:fall .6s var(--d) cubic-bezier(.2,1.3,.4,1) both}
+@keyframes fall{from{opacity:0;transform:translateY(-500px) rotate(0)}to{opacity:1;transform:rotate(var(--r))}}
+.t{font-size:96px;font-weight:800;letter-spacing:-.045em;line-height:1.05}
+.st{font-size:40px;color:var(--muted);margin-top:24px;line-height:1.35}
+.logo{font-size:38px}
+.step{display:inline-block;font:600 26px Inter;color:var(--b);background:#fff;border:1px solid var(--b100);border-radius:999px;padding:10px 22px;margin-bottom:34px}
+/* s1 */
+.paper{position:absolute;width:560px;padding:26px 34px;text-align:left;background:#fffdf5;background-image:repeating-linear-gradient(transparent 0 47px,#d9e3f5 47px 48px);border-left:5px solid #f2b8b8}
+.paper p{font:400 30px/48px Kalam,cursive;color:#555}.paper s{color:#b33}
+/* s2 */
+.input{margin:70px auto 0;width:820px;padding:40px;text-align:left}
+.drop{border:3px dashed var(--b100);border-radius:22px;padding:40px;text-align:center;font-size:30px;color:var(--muted);background:var(--b50)}
+.chip{display:flex;align-items:center;gap:18px;font-size:30px;font-weight:600;border:1px solid var(--line);border-radius:18px;padding:20px 24px;margin-top:20px}
+.chip span{margin-left:auto;color:var(--ok);font-size:26px}
+.btnx{margin-top:30px;background:var(--b);color:#fff;font-size:36px;font-weight:700;border-radius:20px;padding:26px;text-align:center;animation:pop .5s var(--d) both,press .3s 4.75s both}
+@keyframes press{50%{transform:scale(.94)}}
+.bar{height:22px;background:var(--b50);border-radius:20px;margin-top:30px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--b),var(--b2));transform-origin:left;animation:fill 1.1s 4.9s ease-in-out both}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.load{font-size:28px;color:var(--muted);margin-top:16px;text-align:center}
+/* s3 */
+.sum{margin:70px auto 0;width:860px;padding:48px 50px;text-align:left}
+.sum h4{font-size:24px;margin-bottom:26px}.sum ul{display:grid;gap:24px;font-size:38px}
+.sum li::before{flex-basis:44px;height:44px;font-size:24px}
+.qs{margin-top:34px;padding:26px 30px;background:var(--b50);border-radius:20px;font-size:30px;color:var(--b);font-weight:600}
+/* s4 */
+.mm{margin:60px auto 0;width:860px;padding:24px}
+.mm .n{animation:nodepop .5s var(--d) cubic-bezier(.2,1.5,.4,1) both;transform-box:fill-box;transform-origin:center}
+@keyframes nodepop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:none}}
+.mm line{stroke-dasharray:200;animation:draw .5s var(--d) both}
+@keyframes draw{from{stroke-dashoffset:200}to{stroke-dashoffset:0}}
+.row2{display:flex;gap:30px;margin:40px auto 0;width:860px}
+.flip{flex:1;height:300px;perspective:1200px}
+.flip .in{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:flip .7s 11.2s both}
+@keyframes flip{to{transform:rotateY(180deg)}}
+.face{position:absolute;inset:0;backface-visibility:hidden;display:grid;place-items:center;padding:24px;font-size:34px;font-weight:700;border-radius:22px}
+.face.f{background:var(--b);color:#fff}.face.bk{background:#fff;border:1px solid var(--line);transform:rotateY(180deg);font-size:46px;color:var(--b)}
+.face small{display:block;font-size:22px;opacity:.75;font-weight:600;margin-bottom:10px}
+.quiz{flex:1;padding:28px;text-align:left;font-size:28px}
+.quiz b{display:block;margin-bottom:16px}
+.opt{border:2px solid var(--line);border-radius:14px;padding:12px 18px;margin-top:12px;font-weight:600}
+.opt.ok{animation:ok .4s 11.9s both}
+@keyframes ok{to{background:#e5f6ee;border-color:var(--ok);color:var(--ok)}}
+/* s5 */
+.hwp{margin:60px auto 0;width:860px;height:420px;padding:30px 50px;text-align:left;background:#fff;background-image:repeating-linear-gradient(transparent 0 67px,#cfdcf3 67px 68px);transform:rotate(-1.5deg);border-left:4px solid #f2b8b8}
+.hwp p{font:700 52px/68px Caveat,cursive;color:var(--pen);white-space:nowrap;clip-path:inset(0 100% 0 0);animation:write .6s var(--d) linear both}
+.hwp p.h{color:#b3261e;text-decoration:underline}
+@keyframes write{to{clip-path:inset(0 0 0 0)}}
+.dl{display:inline-flex;gap:20px;margin-top:50px}
+.dl div{background:var(--ink);color:#fff;font-size:32px;font-weight:700;border-radius:18px;padding:22px 34px}
+.dl div+div{background:#fff;color:var(--ink);border:1px solid var(--line)}
+/* s6 */
+.s6{}
+.s6 h1{font-size:150px;margin-top:70px}.s6 h1 .hand{font-size:190px}
+.s6 .badges{justify-content:center;margin-top:70px}.s6 .badge{font-size:30px;padding:16px 26px}
+.cta{font-size:52px;padding:34px 70px;margin-top:80px;animation:pop .55s var(--d) both,pulse 1.2s 18s ease-in-out 2}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.s6 .url{font-size:32px;margin-top:40px}
+</style></head><body>
+<div class="ad">
+<div class="blob b1"></div><div class="blob b2"></div>
+
+<!-- 1: problem -->
+<section class="scene" style="--s:0s;--e:3s;justify-content:flex-start;padding-top:200px">
+  <div class="t a" style="--d:.15s">Exam tomorrow? 😰</div>
+  <div class="st a" style="--d:.6s">200 pages of messy notes…<br>and zero time.</div>
+  <div class="card paper fall" style="--d:.9s;--r:-8deg;left:120px;top:780px"><p>unit 2 — ohms law??<br><s>V=I/R</s> V = IR !!<br>series vs parallel...</p></div>
+  <div class="card paper fall" style="--d:1.2s;--r:6deg;left:400px;top:1050px"><p>kvl kcl → imp 4 exam<br>diode?? ask sir<br>transistor = ???</p></div>
+  <div class="card paper fall" style="--d:1.5s;--r:-3deg;left:160px;top:1340px"><p>thevenin theorem<br>norton... same?<br>ch 3 not done 😭</p></div>
+</section>
+
+<!-- 2: upload -->
+<section class="scene" style="--s:3.1s;--e:6s">
+  <div class="logo a" style="--d:3.2s">DEVINVENT<span>O</span>R<em>Notes</em></div>
+  <div class="t a" style="--d:3.35s;margin-top:50px">Just add<br>your notes</div>
+  <div class="card input a" style="--d:3.5s">
+    <div class="drop">📄 PDF · Word · Photos</div>
+    <div class="chip a" style="--d:3.8s">📕 Unit2_Circuits.pdf <span>✓</span></div>
+    <div class="chip a" style="--d:4.1s">📷 class_notes.jpg <span>✓</span></div>
+    <div class="btnx" style="--d:4.35s">⚡ Summarise my notes</div>
+    <div class="bar"><i></i></div>
+    <div class="load a" style="--d:4.9s">Reading your notes…</div>
+  </div>
+</section>
+
+<!-- 3: summary -->
+<section class="scene" style="--s:6.1s;--e:9.2s">
+  <div class="step a" style="--d:6.2s">Step 1 · Summary</div>
+  <div class="t a" style="--d:6.3s">A crisp exam<br>summary</div>
+  <div class="card sum a" style="--d:6.5s">
+    <h4>⚡ Exam summary · Unit 2</h4>
+    <ul>
+      <li class="a" style="--d:6.8s">Ohm's law: V = I × R</li>
+      <li class="a" style="--d:7.1s">Series: R = R₁ + R₂ + …</li>
+      <li class="a" style="--d:7.4s">Parallel: 1/R = 1/R₁ + 1/R₂</li>
+      <li class="a" style="--d:7.7s">KVL: ΣV = 0 around a loop</li>
+    </ul>
+    <div class="qs a" style="--d:8.1s">🎯 Likely exam Q: “State and prove KVL &amp; KCL.”</div>
+  </div>
+</section>
+
+<!-- 4: visualise -->
+<section class="scene" style="--s:9.3s;--e:12.5s">
+  <div class="step a" style="--d:9.4s">Step 2 · Visualise</div>
+  <div class="t a" style="--d:9.5s">Mind maps, flashcards<br>&amp; quizzes</div>
+  <div class="card mm a" style="--d:9.6s"><svg viewBox="0 0 800 420" font-family="Inter" font-weight="600">
+    <g stroke="#c9b6f3" stroke-width="5">
+      <line x1="400" y1="210" x2="140" y2="70" style="--d:10s"/><line x1="400" y1="210" x2="660" y2="70" style="--d:10.15s"/>
+      <line x1="400" y1="210" x2="140" y2="350" style="--d:10.3s"/><line x1="400" y1="210" x2="660" y2="350" style="--d:10.45s"/></g>
+    <g class="n" style="--d:9.8s"><rect x="280" y="170" width="240" height="80" rx="24" fill="#7a50dc"/><text x="400" y="222" fill="#fff" font-size="34" text-anchor="middle">Circuits</text></g>
+    <g font-size="28" text-anchor="middle" fill="#673fc4">
+    <g class="n" style="--d:10.2s"><rect x="30" y="38" width="220" height="64" rx="18" fill="#f2ecfd"/><text x="140" y="80">Ohm's law</text></g>
+    <g class="n" style="--d:10.35s"><rect x="550" y="38" width="220" height="64" rx="18" fill="#f2ecfd"/><text x="660" y="80">KVL / KCL</text></g>
+    <g class="n" style="--d:10.5s"><rect x="30" y="318" width="220" height="64" rx="18" fill="#f2ecfd"/><text x="140" y="360">Series</text></g>
+    <g class="n" style="--d:10.65s"><rect x="550" y="318" width="220" height="64" rx="18" fill="#f2ecfd"/><text x="660" y="360">Parallel</text></g></g></svg></div>
+  <div class="row2">
+    <div class="flip a" style="--d:10.8s"><div class="in"><div class="face f"><div><small>🃏 FLASHCARD</small>Unit of resistance?</div></div><div class="face bk">Ohm (Ω)</div></div></div>
+    <div class="card quiz a" style="--d:11s"><b>❓ V = 10V, R = 5Ω. I = ?</b><div class="opt">5 A</div><div class="opt ok">2 A ✓</div></div>
+  </div>
+</section>
+
+<!-- 5: handwritten -->
+<section class="scene" style="--s:12.6s;--e:15.5s">
+  <div class="step a" style="--d:12.7s">Step 3 · Handwritten</div>
+  <div class="t a" style="--d:12.8s">Then make it<br><span class="hand ink" style="font-size:1.25em">handwritten</span></div>
+  <div class="card hwp a" style="--d:13s">
+    <p class="h" style="--d:13.3s">Unit 2 – Ohm's Law</p>
+    <p style="--d:13.85s">V = I × R</p>
+    <p style="--d:14.3s">where I = current (A)</p>
+    <p style="--d:14.75s">and R = resistance (Ω) ✓</p>
+  </div>
+  <div class="dl a" style="--d:15s"><div>⬇ Download PDF</div><div>🖼 Images</div></div>
+</section>
+
+<!-- 6: CTA -->
+<section class="scene s6" style="--s:15.6s;--e:99s">
+  <div class="logo a" style="--d:15.7s">DEVINVENT<span>O</span>R<em>Notes</em></div>
+  <h1><span class="a" style="--d:15.9s;display:block">Exam notes</span><span class="a" style="--d:16.2s;display:block">in <span class="hand">minutes,</span></span><span class="a" style="--d:16.5s;display:block">not nights.</span></h1>
+  <div class="badges a" style="--d:17s"><span class="badge">💸 100% free</span><span class="badge">🔓 No login</span><span class="badge">🔒 Private</span></div>
+  <div class="cta" style="--d:17.4s">Try it free →</div>
+  <div class="url a" style="--d:17.7s">devendra154-bot.github.io/myself-/notes</div>
+</section>
+</div>
+<script>
+document.getAnimations().forEach(a=>a.pause());
+window.seek=t=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+seek(0);
+</script>
+</body></html>

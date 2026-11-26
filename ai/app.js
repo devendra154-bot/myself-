@@ -63,6 +63,8 @@
     builderLang = LANGS[+b.dataset.i];
     $("#langBtn").firstChild.textContent = builderLang.name + " ";
     langMenu.classList.remove("open");
+    stopPick();
+    $("#vpickHint").textContent = `Real AI voices. Tap ▶ to hear them speak ${builderLang.name}.`;
   };
   document.addEventListener("click", () => langMenu.classList.remove("open"));
 
@@ -101,10 +103,51 @@
     toast(`Listening in ${builderLang.name}…`);
   };
 
+  /* voice picker: real AI voice samples in ai/voices/<lang>-<voice>.mp3 */
+  const PICK = [
+    { id: "priya", name: "Priya", tone: "Female · warm" },
+    { id: "kavya", name: "Kavya", tone: "Female · bright" },
+    { id: "shubh", name: "Shubh", tone: "Male · friendly" },
+    { id: "rahul", name: "Rahul", tone: "Male · confident" },
+  ];
+  let pickVoice = PICK[0], pickAudio = null, pickPlaying = null;
+  const vpick = $("#vpick");
+  vpick.innerHTML = PICK.map((v, i) => `<div class="vopt${i ? "" : " sel"}" role="radio" tabindex="0" aria-checked="${!i}" data-i="${i}">
+      <button class="vplay-btn" aria-label="Play ${v.name}">▶</button>
+      <span class="vinfo"><b>${v.name}</b><small>${v.tone}</small></span>
+      <span class="vbars"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="vcheck"></span>
+    </div>`).join("");
+  function stopPick() {
+    if (pickAudio) { pickAudio.pause(); pickAudio = null; }
+    if (pickPlaying) { pickPlaying.classList.remove("playing"); $(".vplay-btn", pickPlaying).textContent = "▶"; pickPlaying = null; }
+  }
+  const choose = (el) => {
+    $$(".vopt", vpick).forEach((o) => { o.classList.toggle("sel", o === el); o.setAttribute("aria-checked", o === el); });
+    pickVoice = PICK[+el.dataset.i];
+  };
+  vpick.onclick = (e) => {
+    const el = e.target.closest(".vopt"); if (!el) return;
+    choose(el);
+    if (!e.target.closest(".vplay-btn")) return;
+    if (pickPlaying === el) return stopPick();
+    stopPick();
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    const a = new Audio(`voices/${builderLang.key}-${pickVoice.id}.mp3`);
+    pickAudio = a; pickPlaying = el;
+    el.classList.add("playing"); $(".vplay-btn", el).textContent = "❚❚";
+    a.onended = () => { if (pickAudio === a) stopPick(); };
+    a.play().catch(() => { stopPick(); toast("Couldn't play the sample. Check your volume or try again."); });
+  };
+  vpick.onkeydown = (e) => {
+    const el = e.target.closest(".vopt");
+    if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); choose(el); }
+  };
+
   $("#buildBtn").onclick = () => {
     const t = task.value.trim();
     if (!t) { task.focus(); return toast("Tell us what your AI telecaller should do first."); }
-    const msg = `Hi DevInventor! I want to build an AI telecaller.\n\nLanguage: ${builderLang.name}\nTask: ${t}`;
+    const msg = `Hi DevInventor! I want to build an AI telecaller.\n\nLanguage: ${builderLang.name}\nVoice: ${pickVoice.name} (${pickVoice.tone.split(" · ")[0].toLowerCase()})\nTask: ${t}`;
     open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
   };
 

@@ -73,7 +73,7 @@ export class CallSession {
     let text = "";
     try {
       this.call.usage.sttSeconds += pcm.length / 16000; // PCM16 at 8 kHz
-      text = await transcribe(pcm, this.sttLang);
+      text = await transcribe(pcm, this.sttLang, { keyterms: [this.agent.business, this.agent.name, this.agent.persona] });
     } catch (err) {
       console.error(`[${this.call.id}] STT failed:`, err.message);
       return;
@@ -123,6 +123,7 @@ export class CallSession {
         await speak(sentence, {
           voiceId: this.agent.voiceId,
           languageCode: this.agent.language,
+          gender: this.agent.gender,
           signal: this.abort.signal,
           onAudio: (chunk) => {
             if (gen !== this.generation || this.ended || this.ws.readyState !== 1) return;

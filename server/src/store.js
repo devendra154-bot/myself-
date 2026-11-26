@@ -5,7 +5,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { config } from "./config.js";
 
-const empty = () => ({ agents: [], calls: [], campaigns: [] });
+const empty = () => ({ agents: [], calls: [], campaigns: [], chats: [], waAlerts: {} });
 let db = empty();
 let saveTimer = null;
 
@@ -80,5 +80,30 @@ export const campaigns = {
     Object.assign(c, patch);
     save();
     return c;
+  },
+};
+
+// WhatsApp conversations, one per customer phone number.
+export const chats = {
+  all: () => db.chats,
+  get: (phone) => db.chats.find((c) => c.phone === phone),
+  add(c) { db.chats.push(c); save(); return c; },
+  update(phone, patch) {
+    const c = chats.get(phone);
+    if (!c) return null;
+    Object.assign(c, patch);
+    save();
+    return c;
+  },
+};
+
+// Alert message id -> customer phone, so the owner can swipe-reply to an alert.
+export const waAlerts = {
+  get: (msgId) => db.waAlerts[msgId],
+  set(msgId, phone) {
+    db.waAlerts[msgId] = phone;
+    const keys = Object.keys(db.waAlerts);
+    if (keys.length > 2000) for (const k of keys.slice(0, keys.length - 2000)) delete db.waAlerts[k];
+    save();
   },
 };
