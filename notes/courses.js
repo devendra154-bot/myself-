@@ -18,7 +18,15 @@
 
   /** Google Drive or direct PDF link → { embed, open }. Drive files must be shared "Anyone with the link". */
   function pdfLinks(url) {
-    if (!url || !/^https?:\/\//i.test(url)) return null;
+    if (!url) return null;
+    // PDFs uploaded from the admin page live on this website (courses/files/…): no Drive, no permission.
+    if (!/^https?:\/\//i.test(url)) {
+      if (!/^courses\/files\/[\w.-]+$/.test(url)) return null;
+      const abs = new URL(url, location.href).href;
+      const phone = matchMedia("(pointer:coarse)").matches || innerWidth < 900;
+      // Phones can't show PDFs inside a page, so they use Google's viewer (needs the public address).
+      return { embed: phone && location.protocol.startsWith("http") ? `https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(abs)}` : abs, open: abs };
+    }
     const m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{10,})/);
     if (m) return { embed: `https://drive.google.com/file/d/${m[1]}/preview`, open: `https://drive.google.com/file/d/${m[1]}/view` };
     if (/\.pdf(\?|#|$)/i.test(url)) return { embed: `https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(url)}`, open: url };
@@ -70,6 +78,7 @@
       $$(".lesson-btn", view).forEach((b) => b.classList.toggle("on", b.dataset.l === lid));
       const formulas = l.notes && !l.pdf && E.formulaList ? E.formulaList(l.notes) : [];
       const pdf = pdfLinks(l.pdf);
+      const imgs = (l.images || []).filter((u) => /^courses\/files\/[\w.-]+$/.test(u) || /^https:\/\//.test(u));
       const key = `${c.id}/${l.id}`;
       const idx = lessons.indexOf(l);
       $("#lessonBox", view).innerHTML = `
@@ -80,6 +89,7 @@
             <a class="btn sm" href="${esc(pdf.open)}" target="_blank" rel="noopener">⤢ Full screen / Open PDF</a>
             <span class="muted small">PDF not showing? Tap <b>Full screen / Open PDF</b>.</span>
           </div>` : ""}
+        ${imgs.length ? `<div class="page-photos">${imgs.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener" class="page-photo"><img src="${esc(u)}" alt="${esc(l.title)}: page ${i + 1}" loading="lazy"><span>Page ${i + 1} of ${imgs.length} · tap to zoom</span></a>`).join("")}</div>` : ""}
         ${l.notes ? `
           <div class="lesson-actions">
             <span class="muted small">${pdf ? "Optional study tools:" : ""}</span>
