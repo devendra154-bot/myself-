@@ -3,7 +3,7 @@ import { config } from "./config.js";
 
 export async function sendWhatsApp(to, message, agent) {
   if (config.whatsapp.token && config.whatsapp.phoneNumberId) {
-    const res = await fetch(`https://graph.facebook.com/v21.0/${config.whatsapp.phoneNumberId}/messages`, {
+    const res = await fetch(`${config.whatsapp.apiBase}/${config.whatsapp.phoneNumberId}/messages`, {
       method: "POST",
       headers: { authorization: `Bearer ${config.whatsapp.token}`, "content-type": "application/json" },
       body: JSON.stringify({ messaging_product: "whatsapp", to: to.replace(/^\+/, ""), type: "text", text: { body: message } }),

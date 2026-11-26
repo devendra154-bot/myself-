@@ -63,9 +63,37 @@ export const config = {
   },
 
   whatsapp: {
-    // Optional: WhatsApp Cloud API (Meta) for sending messages mid-call.
+    // WhatsApp Cloud API (Meta): used by the WhatsApp bot and for messages sent mid-call.
     token: env("WHATSAPP_TOKEN"),
     phoneNumberId: env("WHATSAPP_PHONE_NUMBER_ID"),
+    apiBase: env("WHATSAPP_API_BASE", "https://graph.facebook.com/v21.0").replace(/\/$/, ""),
+    // You make this up; type the same value in Meta's webhook settings.
+    verifyToken: env("WHATSAPP_VERIFY_TOKEN"),
+    // Meta app > Settings > Basic > App secret. Used to check webhooks really come from Meta.
+    appSecret: env("WHATSAPP_APP_SECRET"),
+    // "off" stops automatic replies (messages are still saved and forwarded to you).
+    bot: env("WHATSAPP_BOT", "on"),
+    model: env("WHATSAPP_MODEL", "claude-sonnet-5-5"),
+    effort: env("WHATSAPP_EFFORT", "low"),
+    knowledgeFile: env("WHATSAPP_KNOWLEDGE_FILE", "./whatsapp-knowledge.md"),
+    ownerName: env("BOT_OWNER_NAME", "the DevInventor team"),
+    // Your personal WhatsApp numbers that get alerts and can send #commands (comma separated).
+    // Must be different from the bot's own number.
+    escalateTo: env("ESCALATION_WHATSAPP").split(",").map((s) => s.trim()).filter(Boolean),
+    // Approved template used when an owner hasn't messaged the bot in 24 hours (one {{1}} body variable).
+    escalationTemplate: env("WHATSAPP_ESCALATION_TEMPLATE"),
+    templateLanguage: env("WHATSAPP_TEMPLATE_LANGUAGE", "en"),
+    maxRepliesPerHour: num("WHATSAPP_MAX_REPLIES_PER_HOUR", 20),
+    // Wait this long for more messages before replying, so "hi" + "price?" get one answer.
+    waitMs: num("WHATSAPP_WAIT_MS", 2500),
+  },
+
+  // Optional: escalation emails through Resend (resend.com, free tier available).
+  email: {
+    resendKey: env("RESEND_API_KEY"),
+    apiBase: env("RESEND_API_BASE", "https://api.resend.com").replace(/\/$/, ""),
+    from: env("EMAIL_FROM", "DevInventor Bot <onboarding@resend.dev>"),
+    to: env("ESCALATION_EMAIL").split(",").map((s) => s.trim()).filter(Boolean),
   },
 
   // Optional: every finished call's outcome is POSTed here (Zapier, Pabbly, your CRM, Google Apps Script…)
@@ -90,6 +118,18 @@ export function checkConfig() {
     missing.push("TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN");
   if (config.telephony === "plivo" && !(config.plivo.authId && config.plivo.authToken))
     missing.push("PLIVO_AUTH_ID / PLIVO_AUTH_TOKEN");
+  return missing;
+}
+
+/** Settings the WhatsApp bot still needs. */
+export function checkWhatsAppConfig() {
+  const w = config.whatsapp, missing = [];
+  if (!w.token) missing.push("WHATSAPP_TOKEN");
+  if (!w.phoneNumberId) missing.push("WHATSAPP_PHONE_NUMBER_ID");
+  if (!w.verifyToken) missing.push("WHATSAPP_VERIFY_TOKEN");
+  if (!w.appSecret) missing.push("WHATSAPP_APP_SECRET");
+  if (!process.env.ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
+  if (!w.escalateTo.length && !config.email.to.length) missing.push("ESCALATION_WHATSAPP or ESCALATION_EMAIL");
   return missing;
 }
 

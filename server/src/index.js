@@ -4,16 +4,17 @@ import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import { WebSocketServer } from "ws";
-import { config, checkConfig, LANGUAGES } from "./config.js";
+import { config, checkConfig, checkWhatsAppConfig, LANGUAGES } from "./config.js";
 import * as store from "./store.js";
-import { agents, calls, campaigns } from "./store.js";
+import { agents, calls, campaigns, chats } from "./store.js";
+import * as wa from "./whatsapp.js";
 import { providers } from "./telephony/index.js";
 import { startOutboundCall, updateStatus, finalise, newCall } from "./calls.js";
 import { createCampaign, startScheduler, stats } from "./campaigns.js";
 import { CallSession } from "./session.js";
 import { buildAgent } from "./builder.js";
 import { listVoices } from "./speech.js";
-import { inWindow, maskPhone } from "./time.js";
+import { inWindow, maskPhone, normalisePhone } from "./time.js";
 import { plansSummary } from "./billing.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -23,7 +24,7 @@ for (const cmp of campaigns.all()) for (const c of cmp.contacts) if (c.status ==
 const app = express();
 app.set("trust proxy", true);
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "5mb", verify: (req, res, buf) => { req.rawBody = buf; } }));
 
 const safeEqual = (a, b) => {
   const x = Buffer.from(String(a || "")), y = Buffer.from(String(b || ""));
@@ -40,7 +41,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/health", (req, res) => res.json({ ok: true, missingConfig: checkConfig() }));
+app.get("/health", (req, res) => res.json({ ok: true, missingConfig: checkConfig(), whatsappMissing: checkWhatsAppConfig() }));
 app.use("/dashboard", express.static(path.join(here, "../public")));
 app.get("/", (req, res) => res.redirect("/dashboard/"));
 
@@ -103,6 +104,20 @@ app.post("/lead-intake/:slug", wrap(async (req, res) => {
   const call = await startOutboundCall({ agentId: agent.id, phone, name, vars, source: "lead-intake" });
   res.status(202).json({ callId: call.id, status: call.status });
 }));
+
+// ---------------- WhatsApp bot ----------------
+// Meta > WhatsApp > Configuration > Webhook: callback URL {PUBLIC_URL}/whatsapp/webhook,
+// verify token = WHATSAPP_VERIFY_TOKEN, then subscribe to the "messages" field.
+app.get("/whatsapp/webhook", (req, res) => {
+  const ok = req.query["hub.mode"] === "subscribe" && config.whatsapp.verifyToken && safeEqual(req.query["hub.verify_token"], config.whatsapp.verifyToken);
+  ok ? res.type("text/plain").send(String(req.query["hub.challenge"] ?? "")) : res.sendStatus(403);
+});
+
+app.post("/whatsapp/webhook", (req, res) => {
+  if (!wa.verifySignature(req.rawBody, req.get("x-hub-signature-256"))) return res.sendStatus(401);
+  res.sendStatus(200); // answer Meta at once; replying can take a few seconds
+  for (const m of wa.parseWebhook(req.body)) wa.handleIncoming(m).catch((err) => console.error("WhatsApp message failed:", err));
+});
 
 // ---------------- admin API ----------------
 const admin = express.Router();
@@ -192,6 +207,29 @@ admin.post("/campaigns/:id/:action", (req, res) => {
   c ? res.json({ id: c.id, status: c.status }) : res.sendStatus(404);
 });
 
+// WhatsApp conversations
+const chatSummary = ({ messages, escalations, ...c }) => ({ ...c, messages: messages.length, escalations: escalations.length, last: messages.at(-1) || null });
+admin.get("/whatsapp/status", (req, res) => res.json({ missingConfig: checkWhatsAppConfig(), bot: config.whatsapp.bot, model: config.whatsapp.model, owners: config.whatsapp.escalateTo.length, email: config.email.to.length > 0, webhookUrl: `${config.publicUrl}/whatsapp/webhook` }));
+admin.get("/whatsapp/chats", (req, res) => res.json([...chats.all()].sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || "")).map(chatSummary)));
+admin.get("/whatsapp/chats/:phone", (req, res) => { const c = chats.get(normalisePhone(req.params.phone)); c ? res.json(c) : res.sendStatus(404); });
+admin.post("/whatsapp/chats/:phone/reply", wrap(async (req, res) => {
+  const phone = normalisePhone(req.params.phone), text = String(req.body?.text || "").trim();
+  if (!text) return res.status(400).json({ error: "text is required" });
+  res.json({ id: await wa.ownerReply(phone, text), status: "human" });
+}));
+for (const [action, status] of [["pause", "human"], ["resume", "bot"]]) {
+  admin.post(`/whatsapp/chats/:phone/${action}`, (req, res) => {
+    const c = wa.setStatus(normalisePhone(req.params.phone), status);
+    c ? res.json(chatSummary(c)) : res.sendStatus(404);
+  });
+}
+// Try the bot without WhatsApp: nothing is sent or saved. Body: { messages: [{ role: "customer"|"bot", text }], name? }
+admin.post("/whatsapp/simulate", wrap(async (req, res) => {
+  const messages = (req.body?.messages || []).filter((m) => m && m.text).map((m) => ({ role: m.role === "customer" ? "customer" : "bot", text: String(m.text) }));
+  if (!messages.length || messages.at(-1).role !== "customer") return res.status(400).json({ error: "messages must end with a customer message" });
+  res.json(await wa.aiReply({ phone: "+910000000000", name: req.body?.name || "Test customer", messages }));
+}));
+
 app.use("/api", admin);
 
 app.use((err, req, res, next) => {
@@ -250,6 +288,8 @@ server.listen(config.port, () => {
   const missing = checkConfig();
   console.log(`DevInventor voice server on :${config.port} (provider: ${config.telephony})`);
   if (missing.length) console.warn("Missing settings:", missing.join(", "));
+  const waMissing = checkWhatsAppConfig();
+  console.log(waMissing.length ? `WhatsApp bot not ready, missing: ${waMissing.join(", ")}` : `WhatsApp bot ready (auto-reply ${config.whatsapp.bot})`);
 });
 
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => { store.flush(); process.exit(0); });
