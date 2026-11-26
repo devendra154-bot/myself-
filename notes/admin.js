@@ -113,12 +113,25 @@
     return `<div class="lesson-card" data-li="${li}">
       <div class="row" style="flex-wrap:nowrap"><input data-lk="title" value="${esc(l.title)}" placeholder="Lesson title" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-weight:600">
         <button class="mini" data-act="lessonUp" ${li ? "" : "disabled"} title="Move up">↑</button><button class="mini" data-act="lessonDown" ${li < n - 1 ? "" : "disabled"} title="Move down">↓</button><button class="mini del" data-act="delLesson" title="Delete lesson">✕</button></div>
-      <label class="field">📄 PDF link (Google Drive)<input data-lk="pdf" value="${esc(l.pdf || "")}" placeholder="Paste the Drive link: Share → Anyone with the link → Copy link"></label>
-      <p class="help">Students see this PDF exactly as it is, inside the lesson.</p>
+      <div class="upbox">
+        <b>📤 Notes for students</b>
+        <p class="help" style="margin-top:2px">Upload a PDF or photos of your notes. They are saved on this website, so students open them directly: <b>no Google Drive, no permission requests.</b></p>
+        <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+          <label class="btn sm" style="cursor:pointer">📄 Upload PDF<input type="file" accept=".pdf,application/pdf" hidden data-act="sitePdf"></label>
+          <label class="btn btn-ghost sm" style="cursor:pointer">🖼️ Upload photos<input type="file" accept="image/*" multiple hidden data-act="sitePhotos"></label>
+          <span class="muted small" data-upstatus></span>
+        </div>
+        ${l.pdf ? `<div class="upfile">📄 <a href="${esc(l.pdf)}" target="_blank" rel="noopener">${esc(isDrive(l.pdf) ? "Google Drive PDF" : l.pdf.split("/").pop())}</a><button class="mini del" data-act="rmPdf" title="Remove PDF">✕</button></div>` : ""}
+        ${isDrive(l.pdf) ? `<p class="warn">⚠️ <b>Google Drive link:</b> students will be asked to request access unless the file is shared publicly. In Drive: <b>Share → General access → Anyone with the link → Viewer</b>. Or download the PDF and press <b>Upload PDF</b> above to stop permission requests for good.</p>` : ""}
+        ${(l.images || []).length ? `<div class="upthumbs">${l.images.map((src, ii) => `<div class="upthumb"><img src="${esc(src)}" alt="Page ${ii + 1}" loading="lazy"><span>${ii + 1}</span><button class="mini del" data-act="rmImg" data-ii="${ii}" title="Remove photo">✕</button></div>`).join("")}</div>` : ""}
+        <details style="margin-top:8px"><summary class="muted small" style="cursor:pointer">Or paste a PDF link</summary>
+          <input data-lk="pdf" value="${esc(l.pdf || "")}" placeholder="https://… (Drive links must be shared: Anyone with the link)" style="width:100%;margin-top:6px;border:1px solid var(--line);border-radius:10px;padding:8px 12px">
+        </details>
+      </div>
       <label class="field">Text (optional: only if you want summary / quiz / handwritten tools)
-        <textarea data-lk="notes" placeholder="Leave empty to show only the PDF. Or paste text / use Upload below.">${esc(l.notes)}</textarea></label>
+        <textarea data-lk="notes" placeholder="Leave empty to show only the PDF / photos. Or paste text here.">${esc(l.notes)}</textarea></label>
       <p class="help">Tips: <code># Heading</code> · <code>- point</code> · put each formula on its own line, e.g. <code>Ohm's law: V = IR</code>, <code>v² = u² + 2as</code>, <code>2H2 + O2 → 2H2O</code>. Use <code>^2</code> for powers and <code>_</code> for subscripts.</p>
-      <div class="row between"><span class="stats" data-stats>${stats(l.notes)}</span><span class="row"><label class="btn btn-ghost sm" style="cursor:pointer">📎 Upload PDF / Word / photos<input type="file" accept=".pdf,.docx,.txt,.md,image/*" multiple hidden data-act="upload"></label><button class="btn btn-ghost sm" data-act="preview">Preview</button></span></div>
+      <div class="row between"><span class="stats" data-stats>${stats(l.notes)}</span><span class="row"><label class="btn btn-ghost sm" style="cursor:pointer" title="Copies the text into the box above for summary / quiz tools. Students don't see the file itself.">📝 Get text from a file<input type="file" accept=".pdf,.docx,.txt,.md,image/*" multiple hidden data-act="upload"></label><button class="btn btn-ghost sm" data-act="preview">Preview</button></span></div>
       <div class="preview" data-preview hidden></div>
     </div>`;
   }
@@ -147,7 +160,43 @@
           t = setTimeout(() => { $("[data-stats]", lc).innerHTML = stats(l.notes); const p = $("[data-preview]", lc); if (!p.hidden) p.innerHTML = F.notes(l.notes); }, 400);
         });
         $("[data-act=preview]", lc).onclick = () => { const p = $("[data-preview]", lc); p.hidden = !p.hidden; p.innerHTML = F.notes(l.notes); };
-        $("[data-lk=pdf]", lc).addEventListener("input", (e) => { l.pdf = e.target.value.trim(); save(); });
+        $("[data-lk=pdf]", lc).addEventListener("change", (e) => { l.pdf = e.target.value.trim(); save(); renderForm(); });
+        const upst = $("[data-upstatus]", lc);
+        const lessonName = () => `${slug(c.title)}-${slug(l.title || "lesson")}`;
+        $("[data-act=sitePdf]", lc).onchange = async (e) => {
+          const f = e.target.files[0];
+          e.target.value = "";
+          if (!f) return;
+          if (!/\.pdf$/i.test(f.name) && f.type !== "application/pdf") return toast("Please choose a PDF file.");
+          if (f.size > 40 * 1024 * 1024) return toast("This PDF is over 40 MB. Compress it (e.g. ilovepdf.com) and try again.");
+          try {
+            l.pdf = await uploadFile(`${lessonName()}.pdf`, new Uint8Array(await f.arrayBuffer()), (t) => (upst.textContent = t));
+            save(); renderForm(); toast("PDF uploaded ✓ Now press 🚀 Publish now.");
+          } catch (err) { upst.textContent = ""; toast(err.message); }
+        };
+        $("[data-act=sitePhotos]", lc).onchange = async (e) => {
+          const files = [...e.target.files];
+          e.target.value = "";
+          if (!files.length) return;
+          l.images ||= [];
+          let ok = 0;
+          for (let i = 0; i < files.length; i++) {
+            const tag = files.length > 1 ? `(${i + 1}/${files.length}) ` : "";
+            try {
+              upst.textContent = `${tag}Preparing photo…`;
+              const jpg = await photoToJpeg(files[i]);
+              const url = await uploadFile(`${lessonName()}-p${Date.now().toString(36)}.jpg`, jpg, (t) => (upst.textContent = tag + t));
+              l.images.push(url);
+              ok++;
+              save();
+            } catch (err) { toast(`${tag}${err.message}`); }
+          }
+          renderForm();
+          if (ok) toast(`${ok} photo${ok > 1 ? "s" : ""} uploaded ✓ Now press 🚀 Publish now.`);
+        };
+        const rmPdf = $("[data-act=rmPdf]", lc);
+        if (rmPdf) rmPdf.onclick = () => { if (confirm("Remove the PDF from this lesson?")) { delete l.pdf; save(); renderForm(); } };
+        $$("[data-act=rmImg]", lc).forEach((b) => (b.onclick = () => { if (confirm(`Remove photo ${+b.dataset.ii + 1}?`)) { l.images.splice(+b.dataset.ii, 1); save(); renderForm(); } }));
         $("[data-act=upload]", lc).onchange = async (e) => {
           const files = [...e.target.files];
           const st = $("[data-stats]", lc);
@@ -204,12 +253,16 @@
           title: u.title.trim(),
           lessons: u.lessons.map((l, li) => {
             if (!l.title.trim()) errors.push(`"${c.title}" → ${u.title || "unit " + (ui + 1)}: lesson ${li + 1} has no title.`);
-            if (!l.notes.trim() && !(l.pdf || "").trim()) errors.push(`"${c.title}" → "${l.title || "lesson " + (li + 1)}" has no notes or PDF link.`);
+            const images = (l.images || []).filter(Boolean);
+            if (!l.notes.trim() && !(l.pdf || "").trim() && !images.length) errors.push(`"${c.title}" → "${l.title || "lesson " + (li + 1)}" has no PDF, photos or notes.`);
             const lid = l.id && !lessonIds.has(l.id) ? (lessonIds.add(l.id), l.id) : uniq(slug(l.title), lessonIds);
             l.id = lid;
             const pdf = (l.pdf || "").trim();
-            if (pdf && !/^https?:\/\//i.test(pdf)) errors.push(`"${l.title || "lesson " + (li + 1)}": the PDF link must start with https://`);
-            return pdf ? { id: lid, title: l.title.trim(), notes: l.notes.trim(), pdf } : { id: lid, title: l.title.trim(), notes: l.notes.trim() };
+            if (pdf && !/^https?:\/\//i.test(pdf) && !pdf.startsWith(FILES_DIR)) errors.push(`"${l.title || "lesson " + (li + 1)}": the PDF link must start with https://`);
+            const out = { id: lid, title: l.title.trim(), notes: l.notes.trim() };
+            if (pdf) out.pdf = pdf;
+            if (images.length) out.images = images;
+            return out;
           }),
         };
       });
@@ -258,6 +311,47 @@
     body: body ? JSON.stringify(body) : undefined,
     cache: "no-store",
   });
+  // ---------- upload PDFs / photos onto the website ----------
+  // Files go to notes/courses/files/ in the repository; lessons store "courses/files/<name>".
+  const FILES_DIR = "courses/files/";
+  const repoDir = () => CFG.coursesPath.replace(/[^/]+$/, "") + "files/";
+  const isDrive = (u) => /drive\.google\.com|docs\.google\.com/.test(u || "");
+  const bytesB64 = (bytes) => {
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  };
+  async function uploadFile(name, bytes, status) {
+    const t = store.get(TOKEN);
+    if (!t) throw new Error("First add your GitHub key (Publish box on the right). The same key uploads files.");
+    const safe = name.toLowerCase().replace(/[^a-z0-9.-]+/g, "-").replace(/-+/g, "-");
+    status?.(`Uploading ${(bytes.length / 1048576).toFixed(1)} MB…`);
+    const put = await gh("PUT", `https://api.github.com/repos/${CFG.repo}/contents/${repoDir()}${safe}`, t, {
+      message: `Upload ${safe} from admin page`, content: bytesB64(bytes), branch: CFG.branch || "main",
+    });
+    if (put.status === 401) throw new Error("Your GitHub key has expired or is wrong. Remove it and add a new one.");
+    if (put.status === 403 || put.status === 404) throw new Error("This key can't save files. Give it Contents: Read and write for the 'myself-' repository.");
+    if (put.status === 422) throw new Error("A file with this name already exists. Rename the lesson or try again.");
+    if (!put.ok) throw new Error("Upload failed (" + put.status + "). Check your internet and try again.");
+    status?.("Uploaded ✓");
+    return FILES_DIR + safe;
+  }
+  /** Phone photo → upright JPEG, max 1800 px, so pages load fast for students. */
+  async function photoToJpeg(file) {
+    if (/heic|heif/i.test(file.type + file.name)) throw new Error("HEIC photos can't be used. On iPhone: Settings → Camera → Formats → Most Compatible.");
+    let img;
+    try { img = await createImageBitmap(file, { imageOrientation: "from-image" }); }
+    catch { throw new Error("This photo couldn't be opened. Use a JPG or PNG photo."); }
+    const k = Math.min(1, 1800 / Math.max(img.width, img.height));
+    const cv = document.createElement("canvas");
+    cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+    const cx = cv.getContext("2d");
+    cx.fillStyle = "#fff"; cx.fillRect(0, 0, cv.width, cv.height);
+    cx.drawImage(img, 0, 0, cv.width, cv.height);
+    const blob = await new Promise((r) => cv.toBlob(r, "image/jpeg", 0.82));
+    return new Uint8Array(await blob.arrayBuffer());
+  }
+
   const showGh = () => { const has = !!store.get(TOKEN); $("#ghSetup").hidden = has; $("#ghReady").hidden = !has; };
   $("#ghSave").onclick = async () => {
     const t = $("#ghToken").value.trim();
