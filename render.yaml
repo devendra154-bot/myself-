@@ -34,8 +34,8 @@ services:
         value: sarvam
       - key: SARVAM_API_KEY
         sync: false
-      - key: SARVAM_SPEAKER
-        value: shubh
+      - key: SARVAM_KEYTERMS
+        value: DevInventor
       - key: PUBLIC_URL
         sync: false
       - key: CALLER_ID

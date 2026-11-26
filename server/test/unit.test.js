@@ -86,7 +86,15 @@ test("8 kHz audio is upsampled to 16 kHz", async () => {
 
 test("Sarvam voice picking", async () => {
   const { sarvamSpeaker } = await import("../src/speech.js");
-  assert.equal(sarvamSpeaker("priya"), "priya");
-  assert.equal(sarvamSpeaker("21m00Tcm4TlvDq8ikWAM"), "shubh"); // an ElevenLabs voice id
-  assert.equal(sarvamSpeaker(""), "shubh");
+  assert.equal(sarvamSpeaker("kavya", "male"), "kavya"); // a chosen voice always wins
+  assert.equal(sarvamSpeaker("21m00Tcm4TlvDq8ikWAM", "female"), "priya"); // an ElevenLabs voice id
+  assert.equal(sarvamSpeaker("", "female"), "priya");
+  assert.equal(sarvamSpeaker("", "male"), "shubh");
+  assert.equal(sarvamSpeaker(""), "priya");
+});
+
+test("Sarvam keyterms are cleaned", async () => {
+  const { cleanKeyterms } = await import("../src/speech.js");
+  assert.deepEqual(cleanKeyterms(["DevInventor", " devinventor ", "", null, "Nest Realty", "x".repeat(65)]), ["DevInventor", "Nest Realty"]);
+  assert.equal(cleanKeyterms(Array.from({ length: 60 }, (_, i) => `t${i}`)).length, 50);
 });

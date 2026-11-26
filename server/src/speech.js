@@ -7,11 +7,13 @@ import { pcm16ToWav, upsample2x } from "./audio.js";
 const sarvamOn = () => config.voiceProvider === "sarvam";
 
 /** Caller's speech (16-bit PCM, 8 kHz) -> text. `languageCode` is the agent's language, e.g. "te". */
-export const transcribe = (pcm16, languageCode) => (sarvamOn() ? sarvamTranscribe : elevenTranscribe)(pcm16, languageCode);
+// `opts.keyterms`: names and brands to listen for (Sarvam only), e.g. ["DevInventor"].
+export const transcribe = (pcm16, languageCode, opts = {}) => (sarvamOn() ? sarvamTranscribe : elevenTranscribe)(pcm16, languageCode, opts);
 
 /**
  * Stream speech for `text`. Calls onAudio(Buffer mu-law) as chunks arrive.
  * Pass an AbortSignal to stop early (caller interrupted). Returns bytes sent (8000 = 1 second).
+ * opts: { voiceId, languageCode, gender ("female"|"male", picks a matching default voice), signal, onAudio }
  */
 export const speak = (text, opts) => (sarvamOn() ? sarvamSpeak : elevenSpeak)(text, opts);
 
@@ -90,6 +92,17 @@ async function elevenVoices() {
 // The 37 voices of bulbul:v3 (any of them can speak all 11 languages).
 export const SARVAM_V3_SPEAKERS = ["shubh", "aditya", "ritu", "priya", "neha", "rahul", "pooja", "rohan", "simran", "kavya", "amit", "dev", "ishita", "shreya", "ratan", "varun", "manan", "sumit", "roopa", "kabir", "aayan", "ashutosh", "advait", "anand", "tanya", "tarun", "sunny", "mani", "gokul", "vijay", "shruti", "suhani", "mohit", "kavitha", "rehan", "soham", "rupali"];
 
+// Measured speaking pitch (Hz) of each bulbul:v3 voice, used to label voices and
+// pick a default that matches the telecaller's gender. Below 160 Hz is a typical
+// male range and above 200 Hz a typical female one; voices in between are left unlabelled.
+export const SARVAM_V3_PITCH = {
+  varun: 93, soham: 110, vijay: 111, kabir: 113, aditya: 120, anand: 133, mani: 133, ratan: 133, rahul: 140, shubh: 143,
+  amit: 145, sumit: 145, mohit: 151, gokul: 154, sunny: 154, tarun: 154, advait: 157, rehan: 157, aayan: 170, manan: 182,
+  neha: 182, rohan: 182, ashutosh: 186, dev: 211, suhani: 232, shreya: 235, kavitha: 250, priya: 250, rupali: 250,
+  simran: 250, tanya: 250, ritu: 258, shruti: 258, roopa: 271, kavya: 276, pooja: 276, ishita: 286,
+};
+const pitchLabel = (id) => (SARVAM_V3_PITCH[id] < 160 ? "male" : SARVAM_V3_PITCH[id] > 200 ? "female" : "");
+
 /** Agent language ("te") -> Sarvam BCP-47 code ("te-IN"). */
 const sarvamLang = (code) => (code ? `${code}-IN` : "unknown");
 
@@ -97,24 +110,33 @@ const sarvamLang = (code) => (code ? `${code}-IN` : "unknown");
  * Pick a speaker valid for the chosen model. Agents made for ElevenLabs store
  * ElevenLabs voice ids, which Sarvam would reject, so those fall back to the default.
  */
-export function sarvamSpeaker(voiceId) {
+export function sarvamSpeaker(voiceId, gender = "female") {
   const s = config.sarvam;
+  const fallback = s.defaultSpeaker || (gender === "male" ? s.maleSpeaker : s.femaleSpeaker);
   const persona = (v) => /^[a-z]+_[a-z]+_[a-z_]+$/.test(v || "");
   if (s.ttsModel.startsWith("bulbul:v3")) {
     if (SARVAM_V3_SPEAKERS.includes(voiceId)) return voiceId;
-    return SARVAM_V3_SPEAKERS.includes(s.defaultSpeaker) ? s.defaultSpeaker : undefined;
+    return SARVAM_V3_SPEAKERS.includes(fallback) ? fallback : undefined;
   }
   // bulbul:v4-flash uses persona voices like "simran_en_customer"
   if (persona(voiceId)) return voiceId;
-  return persona(s.defaultSpeaker) ? s.defaultSpeaker : undefined; // undefined = Sarvam's default
+  return persona(fallback) ? fallback : undefined; // undefined = Sarvam's default
 }
 
-async function sarvamTranscribe(pcm16, languageCode) {
+/** Up to 50 unique terms of at most 64 characters, as Sarvam allows. */
+export function cleanKeyterms(list) {
+  const seen = new Set();
+  return (list || []).map((t) => String(t || "").trim()).filter((t) => t && t.length <= 64 && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase())).slice(0, 50);
+}
+
+async function sarvamTranscribe(pcm16, languageCode, { keyterms } = {}) {
   const s = config.sarvam;
   const form = new FormData();
   form.append("model", s.sttModel);
   if (s.sttMode) form.append("mode", s.sttMode);
   form.append("language_code", sarvamLang(languageCode));
+  const terms = cleanKeyterms([...(keyterms || []), ...s.keyterms]);
+  if (terms.length && s.sttModel.startsWith("saaras:v4")) form.append("keyterms", JSON.stringify(terms));
   // Sarvam works best with 16 kHz audio; phone audio is 8 kHz.
   form.append("file", new Blob([pcm16ToWav(upsample2x(pcm16), 16000)], { type: "audio/wav" }), "speech.wav");
 
@@ -128,7 +150,7 @@ async function sarvamTranscribe(pcm16, languageCode) {
   return (data.transcript || "").trim();
 }
 
-async function sarvamSpeak(text, { voiceId, languageCode, signal, onAudio }) {
+async function sarvamSpeak(text, { voiceId, languageCode, gender, signal, onAudio }) {
   const s = config.sarvam;
   const body = {
     text: text.slice(0, 3500),
@@ -138,7 +160,7 @@ async function sarvamSpeak(text, { voiceId, languageCode, signal, onAudio }) {
     output_audio_codec: "mulaw",
     pace: s.pace,
   };
-  const speaker = sarvamSpeaker(voiceId);
+  const speaker = sarvamSpeaker(voiceId, gender);
   if (speaker) body.speaker = speaker;
 
   const res = await fetch(`${s.baseUrl}/text-to-speech/stream`, {
@@ -153,5 +175,7 @@ async function sarvamSpeak(text, { voiceId, languageCode, signal, onAudio }) {
 
 async function sarvamVoices() {
   if (!config.sarvam.ttsModel.startsWith("bulbul:v3")) return []; // v4-flash personas: set SARVAM_SPEAKER
-  return SARVAM_V3_SPEAKERS.map((id) => ({ id, name: id.charAt(0).toUpperCase() + id.slice(1), labels: { provider: "Sarvam" } }));
+  return [...SARVAM_V3_SPEAKERS]
+    .sort((a, b) => (pitchLabel(b) || "z").localeCompare(pitchLabel(a) || "z") || a.localeCompare(b))
+    .map((id) => ({ id, name: id.charAt(0).toUpperCase() + id.slice(1), labels: pitchLabel(id) ? { gender: pitchLabel(id) } : {} }));
 }

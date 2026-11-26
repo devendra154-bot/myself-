@@ -215,7 +215,9 @@ Set `VOICE_PROVIDER` to choose who hears the caller and speaks the AI's replies.
 
 **Switch to Sarvam:**
 1. Set `VOICE_PROVIDER=sarvam` and `SARVAM_API_KEY`.
-2. Optionally pick a voice with `SARVAM_SPEAKER`, for example `priya`, `kavya`, `rahul` or `kavitha`, and a speed with `SARVAM_PACE`.
+2. Voices match each telecaller's gender: `priya` for female, `shubh` for male. Change them with `SARVAM_SPEAKER_FEMALE` and `SARVAM_SPEAKER_MALE`, or pick a voice per employee on the dashboard (voices are labelled by measured pitch). Set the speaking speed with `SARVAM_PACE`.
+   - The business and telecaller names are sent as **keyterms**, so Sarvam hears them correctly.
+   - Add more words with `SARVAM_KEYTERMS`, for example `DevInventor,ESP32,Gachibowli`.
 3. Restart the server.
 
 The dashboard's voice list then shows Sarvam voices. Agents that still hold an ElevenLabs voice id use the default Sarvam voice until you pick one.

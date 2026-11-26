@@ -177,10 +177,11 @@ const fullCall = (voice) => async (t) => {
     assert.equal(tts.speech_sample_rate, 8000);
     assert.equal(tts.output_audio_codec, "mulaw");
     assert.equal(tts.model, "bulbul:v3");
-    assert.equal(tts.speaker, "shubh", "ElevenLabs-style voice ids fall back to the Sarvam default");
+    assert.equal(tts.speaker, "priya", "female telecaller gets the default female voice");
     const stt = log.sarvamStt[0];
     assert.match(stt.toString("latin1"), /name="language_code"\r\n\r\nhi-IN/);
     assert.match(stt.toString("latin1"), /name="model"\r\n\r\nsaaras:v4/);
+    assert.match(stt.toString("latin1"), /name="keyterms"\r\n\r\n\["Nest Realty","Meera"\]/, "business and persona names are keyterms");
     const riff = stt.indexOf("RIFF");
     assert.equal(stt.readUInt32LE(riff + 24), 16000, "audio upsampled to 16 kHz");
     // Only mu-law audio reached the phone: no "RIFF" header bytes in the media sent.

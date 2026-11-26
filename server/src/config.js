@@ -66,7 +66,12 @@ export const config = {
     sttMode: env("SARVAM_STT_MODE", "codemix"),
     // bulbul:v3 speaks all 11 Indian languages with any of its 37 voices
     ttsModel: env("SARVAM_TTS_MODEL", "bulbul:v3"),
-    defaultSpeaker: env("SARVAM_SPEAKER", "shubh"),
+    // Default voices by telecaller gender. SARVAM_SPEAKER, if set, is used for everyone.
+    femaleSpeaker: env("SARVAM_SPEAKER_FEMALE", "priya"),
+    maleSpeaker: env("SARVAM_SPEAKER_MALE", "shubh"),
+    defaultSpeaker: env("SARVAM_SPEAKER"),
+    // Extra words to listen for on every call (comma separated): brands, products, place names.
+    keyterms: env("SARVAM_KEYTERMS").split(",").map((t) => t.trim()).filter(Boolean),
     pace: num("SARVAM_PACE", 1.0),
   },
 

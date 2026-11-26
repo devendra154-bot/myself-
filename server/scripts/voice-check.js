@@ -2,7 +2,8 @@
 // Check your voice provider with real API calls: speak a sentence, save it, then transcribe it back.
 //   node scripts/voice-check.js                 (uses VOICE_PROVIDER and keys from .env)
 //   node scripts/voice-check.js hi "नमस्ते, मैं आपकी कैसे मदद कर सकती हूँ?"
-//   node scripts/voice-check.js en "Hello, this is a test call." priya
+//   node scripts/voice-check.js en "Hello, this is a test call." rahul
+// The samples are written for a female telecaller, so the default female voice is used.
 import fs from "node:fs";
 import { config } from "../src/config.js";
 import { speak, transcribe } from "../src/speech.js";
@@ -20,7 +21,7 @@ console.log(`Speaking: ${text}`);
 const chunks = [];
 const t0 = Date.now();
 let first = 0;
-await speak(text, { voiceId: voice, languageCode: lang, onAudio: (c) => { first ||= Date.now() - t0; chunks.push(c); } });
+await speak(text, { voiceId: voice, languageCode: lang, gender: "female", onAudio: (c) => { first ||= Date.now() - t0; chunks.push(c); } });
 const mulaw = Buffer.concat(chunks);
 if (!mulaw.length) throw new Error("No audio came back");
 console.log(`✓ Voice: ${(mulaw.length / 8000).toFixed(1)} s of phone audio, first sound after ${first} ms`);
@@ -35,5 +36,5 @@ fs.writeFileSync(file, Buffer.concat([h, mulaw]));
 console.log(`✓ Saved ${file}: play it to hear the phone-quality voice`);
 
 const t1 = Date.now();
-const heard = await transcribe(mulawToPcm16(mulaw), lang);
+const heard = await transcribe(mulawToPcm16(mulaw), lang, { keyterms: ["DevInventor"] });
 console.log(`✓ Hearing (${Date.now() - t1} ms): ${heard || "(nothing recognised)"}`);
