@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24",
+ "updated": "2026-11-26",
  "courses": [
   {
    "id": "engineering-chemistry",
@@ -53,6 +53,25 @@
        "title": "Electro chemistry",
        "notes": "",
        "pdf": "https://drive.google.com/file/d/1oX3YTS6C3xKOlF7cfVsZ44BObxggaYHl/view?usp=drivesdk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fa2-imp-questions-chemistry",
+   "title": "FA2 imp 👿 questions chemistry",
+   "subject": "Chemistry",
+   "description": "Cheat sheet",
+   "units": [
+    {
+     "title": "Imp 👿",
+     "lessons": [
+      {
+       "id": "item",
+       "title": "Fa2",
+       "notes": "",
+       "pdf": "https://drive.google.com/file/d/1TVexBXTv5n0eCgwQ6oOIDUj0Dfqyg4Sz/view?usp=drivesdk"
       }
      ]
     }
