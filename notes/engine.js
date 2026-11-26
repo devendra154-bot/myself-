@@ -26,7 +26,7 @@
   // ---------- formulas & equations (physics, chemistry, electronics…) ----------
   const REL = /(=|≈|≅|∝|≤|≥|→|⟶|⇌|⇄|->)/;
   const PROSE = /\b(is|are|was|were|the|which|that|where|when|states|gives|called|known|means|because|then|this|these|for|and|if|with)\b/i;
-  const MATHY = /[A-Za-z)\]][²³⁴ⁿ]|[A-Za-z)\]]\s*\^|√|[A-Za-z)\]]\s*[+\-−×*/÷]\s*[A-Za-z0-9(√½]|[0-9)\]]\s*[+×*/÷]\s*[A-Za-z(]/;
+  const MATHY = /[A-Za-z)\]}][²³⁴ⁿ]|[A-Za-z)\]}]\s*\^|√|[A-Za-z)\]}]\s*[+\-−×*/÷]\s*[A-Za-z0-9(√½]|[0-9)\]}]\s*[+×*/÷]\s*[A-Za-z(]/;
   const longWords = (l) => (l.match(/[A-Za-z]{4,}/g) || []).filter((w) => !/^(sin|cos|tan|cot|sec|log|exp|sqrt)$/i.test(w));
 
   /** Is this whole line a formula / equation (not a sentence)? e.g. V = IR, a+b², 2H2 + O2 → 2H2O */
@@ -34,7 +34,11 @@
     let l = String(line || "").trim().replace(/^([-*•]|\d{1,2}[.)])\s+/, "");
     const named = l.match(/^([A-Za-z][^:=→]{1,80}):\s*(.+)$/);
     if (named) l = named[2];
+    l = l.replace(/^(→|->|⟶)\s*/, ""); // "→ Applications : …" uses the arrow as a bullet
+    const named2 = l.match(/^([A-Za-z][^:=→]{1,80}):\s*(.+)$/);
+    if (named2 && !named) l = named2[2];
     if (!l || l.length > 160 || !/[A-Za-z0-9]/.test(l)) return false;
+    if (/\b\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\b/.test(l) && !/[=≈]/.test(l)) return false; // dates such as 25/11/2026
     // "Rectifiers convert AC → DC." is a sentence: ends with a full stop, plain words before the arrow, no + or chemical formula
     const arrow = l.match(/^(.*?)(→|⟶|->)/);
     if (arrow && /\.$/.test(l) && !/[=≈≤≥∝]/.test(l) && arrow[1].trim().split(/\s+/).length >= 2 && !/[+\d()]/.test(arrow[1])) return false;

@@ -217,6 +217,65 @@
       .join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
 
+
+  // ---------- AI reading (Sarvam Vision through your own server function) ----------
+  const SUB = { "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4", "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9", "₊": "+", "₋": "-" };
+  const SUP = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁺": "+", "⁻": "−", "ⁿ": "n" };
+  const CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳";
+
+  /** AI page text → the handwriting maker's format (# heading, ## sub-heading, 1. / - points, x_{2}, x^{2+}). */
+  function fromVision(text) {
+    const subsup = (l) => l
+      .replace(/[₀-₉₊₋]+/g, (m) => "_{" + [...m].map((c) => SUB[c]).join("") + "}")
+      .replace(/[⁰¹²³⁴-⁹⁺⁻ⁿ]+/g, (m) => "^{" + [...m].map((c) => SUP[c]).join("") + "}");
+    const out = [];
+    for (const raw of String(text).replace(/\r/g, "").split("\n")) {
+      let l = raw.trim();
+      if (!l) { if (out.length && out[out.length - 1] !== "") out.push(""); continue; }
+      const circ = CIRCLED.indexOf(l[0]);
+      if (circ >= 0) l = `${circ + 1}. ${l.slice(1).trim()}`;
+      l = l.replace(/^[•●▪◦·]\s*/, "- ");
+      const label = l.match(/^(?:→\s*)?(.{2,60}?)\s*:\s*$/); // "→ Construction :" / "1. Primary Batteries :" with nothing after
+      if (/^\d{1,2}\s+[A-Z]/.test(l) && !/:\s*\S/.test(l)) l = "# " + l.replace(/^(\d{1,2})\s+/, "$1. ");  // "1 Define Batteries…" (a question)
+      else if (/^\([a-z]\)\s+\S/.test(l) && l.length <= 70) l = "## " + l.replace(/\s*:\s*$/, "");          // "(a) Dry Cell :"
+      else if (label) l = "## " + label[1].replace(/^(\d{1,2})\.\s*/, "$1. ");
+      out.push(subsup(l));
+    }
+    return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  }
+
+  /** Small upright JPEG of a photo for upload (max 2000 px). */
+  async function photoJpeg(file) {
+    const c = await loadPhoto(file);
+    const k = Math.min(1, 2000 / Math.max(c.width, c.height));
+    const o = document.createElement("canvas");
+    o.width = Math.round(c.width * k); o.height = Math.round(c.height * k);
+    const x = o.getContext("2d");
+    x.fillStyle = "#fff"; x.fillRect(0, 0, o.width, o.height);
+    x.drawImage(c, 0, 0, o.width, o.height);
+    return new Promise((r) => o.toBlob(r, "image/jpeg", 0.88));
+  }
+
+  /** Read a photo with the AI reader configured in config.js (visionEndpoint). */
+  async function readWithVision(file, progress) {
+    const url = (root.NOTES_CONFIG || {}).visionEndpoint;
+    progress?.(0.15, "Reading your notes with AI…");
+    const body = new FormData();
+    body.append("file", await photoJpeg(file), "notes.jpg");
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 90000);
+    let tick = 0.15;
+    const pulse = setInterval(() => progress?.((tick = Math.min(0.92, tick + 0.04)), "Reading your notes with AI…"), 1500);
+    try {
+      const res = await fetch(url, { method: "POST", body, signal: ctl.signal });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `AI reader error ${res.status}`);
+      const text = fromVision(data.text || "");
+      if (!text) throw new Error("The AI reader found no text in this photo.");
+      return text;
+    } finally { clearTimeout(timer); clearInterval(pulse); }
+  }
+
   let workerP = null;
   async function getWorker(progress) {
     await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js");
@@ -256,7 +315,19 @@
     getWorker.onProgress = (p) => progress?.(0.3 + p * 0.68, `Reading text from photo… ${Math.round(p * 100)}%`);
     const { data } = await worker.recognize(rotate(base, best.deg), {}, { text: true, blocks: true });
     getWorker.onProgress = null;
-    const text = fixNotes(tidy(data.text));
+    // drop words the reader itself is unsure of (circles, highlights and doodles read as "BEES 3", "TERE")
+    const rawLines0 = data.lines || (data.blocks || []).flatMap((b) => (b.paragraphs || []).flatMap((p) => p.lines || []));
+    let source = data.text;
+    if (rawLines0.length && rawLines0.some((l) => l.words && l.words.length)) {
+      source = rawLines0.map((l) => {
+        // only short letters-only words are dropped; numbers, symbols and formulas are always kept
+        const ws = (l.words || []).filter((w) => !(w.confidence < 40 && /^[A-Za-z]{1,5}[.,:;]?$/.test(w.text.trim())));
+        const kept = ws.map((w) => w.text).join(" ").trim();
+        const avg = ws.length ? ws.reduce((a, w) => a + w.confidence, 0) / ws.length : 0;
+        return kept && !(ws.length < 3 && avg < 50 && !/[=\d]/.test(kept)) ? kept : "";
+      }).join("\n");
+    }
+    const text = fixNotes(tidy(source));
     // where each line sits in the photo (0..1), so a cropped diagram can replace its own labels in place
     const W = base.width, Hh = base.height;
     const rawLines = data.lines || (data.blocks || []).flatMap((b) => (b.paragraphs || []).flatMap((p) => p.lines || []));
@@ -280,6 +351,15 @@
     if (/\.(txt|md)$/.test(name) || file.type.startsWith("text/")) return { text: await file.text() };
     if (file.type.startsWith("image/") || /\.(jpe?g|png|webp|heic|heif|bmp)$/.test(name)) {
       if (/heic|heif/.test(file.type + name)) throw new Error("HEIC photos aren't supported by browsers. On iPhone: Settings → Camera → Formats → Most Compatible, or share the photo as JPG.");
+      // AI reader first (reads handwriting, columns, formulas); the free in-browser reader is the fallback.
+      if ((root.NOTES_CONFIG || {}).visionEndpoint) {
+        try {
+          return { text: await readWithVision(file, progress), lines: [], warning: "Read with AI ✓ Please check it once before using.", ai: true };
+        } catch (err) {
+          console.warn("AI reader failed, using the free reader:", err.message);
+          progress?.(0.1, "AI reader unavailable, using the free reader…");
+        }
+      }
       const r = await readPhoto(file, progress);
       const nWords = r.text.split(/\s+/).filter((t) => /[A-Za-z]{2,}/.test(t)).length;
       if (nWords < 4 || r.quality < 0.3 || r.confidence < 35 || (nWords < 15 && r.confidence < 65)) {
@@ -293,5 +373,5 @@
     throw new Error("Unsupported file. Use PDF, Word (.docx), TXT or a photo (JPG/PNG).");
   }
 
-  root.NotesReaders = { read, readPhoto, loadScript, fixNotes, loadPhoto, cleanPhoto, _tidy: tidy, _quality: wordQuality };
+  root.NotesReaders = { read, readPhoto, loadScript, fixNotes, fromVision, loadPhoto, cleanPhoto, _tidy: tidy, _quality: wordQuality };
 })(window);
