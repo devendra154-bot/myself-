@@ -117,3 +117,16 @@ export class VoiceDetector {
     }
   }
 }
+
+/** Double the sample rate of 16-bit PCM (8 kHz -> 16 kHz) by linear interpolation. */
+export function upsample2x(pcm16) {
+  const n = pcm16.length >> 1;
+  const out = Buffer.alloc(n * 4);
+  for (let i = 0; i < n; i++) {
+    const a = pcm16.readInt16LE(i * 2);
+    const b = i + 1 < n ? pcm16.readInt16LE(i * 2 + 2) : a;
+    out.writeInt16LE(a, i * 4);
+    out.writeInt16LE((a + b) >> 1, i * 4 + 2);
+  }
+  return out;
+}

@@ -33,8 +33,8 @@ function sse(res, blocks, stopReason) {
   res.end();
 }
 
-test("a full outbound call", { timeout: 60000 }, async (t) => {
-  const log = { claude: [], hangups: 0, webhook: null, tts: [] };
+const fullCall = (voice) => async (t) => {
+  const log = { claude: [], hangups: 0, webhook: null, tts: [], sarvamTts: [], sarvamStt: [] };
 
   const mock = http.createServer(async (req, res) => {
     const body = await readBody(req);
@@ -60,6 +60,23 @@ test("a full outbound call", { timeout: 60000 }, async (t) => {
       ], "tool_use");
     }
     if (url.startsWith("/v1/speech-to-text")) return res.end(JSON.stringify({ text: "हाँ जी, बोलिए" }));
+    // Sarvam AI
+    if (url === "/speech-to-text") {
+      if (req.headers["api-subscription-key"] !== "sarvam-key") return res.writeHead(403).end();
+      log.sarvamStt.push(body);
+      return res.end(JSON.stringify({ request_id: "r1", transcript: "हाँ जी, बोलिए", language_code: "hi-IN" }));
+    }
+    if (url === "/text-to-speech/stream") {
+      if (req.headers["api-subscription-key"] !== "sarvam-key") return res.writeHead(403).end();
+      const b = JSON.parse(body);
+      log.sarvamTts.push(b);
+      log.tts.push(b.text);
+      // Send a WAV header first: the server must strip it and pass on only mu-law audio.
+      const hdr = Buffer.alloc(44); hdr.write("RIFF", 0); hdr.write("WAVE", 8); hdr.write("fmt ", 12); hdr.write("data", 36); hdr.writeUInt32LE(800, 40);
+      res.writeHead(200, { "content-type": "audio/basic" });
+      res.write(hdr.subarray(0, 20));
+      return setTimeout(() => res.end(Buffer.concat([hdr.subarray(20), Buffer.alloc(800, 0xff)])), 20);
+    }
     if (url.startsWith("/v1/text-to-speech")) {
       log.tts.push(JSON.parse(body).text);
       res.writeHead(200, { "content-type": "audio/basic" });
@@ -81,6 +98,7 @@ test("a full outbound call", { timeout: 60000 }, async (t) => {
       ...process.env, CLAUDE_EFFORT: "low", CLAUDE_MODEL: "claude-opus-5-5", CLAUDE_SPEED: "", PORT: String(port), PUBLIC_URL: `http://127.0.0.1:${port}`, ADMIN_TOKEN: "admin", INBOUND_SECRET: "in",
       DATA_FILE: path.join(dir, "db.json"), ANTHROPIC_API_KEY: "test", ANTHROPIC_BASE_URL: base,
       ELEVENLABS_API_KEY: "test", ELEVENLABS_BASE_URL: base, ELEVENLABS_VOICE_ID: "v1",
+      VOICE_PROVIDER: voice, SARVAM_API_KEY: "sarvam-key", SARVAM_BASE_URL: base,
       TELEPHONY_PROVIDER: "twilio", TWILIO_ACCOUNT_SID: "AC1", TWILIO_AUTH_TOKEN: "tok", TWILIO_API_BASE: base,
       CALLER_ID: "+918000000000", OUTCOME_WEBHOOK_URL: `${base}/hook`, CALL_WINDOW_START: "00:00", CALL_WINDOW_END: "23:59",
     },
@@ -152,4 +170,27 @@ test("a full outbound call", { timeout: 60000 }, async (t) => {
   assert.equal(first.output_config.effort, "low");
   assert.ok(first.tools.every((tl) => tl.eager_input_streaming === true));
   assert.ok(log.tts[0].startsWith("नमस्ते राहुल जी!"));
-});
+
+  if (voice === "sarvam") {
+    const tts = log.sarvamTts[0];
+    assert.equal(tts.language_code, "hi-IN");
+    assert.equal(tts.speech_sample_rate, 8000);
+    assert.equal(tts.output_audio_codec, "mulaw");
+    assert.equal(tts.model, "bulbul:v3");
+    assert.equal(tts.speaker, "shubh", "ElevenLabs-style voice ids fall back to the Sarvam default");
+    const stt = log.sarvamStt[0];
+    assert.match(stt.toString("latin1"), /name="language_code"\r\n\r\nhi-IN/);
+    assert.match(stt.toString("latin1"), /name="model"\r\n\r\nsaaras:v4/);
+    const riff = stt.indexOf("RIFF");
+    assert.equal(stt.readUInt32LE(riff + 24), 16000, "audio upsampled to 16 kHz");
+    // Only mu-law audio reached the phone: no "RIFF" header bytes in the media sent.
+    const sent = Buffer.concat(received.filter((m) => m.event === "media").map((m) => Buffer.from(m.media.payload, "base64")));
+    assert.equal(sent.indexOf("RIFF"), -1);
+    assert.equal(log.sarvamTts.length, log.tts.length);
+  } else {
+    assert.equal(log.sarvamTts.length + log.sarvamStt.length, 0);
+  }
+};
+
+test("a full outbound call (ElevenLabs voice)", { timeout: 60000 }, fullCall("elevenlabs"));
+test("a full outbound call (Sarvam AI voice)", { timeout: 60000 }, fullCall("sarvam"));

@@ -54,6 +54,22 @@ export const config = {
     speed: env("CLAUDE_SPEED"),
   },
 
+  // Who hears the caller and speaks the AI's replies: "elevenlabs" or "sarvam".
+  voiceProvider: env("VOICE_PROVIDER", "elevenlabs").toLowerCase(),
+
+  // Sarvam AI (sarvam.ai): Indian-language speech-to-text (Saaras) and voices (Bulbul).
+  sarvam: {
+    apiKey: env("SARVAM_API_KEY"),
+    baseUrl: env("SARVAM_BASE_URL", "https://api.sarvam.ai").replace(/\/$/, ""),
+    sttModel: env("SARVAM_STT_MODEL", "saaras:v4"),
+    // transcribe = native script; codemix = English words stay in English letters (good for Hinglish/Tenglish)
+    sttMode: env("SARVAM_STT_MODE", "codemix"),
+    // bulbul:v3 speaks all 11 Indian languages with any of its 37 voices
+    ttsModel: env("SARVAM_TTS_MODEL", "bulbul:v3"),
+    defaultSpeaker: env("SARVAM_SPEAKER", "shubh"),
+    pace: num("SARVAM_PACE", 1.0),
+  },
+
   elevenlabs: {
     apiKey: env("ELEVENLABS_API_KEY"),
     baseUrl: env("ELEVENLABS_BASE_URL", "https://api.elevenlabs.io").replace(/\/$/, ""),
@@ -112,7 +128,9 @@ export function checkConfig() {
   if (!config.adminToken) missing.push("ADMIN_TOKEN");
   if (!config.inboundSecret) missing.push("INBOUND_SECRET");
   if (!process.env.ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
-  if (!config.elevenlabs.apiKey) missing.push("ELEVENLABS_API_KEY");
+  if (config.voiceProvider === "sarvam") { if (!config.sarvam.apiKey) missing.push("SARVAM_API_KEY"); }
+  else if (config.voiceProvider === "elevenlabs") { if (!config.elevenlabs.apiKey) missing.push("ELEVENLABS_API_KEY"); }
+  else missing.push("VOICE_PROVIDER (must be elevenlabs or sarvam)");
   if (!config.callerId) missing.push("CALLER_ID");
   if (config.telephony === "twilio" && !(config.twilio.accountSid && config.twilio.authToken))
     missing.push("TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN");

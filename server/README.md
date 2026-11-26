@@ -3,7 +3,7 @@
 This server makes and answers real phone calls. An AI telecaller speaks Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi or English.
 
 ```
-Caller's phone ⇄ Plivo / Twilio ⇄ this server ⇄ ElevenLabs (hears + speaks)
+Caller's phone ⇄ Plivo / Twilio ⇄ this server ⇄ ElevenLabs or Sarvam AI (hears + speaks)
                                        ⇅
                                     Claude (thinks, decides, uses tools)
 ```
@@ -25,7 +25,7 @@ Caller's phone ⇄ Plivo / Twilio ⇄ this server ⇄ ElevenLabs (hears + speaks
 |---|---|---|
 | **Plivo** (recommended for India) or **Twilio** | Phone numbers and calling | plivo.com / twilio.com |
 | **Anthropic API key** | Claude, the conversation brain | console.anthropic.com |
-| **ElevenLabs API key** | Voices and speech recognition | elevenlabs.io |
+| **ElevenLabs** or **Sarvam AI** API key | Voices and speech recognition | elevenlabs.io / sarvam.ai |
 | **Hosting with HTTPS** | Phone providers must reach your server | Render, Railway or any VPS |
 
 **India telecom rules.** For outbound calls to Indian numbers you need:
@@ -202,6 +202,36 @@ Change prices or models with `PRICE_BASIC`, `PRICE_STANDARD`, `PRICE_PREMIUM`, `
 
 Every finished call stores `billing`: seconds, rate, price, estimated cost by part, and margin. The dashboard's Calls page shows each call's charge and 30-day totals, and the outcome webhook includes it. Set the `COST_*` values to the rates on your invoices so the margin is accurate.
 
+## Voice provider: ElevenLabs or Sarvam AI
+
+Set `VOICE_PROVIDER` to choose who hears the caller and speaks the AI's replies. You need only one key.
+
+| | ElevenLabs (`elevenlabs`, default) | Sarvam AI (`sarvam`) |
+|---|---|---|
+| Hearing | Scribe | Saaras v4 (`codemix` mode keeps English words in English, good for Hinglish and Tenglish) |
+| Voice | Any ElevenLabs voice or clone | Bulbul: 37 Indian voices on `bulbul:v3`, or 200+ persona voices on `bulbul:v4-flash` |
+| Languages | Many | Built for Indian languages: Telugu, Hindi, Tamil, Kannada, Malayalam, Marathi and Indian English |
+| Key setting | `ELEVENLABS_API_KEY` | `SARVAM_API_KEY` |
+
+**Switch to Sarvam:**
+1. Set `VOICE_PROVIDER=sarvam` and `SARVAM_API_KEY`.
+2. Optionally pick a voice with `SARVAM_SPEAKER`, for example `priya`, `kavya`, `rahul` or `kavitha`, and a speed with `SARVAM_PACE`.
+3. Restart the server.
+
+The dashboard's voice list then shows Sarvam voices. Agents that still hold an ElevenLabs voice id use the default Sarvam voice until you pick one.
+
+**Hear it before calling anyone:**
+
+```bash
+node scripts/voice-check.js                     # Telugu sample
+node scripts/voice-check.js hi                  # Hindi sample
+node scripts/voice-check.js en "Hello!" priya   # your own text and voice
+```
+
+It speaks the sentence through your provider and saves a phone-quality `voice-check-*.wav` for you to play. Then it transcribes the audio back and shows how fast both steps were.
+
+**Costs:** set `COST_TTS_USD_PER_1K_CHARS` and `COST_STT_USD_PER_HOUR` to your provider's rates (from its pricing page or invoice) so the per-call margin on the dashboard stays accurate.
+
 ## Tuning
 
 - **Faster replies:** `CLAUDE_EFFORT=low` (default). `CLAUDE_SPEED=fast` is faster again but costs twice as much. `ELEVENLABS_TTS_MODEL=eleven_flash_v2_5` is the fastest voice model.
@@ -215,7 +245,8 @@ Every finished call stores `billing`: seconds, rate, price, estimated cost by pa
 src/index.js         HTTP routes, webhooks, media WebSocket
 src/session.js       one live call: audio in/out, turn-taking, barge-in, silence handling
 src/agent.js         Claude conversation + mid-call tools
-src/speech.js        ElevenLabs speech-to-text and text-to-speech (8 kHz mu-law)
+src/speech.js        speech-to-text and text-to-speech, ElevenLabs or Sarvam AI (8 kHz mu-law)
+scripts/voice-check.js  test your voice provider with a real sentence
 src/audio.js         mu-law decoding, WAV, voice activity detection
 src/telephony/       Twilio and Plivo adapters
 src/calls.js         start calls, provider status updates

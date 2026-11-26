@@ -141,7 +141,7 @@ async function agentDialog(a) {
     <div class="two"><div><label>Name</label><input id="f_name"></div><div><label>Business</label><input id="f_business"></div></div>
     <div class="two"><div><label>Telecaller name</label><input id="f_persona"></div><div><label>Language</label><select id="f_language">${Object.entries(LANGS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></div></div>
     <label>Plan (price per minute to your customer)</label><select id="f_plan">${Object.entries(state.status?.plans || {}).map(([k, p]) => `<option value="${k}">${p.name} · ₹${p.pricePerMin}/min · ${esc(p.model)}</option>`).join("")}</select>
-    <label>Voice (ElevenLabs)</label><select id="f_voice"><option value="">Default voice</option></select>
+    <label>Voice${state.status?.voiceProvider ? ` (${state.status.voiceProvider === "sarvam" ? "Sarvam AI" : "ElevenLabs"})` : ""}</label><select id="f_voice"><option value="">Default voice</option></select>
     <label>Goal of the call</label><textarea id="f_goal" style="min-height:60px"></textarea>
     <label>Instructions, facts, prices, offers</label><textarea id="f_instructions" style="min-height:140px"></textarea>
     <label>Opening line</label><input id="f_openingLine">

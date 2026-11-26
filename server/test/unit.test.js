@@ -74,3 +74,19 @@ test("a 90-second standard call is priced at ₹9", async () => {
   assert.equal(b.margin, Math.round((b.price - b.estCost) * 100) / 100);
   assert.equal(priceCall({ durationSec: 0 }, { plan: "basic" }).price, 0); // unanswered calls are free
 });
+
+test("8 kHz audio is upsampled to 16 kHz", async () => {
+  const { upsample2x } = await import("../src/audio.js");
+  const pcm = Buffer.alloc(6);
+  pcm.writeInt16LE(0, 0); pcm.writeInt16LE(100, 2); pcm.writeInt16LE(-100, 4);
+  const out = upsample2x(pcm);
+  assert.equal(out.length, 12);
+  assert.deepEqual([0, 1, 2, 3, 4, 5].map((i) => out.readInt16LE(i * 2)), [0, 50, 100, 0, -100, -100]);
+});
+
+test("Sarvam voice picking", async () => {
+  const { sarvamSpeaker } = await import("../src/speech.js");
+  assert.equal(sarvamSpeaker("priya"), "priya");
+  assert.equal(sarvamSpeaker("21m00Tcm4TlvDq8ikWAM"), "shubh"); // an ElevenLabs voice id
+  assert.equal(sarvamSpeaker(""), "shubh");
+});

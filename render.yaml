@@ -29,6 +29,13 @@ services:
         value: low
       - key: ELEVENLABS_TTS_MODEL
         value: eleven_flash_v2_5
+      # elevenlabs or sarvam
+      - key: VOICE_PROVIDER
+        value: sarvam
+      - key: SARVAM_API_KEY
+        sync: false
+      - key: SARVAM_SPEAKER
+        value: shubh
       - key: PUBLIC_URL
         sync: false
       - key: CALLER_ID

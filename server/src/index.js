@@ -131,7 +131,7 @@ const publicAgent = (a) => ({ ...a, leadIntakeUrl: `${config.publicUrl}/lead-int
 const publicCall = (c) => { const { token, ...rest } = c; return rest; };
 const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "agent";
 
-admin.get("/status", (req, res) => res.json({ missingConfig: checkConfig(), provider: config.telephony, callerId: config.callerId, languages: LANGUAGES, plans: plansSummary(), inCallingHours: inWindow(), activeCalls: calls.active().length }));
+admin.get("/status", (req, res) => res.json({ missingConfig: checkConfig(), provider: config.telephony, voiceProvider: config.voiceProvider, callerId: config.callerId, languages: LANGUAGES, plans: plansSummary(), inCallingHours: inWindow(), activeCalls: calls.active().length }));
 admin.get("/voices", wrap(async (req, res) => res.json(await listVoices())));
 
 admin.get("/agents", (req, res) => res.json(agents.all().map(publicAgent)));
@@ -286,7 +286,7 @@ function handleMedia(ws, provider, params) {
 startScheduler();
 server.listen(config.port, () => {
   const missing = checkConfig();
-  console.log(`DevInventor voice server on :${config.port} (provider: ${config.telephony})`);
+  console.log(`DevInventor voice server on :${config.port} (provider: ${config.telephony}, voice: ${config.voiceProvider})`);
   if (missing.length) console.warn("Missing settings:", missing.join(", "));
   const waMissing = checkWhatsAppConfig();
   console.log(waMissing.length ? `WhatsApp bot not ready, missing: ${waMissing.join(", ")}` : `WhatsApp bot ready (auto-reply ${config.whatsapp.bot})`);
