@@ -52,11 +52,37 @@
     }
   }
 
+  /**
+   * A photo of a diagram → the same diagram drawn in pen: paper and shadows removed,
+   * lines kept in the chosen ink, transparent elsewhere so the notebook lines show through.
+   */
+  function penSketch(src, inkHex) {
+    const k = Math.min(1, 1600 / Math.max(src.width, src.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(src.width * k)); c.height = Math.max(1, Math.round(src.height * k));
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(src, 0, 0, c.width, c.height);
+    if (root.NotesReaders && root.NotesReaders.cleanPhoto) root.NotesReaders.cleanPhoto(c); // grayscale, shadows removed, white paper
+    const img = ctx.getImageData(0, 0, c.width, c.height), d = img.data;
+    const hex = String(inkHex).replace("#", "");
+    const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+    for (let i = 0; i < d.length; i += 4) {
+      const v = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) / 255;
+      const a = Math.max(0, Math.min(1, (1 - v - 0.22) / 0.38));
+      d[i] = r; d[i + 1] = g; d[i + 2] = b; d[i + 3] = Math.round(a * 235);
+    }
+    ctx.putImageData(img, 0, 0);
+    return c;
+  }
+
   /** Turn text into styled lines: [{ kind: "h1"|"h2"|"p"|"li"|"blank", text }] */
   function parseBlocks(text) {
     return String(text || "").replace(/\r/g, "").split("\n").map((raw) => {
       const l = raw.trimEnd();
       if (!l.trim()) return { kind: "blank", text: "" };
+      const dg = l.trim().match(/^\[(?:diagram|figure|image)\s*(\d+)\]$/i);
+      if (dg) return { kind: "img", n: +dg[1], text: "" };
       if (/^#\s+/.test(l)) return { kind: "h1", text: l.replace(/^#\s+/, "") };
       if (/^#{2,6}\s+/.test(l)) return { kind: "h2", text: l.replace(/^#{2,6}\s+/, "") };
       const isF = root.NotesEngine && root.NotesEngine.isFormula;
@@ -170,8 +196,33 @@
 
     const space = () => (size * 0.32) * (1 + (rand() - 0.5) * 0.5 * m);
 
+    const images = o.images || [];
+    const drawDiagram = (src) => {
+      const art = o.diagramStyle === "photo" ? src : penSketch(src, ink);
+      const maxW = layout.right - layout.left - 20, maxH = (layout.bottom - layout.top) * 0.55;
+      const k = Math.min(maxW / art.width, maxH / art.height);
+      const w = art.width * k, h = art.height * k;
+      const lines = Math.ceil((h + lineH * 0.5) / lineH);
+      if (pageUsed && y - lineH + lines * lineH > layout.bottom) newPage();
+      const top = y - lineH * 0.8, x = layout.left + (maxW - w) / 2;
+      ctx.save();
+      ctx.translate(x + w / 2, top + h / 2);
+      ctx.rotate((rand() - 0.5) * 0.02 * m);
+      if (o.diagramStyle === "photo") {
+        ctx.shadowColor = "rgba(0,0,0,.25)"; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
+        ctx.fillStyle = "#fff"; ctx.fillRect(-w / 2 - 8, -h / 2 - 8, w + 16, h + 16);
+        ctx.shadowColor = "transparent";
+      }
+      ctx.drawImage(art, -w / 2, -h / 2, w, h);
+      ctx.restore();
+      pageUsed = true;
+      y += (lines - 1) * lineH;
+      nextLine();
+    };
+
     for (const block of parseBlocks(text)) {
       if (block.kind === "blank") { nextLine(); continue; }
+      if (block.kind === "img") { if (images[block.n - 1]) drawDiagram(images[block.n - 1]); continue; }
       const f = fontFor(block.kind);
       const color = block.kind === "h1" || block.kind === "h2" ? headInk : ink;
       ctx.font = f.css;

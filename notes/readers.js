@@ -202,6 +202,7 @@
           .replace(/([x×]\s*)1(?=\s*($|[=)+\-−/,]))/g, "$1I")         // V x1= → V×I=
           .replace(/(?<=[A-Za-z0-9)\]])\s*[xX]\s*(?=[A-Z(])/g, " × ")  // V x I → V × I
           .replace(/(?<=[A-Za-z0-9)])\s*[[|]\s*(?=[A-Za-z0-9(])/g, " / ") // IC [IB → IC / IB
+          .replace(/(\d)\s?Q\b/g, "$1 Ω")                             // 10Q → 10 Ω (ohm sign read as Q)
           .replace(/\s~\s?(?=\d+(\.\d+)?\s*[A-Za-zΩ%°µ])/g, " ≈ ")     // ~ 26 mV → ≈ 26 mV
           .replace(/\s~\s?(?=\d+\s*\))/g, " − ")                         // (… ~ 1) → (… − 1)
           .replace(/\s*=\s*/g, " = ")
@@ -253,10 +254,16 @@
 
     // 2) full-quality read in the best direction
     getWorker.onProgress = (p) => progress?.(0.3 + p * 0.68, `Reading text from photo… ${Math.round(p * 100)}%`);
-    const { data } = await worker.recognize(rotate(base, best.deg));
+    const { data } = await worker.recognize(rotate(base, best.deg), {}, { text: true, blocks: true });
     getWorker.onProgress = null;
     const text = fixNotes(tidy(data.text));
-    return { text, confidence: Math.round(data.confidence), quality: wordQuality(text), rotated: best.deg };
+    // where each line sits in the photo (0..1), so a cropped diagram can replace its own labels in place
+    const W = base.width, Hh = base.height;
+    const rawLines = data.lines || (data.blocks || []).flatMap((b) => (b.paragraphs || []).flatMap((p) => p.lines || []));
+    const lines = best.deg ? [] : rawLines.filter((l) => l.bbox && l.text.trim()).map((l) => ({
+      text: l.text.trim(), x0: l.bbox.x0 / W, y0: l.bbox.y0 / Hh, x1: l.bbox.x1 / W, y1: l.bbox.y1 / Hh,
+    }));
+    return { text, lines, confidence: Math.round(data.confidence), quality: wordQuality(text), rotated: best.deg };
   }
 
   /**
@@ -281,10 +288,10 @@
       const warning = r.confidence < 65 || r.quality < 0.65
         ? "Some words may be wrong (photo not very clear). Please check the text before using it."
         : "Text read from photo. Please check it for mistakes.";
-      return { text: r.text, warning, confidence: r.confidence, rotated: r.rotated };
+      return { text: r.text, lines: r.lines, warning, confidence: r.confidence, rotated: r.rotated };
     }
     throw new Error("Unsupported file. Use PDF, Word (.docx), TXT or a photo (JPG/PNG).");
   }
 
-  root.NotesReaders = { read, readPhoto, loadScript, fixNotes, _tidy: tidy, _quality: wordQuality };
+  root.NotesReaders = { read, readPhoto, loadScript, fixNotes, loadPhoto, cleanPhoto, _tidy: tidy, _quality: wordQuality };
 })(window);

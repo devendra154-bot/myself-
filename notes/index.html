@@ -93,6 +93,10 @@
         <label class="btn btn-ghost sm camera-btn"><input type="file" id="camera" accept="image/*" capture="environment" hidden>📷 Take photo of notes</label>
         <div class="progress" id="progress" hidden><div class="progress-bar"><i id="progressBar"></i></div><span id="progressText">Reading…</span></div>
         <textarea id="notes" placeholder="Paste your notes here… (a unit, a chapter, or your class notes)&#10;&#10;Tip: headings on their own line and points starting with - or 1. give the best results."></textarea>
+        <div class="photo-dg" id="photoDg" hidden>
+          <span class="small"><b>✂️ Photo has a diagram?</b> Tap a photo to crop the diagram. It will appear in your handwritten notes.</span>
+          <div class="photo-dg-list" id="photoDgList"></div>
+        </div>
         <div class="row">
           <button class="btn btn-ghost sm" id="sample">Try sample notes</button>
           <button class="btn btn-ghost sm" id="clear">Clear</button>
@@ -161,6 +165,12 @@
       <div class="card hw-controls">
         <label>Text <small class="muted"># Heading · ## Sub-heading · - point</small></label>
         <textarea id="hwText" placeholder="# Unit 2: CPU Scheduling&#10;## Definition&#10;- CPU scheduling decides which process gets the CPU next."></textarea>
+        <div class="dg-bar">
+          <label class="btn btn-ghost sm" style="cursor:pointer">🖼️ Add diagram<input type="file" id="hwDgFile" accept="image/*" multiple hidden></label>
+          <select id="hwDgStyle" aria-label="Diagram style"><option value="pen">🖊️ Pen drawing</option><option value="photo">📷 Original photo</option></select>
+        </div>
+        <div class="dg-list" id="hwDgList"></div>
+        <p class="muted small dg-help">Diagrams go where <code>[diagram 1]</code> is in the text. Move that line to place it.</p>
         <div class="two">
           <div><label>Handwriting</label><select id="hwFont"></select></div>
           <div><label>Paper</label><select id="hwPaper"><option value="ruled">Ruled notebook</option><option value="assignment">Assignment sheet</option><option value="plain">Plain white</option><option value="grid">Grid</option></select></div>
@@ -224,6 +234,17 @@
   <p class="copy">© <span id="yr">2026</span> DevInventor</p>
 </footer>
 
+<div class="cropper" id="cropper" hidden>
+  <div class="crop-box">
+    <div class="crop-head"><b>✂️ Crop the diagram</b><span class="muted small">Drag a box around the diagram</span></div>
+    <div class="crop-stage"><canvas id="cropCanvas"></canvas></div>
+    <div class="crop-actions">
+      <button class="btn btn-ghost sm" id="cropCancel">Cancel</button>
+      <button class="btn btn-ghost sm" id="cropWhole">Use whole photo</button>
+      <button class="btn sm" id="cropOk" disabled>✂️ Crop &amp; add</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <script src="config.js"></script>
 <script src="sample.js"></script>

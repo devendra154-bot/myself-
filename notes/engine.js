@@ -14,6 +14,7 @@
   function clean(text) {
     return String(text || "")
       .replace(/\r/g, "")
+      .replace(/^\s*\[(?:diagram|figure|image)\s*\d+\]\s*$/gim, "") // diagram markers are for handwriting only
       .replace(/[ \t]+/g, " ")
       .replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
       .replace(/-\n(?=[a-z])/g, "") // words broken across lines in PDFs
