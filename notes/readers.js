@@ -168,6 +168,54 @@
     return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
 
+
+  /**
+   * Fix common photo-reading (OCR) mistakes in study notes and add structure the
+   * handwriting maker understands (# heading, ## sub-heading, - point).
+   * Conservative: formula fixes only touch lines that contain "=".
+   */
+  function fixNotes(text) {
+    const BULLET = /^\s*(?:[«»•·▪■□◦○●*+©®¢°¬>~]|[eo](?=\s+[A-Z]))\s+/;
+    let first = true;
+    return String(text).split("\n").map((raw) => {
+      let l = raw.trim();
+      if (!l) return "";
+      // a short first line like "Transistors" is the page title
+      if (first) {
+        first = false;
+        if (/^[A-Z][\w'’()&,-]*(\s+[\w'’()&,-]+){0,4}$/.test(l) && l.length <= 50 && !/^\d/.test(l)) return "# " + l;
+      }
+      // bullet glyphs the reader gets wrong → "- "
+      if (BULLET.test(l)) l = "- " + l.replace(BULLET, "");
+      const words = l.replace(/^[-#]\s*/, "").split(/\s+/);
+      const letters = l.replace(/[^A-Za-z]/g, "");
+      // headings
+      if (/^(unit|chapter|module|lesson|part)\s*[-–:.]?\s*[0-9IVX]+\b/i.test(l) && l.length <= 80 && !/[.]$/.test(l)) return "# " + l;
+      if (letters.length >= 6 && letters === letters.toUpperCase() && words.length >= 2 && words.length <= 8 && !/[=.]$/.test(l) && !l.includes("=")) return "# " + l;
+      if (/^\d{1,2}(\.\d{1,2})+\.?\s+[A-Z]/.test(l) && l.length <= 70 && !/[.:]$/.test(l) && !l.includes("=")) return "## " + l;
+      // formulas
+      if (l.includes("=")) {
+        l = l
+          .replace(/(^|:\s*)1(?=\s*=)/g, "$1I")                     // "1 = …" → "I = …" (a lone 1 is never the left side)
+          .replace(/(^|[\s=(+\-−/×:[|])1(?=[A-Z])/g, "$1I")        // 1C → IC, 1B → IB
+          .replace(/(^|[\s=(+\-−/×:])1(?=\s*[x×]\s*[A-Za-z(])/g, "$1I") // =1xR → =I×R
+          .replace(/([x×]\s*)1(?=\s*($|[=)+\-−/,]))/g, "$1I")         // V x1= → V×I=
+          .replace(/(?<=[A-Za-z0-9)\]])\s*[xX]\s*(?=[A-Z(])/g, " × ")  // V x I → V × I
+          .replace(/(?<=[A-Za-z0-9)])\s*[[|]\s*(?=[A-Za-z0-9(])/g, " / ") // IC [IB → IC / IB
+          .replace(/\s~\s?(?=\d+(\.\d+)?\s*[A-Za-zΩ%°µ])/g, " ≈ ")     // ~ 26 mV → ≈ 26 mV
+          .replace(/\s~\s?(?=\d+\s*\))/g, " − ")                         // (… ~ 1) → (… − 1)
+          .replace(/\s*=\s*/g, " = ")
+          .replace(/\s{2,}/g, " ");
+      }
+      // AC — DC → AC → DC (short capital words on both sides of a long dash)
+      l = l.replace(/\b([A-Z]{1,5})\s+[—–]\s+([A-Z]{1,5})\b/g, "$1 → $2");
+      return l;
+    })
+      // photos put gaps between most lines: keep a blank line only before headings
+      .filter((l, i, a) => l || (a[i + 1] || "").startsWith("#"))
+      .join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  }
+
   let workerP = null;
   async function getWorker(progress) {
     await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js");
@@ -207,7 +255,7 @@
     getWorker.onProgress = (p) => progress?.(0.3 + p * 0.68, `Reading text from photo… ${Math.round(p * 100)}%`);
     const { data } = await worker.recognize(rotate(base, best.deg));
     getWorker.onProgress = null;
-    const text = tidy(data.text);
+    const text = fixNotes(tidy(data.text));
     return { text, confidence: Math.round(data.confidence), quality: wordQuality(text), rotated: best.deg };
   }
 
@@ -238,5 +286,5 @@
     throw new Error("Unsupported file. Use PDF, Word (.docx), TXT or a photo (JPG/PNG).");
   }
 
-  root.NotesReaders = { read, readPhoto, loadScript, _tidy: tidy, _quality: wordQuality };
+  root.NotesReaders = { read, readPhoto, loadScript, fixNotes, _tidy: tidy, _quality: wordQuality };
 })(window);
