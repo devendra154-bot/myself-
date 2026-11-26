@@ -22,11 +22,55 @@
       .trim();
   }
 
+  // ---------- formulas & equations (physics, chemistry, electronics…) ----------
+  const REL = /(=|≈|≅|∝|≤|≥|→|⟶|⇌|⇄|->)/;
+  const PROSE = /\b(is|are|was|were|the|which|that|where|when|states|gives|called|known|means|because|then|this|these|for|and|if|with)\b/i;
+  const MATHY = /[A-Za-z)\]][²³⁴ⁿ]|[A-Za-z)\]]\s*\^|√|[A-Za-z)\]]\s*[+\-−×*/÷]\s*[A-Za-z0-9(√½]|[0-9)\]]\s*[+×*/÷]\s*[A-Za-z(]/;
+  const longWords = (l) => (l.match(/[A-Za-z]{4,}/g) || []).filter((w) => !/^(sin|cos|tan|cot|sec|log|exp|sqrt)$/i.test(w));
+
+  /** Is this whole line a formula / equation (not a sentence)? e.g. V = IR, a+b², 2H2 + O2 → 2H2O */
+  function isFormula(line) {
+    let l = String(line || "").trim().replace(/^([-*•]|\d{1,2}[.)])\s+/, "");
+    const named = l.match(/^([A-Za-z][^:=→]{1,80}):\s*(.+)$/);
+    if (named) l = named[2];
+    if (!l || l.length > 160 || !/[A-Za-z0-9]/.test(l)) return false;
+    if (REL.test(l)) return !PROSE.test(l) && longWords(l).length <= 8 && !/[.?!]\s+[A-Z][a-z]/.test(l);
+    return MATHY.test(l) && longWords(l).length <= 1;
+  }
+
+  /** Formulas written inside a sentence: "The ideal gas equation is PV = nRT, where …" → "PV = nRT" */
+  function inlineFormulas(sentence) {
+    const out = [];
+    const re = /(=|≈|∝|→|⟶|⇌)/g;
+    let m;
+    while ((m = re.exec(sentence))) {
+      const left = sentence.slice(0, m.index).trim().split(/\s+/);
+      const lt = [];
+      for (let i = left.length - 1; i >= 0 && lt.length < 5; i--) {
+        const w = left[i];
+        if (/^[A-Za-zΔΣλμρσθωαβγπη0-9(½][\w²³⁴⁻⁺′'()/^.+\-−×*½]*$/.test(w) && !/^[a-z]{4,}$/.test(w) && !/^(is|are|the|of|and|was|by|as|so|be|or)$/i.test(w)) lt.unshift(w);
+        else if (/^[+\-−×*/]$/.test(w)) lt.unshift(w);
+        else break;
+      }
+      const right = sentence.slice(m.index + m[0].length).split(/,|;|\.\s|\.$|\s(?:where|when|which|and the|in which|for|is|are)\s/)[0].trim();
+      if (lt.length && right && right.length < 90 && /[A-Za-z0-9]/.test(right)) out.push(`${lt.join(" ")} ${m[0]} ${right}`.replace(/[.,]$/, ""));
+    }
+    return out;
+  }
+
+  /** Short description for a formula from its own line ("Ohm's law: V = IR") or the sentence before it. */
+  function formulaContext(prevText) {
+    if (!prevText) return "";
+    const t = prevText.replace(/\.$/, "");
+    const m = t.match(/^(?:the\s+)?(.{2,60}?)\s+(?:is|are|states|relates|gives|shows|represents|can be written)\b/i);
+    return (m ? m[1] : t).trim();
+  }
+
   const isBullet = (l) => /^\s*([-*•●▪◦]|\d{1,2}[.)]|[a-z][.)]|\(?[ivx]{1,4}\)|step\s*\d+)/i.test(l);
   function isHeading(line, next) {
     const l = line.trim();
     if (!l || l.length > 70) return false;
-    if (/[A-Za-z)\]]\s*=\s*[A-Za-z0-9(√π-]/.test(l)) return false; // formula, not a heading
+    if (isFormula(l) || REL.test(l)) return false; // formula / equation, not a heading
     if (/^#{1,6}\s/.test(l)) return true;
     if (/^(unit|chapter|module|section|topic|part)\s*[-:\dIVX]/i.test(l)) return true;
     if (/[.?!,;]$/.test(l)) return false;
@@ -80,9 +124,15 @@
         cur = { title: stripHeading(line), items: [] };
         continue;
       }
-      if (/[A-Za-z)\]]\s*=\s*[A-Za-z0-9(√π-]/.test(line) && line.length < 160 && !/[.?!]\s+[A-Z]/.test(line)) {
+      if (isFormula(line)) {
         flushPara();
-        cur.items.push({ text: line.trim(), bullet: true, formula: true, order: order++ });
+        cur.items.push({ text: line.trim().replace(/^([-*•]|\d{1,2}[.)])\s+/, ""), bullet: true, formula: true, order: order++ });
+        continue;
+      }
+      if (REL.test(line) && !isBullet(line)) {
+        // a sentence and a formula on one line ("Power is … used. P = VI"): keep them separate, don't merge with the next line
+        flushPara();
+        for (const piece of splitSentences(line.trim())) cur.items.push({ text: piece, bullet: false, formula: isFormula(piece), order: order++ });
         continue;
       }
       if (isBullet(line)) {
@@ -119,6 +169,7 @@
       const titleWords = new Set(contentWords(sec.title).map(stem));
       sec.items.forEach((it, idx) => {
         const cw = contentWords(it.text);
+        if (it.formula || isFormula(it.text)) { it.formula = true; it.score = 2; it.section = si; all.push(it); return; }
         if (!cw.length) { it.score = 0; return; }
         let s = cw.reduce((a, w) => a + (tf.get(stem(w)) || 0) / max, 0) / Math.sqrt(cw.length);
         if (DEF_RE.test(it.text) || COLON_DEF.test(it.text)) s += 0.9;
@@ -197,12 +248,43 @@
     return out;
   }
 
-  function formulas(sections) {
+  /** All formulas in the notes: [{ expr, name, context, source }] (deduplicated). */
+  function formulaList(sections) {
     const out = [];
-    for (const sec of sections) for (const it of sec.items) {
-      if (/[A-Za-z)\]]\s*=\s*[A-Za-z0-9(√π-]/.test(it.text) && it.text.length < 160) out.push(it.text.replace(/\.$/, ""));
+    const seen = new Set();
+    /** "P = 12 × 2 = 24 W" or "12 / 6 = 2 A" are worked calculations, not formulas. */
+    const isCalc = (e) => {
+      const letters = (e.match(/[A-Za-zα-ωΑ-Ωρη]/g) || []).length;
+      const digits = (e.match(/\d/g) || []).length;
+      if (/=/.test(e) && !/[A-Za-zα-ωΑ-ΩΣΔρη]/.test(e.split("=")[0])) return true;
+      return (e.match(/=/g) || []).length >= 2 && digits > 0 || (digits > 0 && letters <= 1 && /=/.test(e)) || /\b(resistors?|gives?|the|in)\b/i.test(e);
+    };
+    const add = (expr, name, context, source, inline) => {
+      const e = expr.replace(/\s+/g, " ").trim();
+      if (isCalc(e) && (inline || (e.match(/=/g) || []).length >= 2)) return;
+      const k = e.replace(/\s/g, "").toLowerCase();
+      if (!e || seen.has(k)) return;
+      seen.add(k);
+      out.push({ expr: e, name: (name || "").trim(), context: (context || "").trim(), source });
+    };
+    for (const sec of sections) {
+      sec.items.forEach((it, idx) => {
+        if (it.formula || isFormula(it.text)) {
+          const named = it.text.match(/^([A-Za-z][^:=→]{1,80}):\s*(.+)$/);
+          const prev = sec.items.slice(0, idx).reverse().find((p) => !p.formula && !isFormula(p.text));
+          const prevUsed = prev && sec.items.slice(sec.items.indexOf(prev) + 1, idx).some((p) => p.formula || isFormula(p.text));
+          const ctx = prev && !prevUsed ? formulaContext(prev.text) : topicOf(sec.title);
+          add(named ? named[2].replace(/\.$/, "") : it.text.replace(/\.$/, ""), named ? named[1] : "", ctx, it.text);
+        } else {
+          for (const e of inlineFormulas(it.text)) add(e, "", formulaContext(it.text.split(/\s(?:is|=)\s/)[0]), it.text, true);
+        }
+      });
     }
-    return [...new Set(out)].slice(0, 12);
+    return out.slice(0, 40);
+  }
+
+  function formulas(sections) {
+    return formulaList(sections).map((f) => (f.name ? `${f.name}: ${f.expr}` : f.expr));
   }
 
   const topicOf = (t) => String(t || "").replace(/^(unit|chapter|module|section|topic|part)\s*[-:\dIVX.]*\s*[:.-]?\s*/i, "").replace(/^\d+(\.\d+)*\s+/, "").trim() || t;
@@ -253,7 +335,9 @@
     const outSections = sections.map((sec) => {
       const items = sec.items.filter((i) => i.score > 0);
       const keep = Math.max(1, Math.min(items.length, Math.round(items.length * ratio + (length === "short" ? 0.4 : 0.8))));
-      const top = [...items].sort((a, b) => b.score - a.score).slice(0, keep).sort((a, b) => a.order - b.order);
+      const chosen = new Set([...items].filter((i) => !i.formula).sort((a, b) => b.score - a.score).slice(0, keep));
+      items.filter((i) => i.formula).forEach((i) => chosen.add(i));
+      const top = [...chosen].sort((a, b) => a.order - b.order);
       return { title: sec.title, points: top.map((i) => i.text) };
     }).filter((s) => s.points.length);
 
@@ -350,13 +434,73 @@
         if (s) cards.push({ front: term, back: s.text });
       }
     }
-    return cards.slice(0, 30);
+    for (const fo of formulaList(sections)) {
+      if (cards.length >= 40) break;
+      cards.push({ front: fo.name || fo.context || "Complete the formula", back: fo.expr });
+    }
+    return cards.slice(0, 40);
   }
 
   function shuffle(a, seed = 7) {
     const r = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
     for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
     return a;
+  }
+
+  /** Plausible wrong versions of a formula (swapped symbols, operators, powers, fractions, coefficients). */
+  function formulaDistractors(expr, others) {
+    const out = new Set();
+    const chem = /→|⟶|⇌|->/.test(expr) && !/=/.test(expr) && /[A-Z]/.test(expr);
+    if (chem) {
+      const addC = (x) => { const t = x.replace(/\s+/g, " ").trim(); if (t.replace(/\s/g, "") !== expr.replace(/\s/g, "")) out.add(t); };
+      const [arrow] = expr.match(/→|⟶|⇌|->/);
+      const [lhs, rhs] = expr.split(arrow).map((x) => x.trim());
+      const L = lhs.split(/\s*\+\s*/), R = rhs.split(/\s*\+\s*/);
+      addC(`${rhs} ${arrow} ${lhs}`);                                                     // reversed
+      const bump = (sp) => { const m = sp.match(/^(\d+)(.*)$/); return m ? (m[1] === "2" ? m[2] : String(+m[1] + 1) + m[2]) : "2" + sp; };
+      addC(`${[bump(L[0]), ...L.slice(1)].join(" + ")} ${arrow} ${rhs}`);                  // wrong coefficient
+      addC(`${lhs} ${arrow} ${[bump(R[0]), ...R.slice(1)].join(" + ")}`);
+      if (R.length > 1) addC(`${lhs} ${arrow} ${R.slice(0, -1).join(" + ")}`);              // missing product
+      if (L.length > 1) addC(`${L.slice(0, -1).join(" + ")} ${arrow} ${rhs}`);              // missing reactant
+      return [...out];
+    }
+    const relM = expr.match(REL);
+    const add = (x) => { const t = x.replace(/\s+/g, " ").trim(); if (t && t.replace(/\s/g, "") !== expr.replace(/\s/g, "")) out.add(t); };
+    if (relM) {
+      const [lhs, rhs] = [expr.slice(0, relM.index), expr.slice(relM.index + relM[0].length)];
+      // swap a variable on the left with one on the right (V = IR → I = VR)
+      const lv = lhs.match(/[A-Za-zΔρλμσθωαβγη]/), rv = rhs.match(/[A-Za-zΔρλμσθωαβγη]/);
+      if (lv && rv && lv[0] !== rv[0]) add(lhs.replace(lv[0], "§").replace(/§/, rv[0]) + relM[0] + rhs.replace(rv[0], lv[0]));
+      if (/\//.test(rhs)) add(lhs + relM[0] + rhs.replace(/([\wρλμσθΔ²³()]+)\s*\/\s*([\wρλμσθΔ²³()]+)/, "$2/$1"));
+    }
+    if (/[+]/.test(expr)) add(expr.replace(/\+(?![^+]*\+)/, "−"));
+    if (/[−-]\s*[A-Za-z0-9(]/.test(expr.replace(/->/g, ""))) add(expr.replace(/[−-](?=\s*[A-Za-z0-9(])/, "+"));
+    if (/²/.test(expr)) { add(expr.replace("²", "")); add(expr.replace("²", "³")); }
+    else if (/[A-Za-z]/.test(expr)) add(expr.replace(/([A-Za-z]\d*)(?![\s\S]*[A-Za-z])/, "$1²"));
+    if (/½/.test(expr)) add(expr.replace("½", "2"));
+    if (/\b\d+[A-Z]/.test(expr)) add(expr.replace(/\b(\d+)(?=[A-Z])/, (m) => String(+m + 1)));
+    if (/→|⟶|->/.test(expr) && /\b[A-Z]/.test(expr)) add(expr.replace(/(→|⟶|->)\s*(\d*)/, (m, a) => `${a} `));
+    for (const o of others) if (out.size < 6) add(o);
+    return [...out];
+  }
+
+  function formulaQuestions(sections, seedStart = 101) {
+    const list = formulaList(sections);
+    const qs = [];
+    let seed = seedStart;
+    for (const f of list) {
+      const others = list.filter((x) => x !== f).map((x) => x.expr);
+      const wrong = shuffle(formulaDistractors(f.expr, others), seed++).slice(0, 3);
+      if (wrong.length < 3) continue;
+      const options = shuffle([f.expr, ...wrong], seed++);
+      const chem = /→|⟶|⇌|->/.test(f.expr) && !/=/.test(f.expr) && /[A-Z]/.test(f.expr);
+      const label = f.name || f.context;
+      const question = label
+        ? `Which ${chem ? "equation" : "formula"} is correct for: ${label}?`
+        : `Which of these ${chem ? "equations" : "formulas"} is written correctly (from your notes)?`;
+      qs.push({ type: "formula", question, options, answer: options.indexOf(f.expr), explain: `From your notes: ${f.source}` });
+    }
+    return qs;
   }
 
   function quiz(text, n = 10) {
@@ -389,7 +533,10 @@
         qs.push({ type: "blank", question: `Fill in the blank:\n${blanked}`, options, answer: options.indexOf(term), source: s.text });
       }
     }
-    return shuffle(qs, 3).slice(0, n).map(({ source, ...q }) => q);
+    const fq = formulaQuestions(sections);
+    const nf = Math.min(fq.length, Math.max(fq.length ? 2 : 0, Math.round(n * 0.4)));
+    const mixed = [...shuffle(fq, 5).slice(0, nf), ...shuffle(qs, 3).slice(0, n - nf)];
+    return shuffle(mixed, 9).slice(0, n).map(({ source, ...q }) => q);
   }
 
   function mindmap(text) {
@@ -430,7 +577,7 @@
     return null;
   }
 
-  const api = { clean, parse, summarize, summaryToText, answer, flashcards, quiz, mindmap, flowchart };
+  const api = { clean, parse, summarize, summaryToText, answer, flashcards, quiz, mindmap, flowchart, isFormula, formulaList: (t) => formulaList(parse(t)) };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.NotesEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);

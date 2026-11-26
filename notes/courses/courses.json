@@ -1,0 +1,62 @@
+{
+ "updated": "2026-11-24",
+ "courses": [
+  {
+   "id": "engineering-chemistry",
+   "title": "Engineering Chemistry",
+   "subject": "Chemistry",
+   "description": "Unit 1 notes",
+   "units": [
+    {
+     "title": "Unit 1: Basic Concepts of Chemistry",
+     "lessons": [
+      {
+       "id": "atomic-structure",
+       "title": "Atomic Structure",
+       "notes": "",
+       "pdf": "https://drive.google.com/file/d/1aXv40eSg5xGyUsbM0j6g43FnHGlg-x2P/view?usp=drivesdk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "chemistry",
+   "title": "Chemistry",
+   "subject": "Chemistry",
+   "description": "Notes",
+   "units": [
+    {
+     "title": "Unit 2: acids and bases",
+     "lessons": [
+      {
+       "id": "acids-and-bases",
+       "title": "Acids and bases",
+       "notes": "",
+       "pdf": "https://drive.google.com/file/d/1o3PPWEoxOCOdgc84VZCqMHK9K6CJP64t/view?usp=drivesdk"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "chemistry-unit-3",
+   "title": "Chemistry  unit 3",
+   "subject": "Chemistry",
+   "description": "Unit 3",
+   "units": [
+    {
+     "title": "Unit 2: electro chemistry",
+     "lessons": [
+      {
+       "id": "electro-chemistry",
+       "title": "Electro chemistry",
+       "notes": "",
+       "pdf": "https://drive.google.com/file/d/1oX3YTS6C3xKOlF7cfVsZ44BObxggaYHl/view?usp=drivesdk"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -215,3 +215,50 @@ details p{color:#4a4a55;font-size:14.5px;padding-bottom:14px}
   .ask select,.ask .btn{flex:1}
   .flashcard{height:230px}
 }
+
+/* ---------- courses ---------- */
+.courses{border-top:1px solid var(--line)}
+.course-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.course-card{display:flex;flex-direction:column;gap:6px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;transition:.2s}
+.course-card:hover{border-color:var(--b100);box-shadow:0 18px 40px -24px rgba(122,80,220,.5);transform:translateY(-2px)}
+.course-card b{font-size:17px;letter-spacing:-.01em}
+.course-ico{width:44px;height:44px;border-radius:12px;background:var(--b50);display:grid;place-items:center;font-size:22px;margin-bottom:4px}
+.course-sub{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--b700)}
+.course-meta{font-size:13px;color:var(--muted);margin-top:4px}
+.course-bar{height:5px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:6px}
+.course-bar i{display:block;height:100%;background:var(--b)}
+.course-head{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap}
+.course-head h3{font-size:24px;letter-spacing:-.02em}
+.course-layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:18px;align-items:start}
+.unit-list{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;position:sticky;top:84px}
+.unit h4{font-size:13px;color:var(--b700);margin:10px 6px 6px}
+.unit:first-child h4{margin-top:2px}
+.lesson-btn{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:10px;font-size:14px;color:#3a3a45}
+.lesson-btn:hover{background:var(--canvas)}
+.lesson-btn.on{background:var(--b50);color:var(--b700);font-weight:600}
+.lesson{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;min-height:300px}
+.lesson-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lesson-top h3{font-size:22px;letter-spacing:-.02em}
+.lesson-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 6px}
+.lesson-body{margin-top:12px;line-height:1.65}
+.lesson-body h3,.lesson-body h4{margin:16px 0 6px;color:var(--b700)}
+.lesson-body p{margin:8px 0}
+.lesson-body ul,.lesson-body ol{padding-left:22px;margin:8px 0}
+.lesson-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:1px solid var(--line)}
+.formula-line{display:block;width:fit-content;font-family:var(--mono);font-size:15px;background:#fff8d6;border:1px solid #f1e3a3;border-radius:8px;padding:6px 12px;margin:5px 0;max-width:100%;overflow-x:auto}
+li.f-li{font-family:var(--mono);font-size:14px;background:#fff8d6;border-radius:6px;padding:2px 8px;width:fit-content;max-width:100%}
+.admin-link{opacity:.6}
+@media (max-width:860px){
+  .course-layout{grid-template-columns:minmax(0,1fr)}
+  .unit-list{position:static}
+}
+
+.camera-btn{margin-top:8px;cursor:pointer}
+
+/* lesson PDF viewer */
+.pdf-frame{width:100%;height:78vh;min-height:460px;margin-top:12px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#f1f3f4}
+.pdf-frame iframe{display:block;width:100%;height:100%;border:0}
+.pdf-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 4px}
+.lesson-text{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:4px 14px;background:#fcfcfd}
+.lesson-text summary{cursor:pointer;font-weight:600;padding:10px 0}
+@media (max-width:860px){.pdf-frame{height:70vh;min-height:380px}}
