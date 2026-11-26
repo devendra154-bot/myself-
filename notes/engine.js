@@ -14,6 +14,7 @@
   function clean(text) {
     return String(text || "")
       .replace(/\r/g, "")
+      .replace(/^\s*\[(?:diagram|figure|image)\s*\d+\]\s*$/gim, "") // diagram markers are for handwriting only
       .replace(/[ \t]+/g, " ")
       .replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
       .replace(/-\n(?=[a-z])/g, "") // words broken across lines in PDFs
@@ -34,6 +35,9 @@
     const named = l.match(/^([A-Za-z][^:=→]{1,80}):\s*(.+)$/);
     if (named) l = named[2];
     if (!l || l.length > 160 || !/[A-Za-z0-9]/.test(l)) return false;
+    // "Rectifiers convert AC → DC." is a sentence: ends with a full stop, plain words before the arrow, no + or chemical formula
+    const arrow = l.match(/^(.*?)(→|⟶|->)/);
+    if (arrow && /\.$/.test(l) && !/[=≈≤≥∝]/.test(l) && arrow[1].trim().split(/\s+/).length >= 2 && !/[+\d()]/.test(arrow[1])) return false;
     if (REL.test(l)) return !PROSE.test(l) && longWords(l).length <= 8 && !/[.?!]\s+[A-Z][a-z]/.test(l);
     return MATHY.test(l) && longWords(l).length <= 1;
   }

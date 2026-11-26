@@ -58,16 +58,21 @@
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const label = files.length > 1 ? `(${i + 1}/${files.length}) ` : "";
+      const isPhoto = /^image\//.test(file.type) || /\.(jpe?g|png|webp|bmp)$/i.test(file.name || "");
+      const photo = isPhoto ? rememberPhoto(file) : null;
       try {
         progress(0.02, `${label}Opening ${file.name || "photo"}…`);
         const r = await window.NotesReaders.read(file, (p, t) => progress(p, label + t));
         const text = E.clean(r.text);
         if (!text) throw new Error("No text found in this file.");
+        if (photo) photo.lines = r.lines || [];
         parts.push(text);
         if (r.warning) lastWarning = r.warning;
       } catch (err) {
         failed++;
-        toast(`${label}${err.message || "Could not read this file."}`, 6000);
+        toast(isPhoto
+          ? `${label}No readable text in this photo. If it's a diagram, tap it under "✂️ Photo has a diagram?" to add it to your handwritten notes.`
+          : `${label}${err.message || "Could not read this file."}`, 7000);
         if (files.length > 1) await new Promise((res) => setTimeout(res, 1500));
       }
     }
@@ -89,6 +94,149 @@
   ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
   ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
   drop.addEventListener("drop", (e) => handleFiles(e.dataTransfer.files));
+
+  // ---------------- diagrams (cropped from photos, drawn into handwritten notes) ----------------
+  const diagrams = []; // index + 1 = number used in "[diagram N]"
+  const photos = [];   // recent uploaded photos: { file, url }
+
+  /** Open the crop dialog for a photo. Resolves to a canvas (the cropped diagram) or null. */
+  function cropPhoto(file) {
+    return new Promise(async (resolve) => {
+      let bmp;
+      try { bmp = await createImageBitmap(file, { imageOrientation: "from-image" }); }
+      catch { toast("This photo couldn't be opened. Use a JPG or PNG photo."); return resolve(null); }
+      const box = $("#cropper"), cv = $("#cropCanvas"), cx = cv.getContext("2d");
+      const k = Math.min(1, 1400 / Math.max(bmp.width, bmp.height));
+      cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+      let sel = null, start = null;
+      const draw = () => {
+        cx.drawImage(bmp, 0, 0, cv.width, cv.height);
+        if (!sel) return;
+        cx.fillStyle = "rgba(0,0,0,.5)";
+        cx.beginPath(); cx.rect(0, 0, cv.width, cv.height); cx.rect(sel.x, sel.y, sel.w, sel.h); cx.fill("evenodd");
+        cx.strokeStyle = "#8c66e4"; cx.lineWidth = Math.max(3, cv.width / 300); cx.setLineDash([12, 8]);
+        cx.strokeRect(sel.x, sel.y, sel.w, sel.h); cx.setLineDash([]);
+      };
+      const pt = (e) => { const r = cv.getBoundingClientRect(); return { x: ((e.clientX - r.left) / r.width) * cv.width, y: ((e.clientY - r.top) / r.height) * cv.height }; };
+      cv.onpointerdown = (e) => { cv.setPointerCapture(e.pointerId); start = pt(e); sel = null; draw(); };
+      cv.onpointermove = (e) => {
+        if (!start) return;
+        const q = pt(e);
+        sel = { x: Math.max(0, Math.min(start.x, q.x)), y: Math.max(0, Math.min(start.y, q.y)), w: Math.abs(q.x - start.x), h: Math.abs(q.y - start.y) };
+        sel.w = Math.min(sel.w, cv.width - sel.x); sel.h = Math.min(sel.h, cv.height - sel.y);
+        draw();
+      };
+      cv.onpointerup = () => { start = null; $("#cropOk").disabled = !(sel && sel.w > 20 && sel.h > 20); };
+      const finish = (area) => {
+        box.hidden = true;
+        document.body.style.overflow = "";
+        if (!area) return resolve(null);
+        const out = document.createElement("canvas");
+        const ok = Math.min(1, 1600 / Math.max(area.w / k, area.h / k));
+        out.width = Math.round((area.w / k) * ok); out.height = Math.round((area.h / k) * ok);
+        out.getContext("2d").drawImage(bmp, area.x / k, area.y / k, area.w / k, area.h / k, 0, 0, out.width, out.height);
+        out.area = { x0: area.x / cv.width, y0: area.y / cv.height, x1: (area.x + area.w) / cv.width, y1: (area.y + area.h) / cv.height };
+        resolve(out);
+      };
+      $("#cropOk").disabled = true;
+      $("#cropOk").onclick = () => finish(sel);
+      $("#cropWhole").onclick = () => finish({ x: 0, y: 0, w: cv.width, h: cv.height });
+      $("#cropCancel").onclick = () => finish(null);
+      box.hidden = false;
+      document.body.style.overflow = "hidden";
+      draw();
+    });
+  }
+
+  /** Put "[diagram N]" on its own line at the cursor (or the end) of a textarea. */
+  function insertMarker(ta, n) {
+    const v = ta.value, at = document.activeElement === ta ? ta.selectionEnd : v.length;
+    const before = v.slice(0, at).replace(/[ \t]*$/, ""), after = v.slice(at).replace(/^[ \t]*/, "");
+    const mark = `[diagram ${n}]`;
+    ta.value = (before ? before.replace(/\n*$/, "\n") : "") + mark + (after ? "\n" + after.replace(/^\n*/, "") : "");
+    ta.dispatchEvent(new Event("input"));
+  }
+
+  function renderDiagrams() {
+    const list = $("#hwDgList");
+    list.innerHTML = "";
+    diagrams.forEach((d, i) => {
+      if (!d) return;
+      const item = document.createElement("div");
+      item.className = "dg-item";
+      const th = document.createElement("canvas");
+      const k = 172 / Math.max(d.width, d.height);
+      th.width = Math.max(1, Math.round(d.width * k)); th.height = Math.max(1, Math.round(d.height * k));
+      th.getContext("2d").drawImage(d, 0, 0, th.width, th.height);
+      item.append(th);
+      item.insertAdjacentHTML("beforeend", `<span>[diagram ${i + 1}]</span><button title="Remove diagram ${i + 1}" aria-label="Remove diagram ${i + 1}">✕</button>`);
+      $("button", item).onclick = () => {
+        diagrams[i] = null;
+        const re = new RegExp(`^\\s*\\[diagram ${i + 1}\\]\\s*\\n?`, "gim");
+        hwText.value = hwText.value.replace(re, ""); store.set("dvn_hw", hwText.value);
+        notes.value = notes.value.replace(re, "");
+        renderDiagrams();
+        if (pages.length) makeHandwriting();
+      };
+      list.append(item);
+    });
+  }
+
+  const norm = (t) => String(t).toLowerCase().replace(/[^a-z0-9]/g, "");
+  /**
+   * Put the diagram where it was in the photo: text lines read from inside the cropped
+   * area (labels such as "R = 10 Ω") are removed, and the marker goes in their place,
+   * or after the last line above the diagram.
+   */
+  function placeInNotes(n, area, ocrLines) {
+    const mark = `[diagram ${n}]`;
+    const textLines = notes.value.split("\n");
+    const find = (ocr) => {
+      const k = norm(ocr);
+      if (k.length < 2) return -1;
+      return textLines.findIndex((t, i) => !used.has(i) && norm(t.replace(/^[#\-\s]+/, "")) && (norm(t).includes(k) || (k.includes(norm(t)) && norm(t).length >= 3)));
+    };
+    const used = new Set();
+    const cx = (l) => (l.x0 + l.x1) / 2, cy = (l) => (l.y0 + l.y1) / 2;
+    const inside = ocrLines.filter((l) => cx(l) > area.x0 && cx(l) < area.x1 && cy(l) > area.y0 && cy(l) < area.y1);
+    const removed = [];
+    for (const l of inside) { const i = find(l.text); if (i >= 0) { used.add(i); removed.push(i); } }
+    let at;
+    if (removed.length) at = Math.min(...removed);
+    else {
+      const above = ocrLines.filter((l) => l.y1 <= area.y0 + 0.01).sort((a, b) => b.y1 - a.y1);
+      at = textLines.length;
+      for (const l of above) { const i = find(l.text); if (i >= 0) { at = i + 1; break; } }
+    }
+    const out = [];
+    textLines.forEach((t, i) => { if (i === at) out.push(mark); if (!used.has(i)) out.push(t); });
+    if (at >= textLines.length) out.push(mark);
+    notes.value = out.join("\n").replace(/\n{3,}/g, "\n\n");
+    notes.dispatchEvent(new Event("input"));
+    return removed.length;
+  }
+
+  async function addDiagramFrom(file, target, photo) {
+    const c = await cropPhoto(file);
+    if (!c) return;
+    diagrams.push(c);
+    if (target === notes && photo && photo.lines && photo.lines.length) placeInNotes(diagrams.length, c.area, photo.lines);
+    else insertMarker(target, diagrams.length);
+    renderDiagrams();
+    toast(target === notes
+      ? `Diagram ${diagrams.length} added ✓ Use "✍️ Full notes" to write it with your notes.`
+      : `Diagram ${diagrams.length} added ✓ Press "Make handwritten notes".`, 4000);
+  }
+
+  function rememberPhoto(file) {
+    const photo = { file, url: URL.createObjectURL(file), lines: [] };
+    photos.push(photo);
+    while (photos.length > 8) URL.revokeObjectURL(photos.shift().url);
+    $("#photoDg").hidden = false;
+    $("#photoDgList").innerHTML = photos.map((p, i) => `<button data-p="${i}" title="Crop a diagram from this photo"><img src="${p.url}" alt="Uploaded photo ${i + 1}"></button>`).join("");
+    $$("#photoDgList button").forEach((b) => (b.onclick = () => addDiagramFrom(photos[+b.dataset.p].file, notes, photos[+b.dataset.p])));
+    return photo;
+  }
 
   // ---------------- tools ----------------
   let tool = "summary";
@@ -218,6 +366,7 @@
       pages = await H.render(text, {
         font: $("#hwFont").value, paper: $("#hwPaper").value, ink: $("#hwInk").value, headingInk: $("#hwHead").value,
         size: +$("#hwSize").value, spacing: +$("#hwSpace").value, messiness: +$("#hwMess").value,
+        images: diagrams, diagramStyle: $("#hwDgStyle").value,
       });
       const prev = $("#hwPreview");
       prev.innerHTML = `<div class="pages-head"><b>${pages.length} page${pages.length > 1 ? "s" : ""}</b><span class="muted small">A4 · ready to print</span></div>`;
@@ -238,7 +387,12 @@
     }
   }
   $("#hwMake").onclick = makeHandwriting;
-  ["#hwFont", "#hwPaper", "#hwInk", "#hwHead", "#hwSize", "#hwSpace", "#hwMess"].forEach((id) =>
+  $("#hwDgFile").onchange = async (e) => {
+    const files = [...e.target.files];
+    e.target.value = "";
+    for (const f of files) await addDiagramFrom(f, hwText);
+  };
+  ["#hwFont", "#hwPaper", "#hwInk", "#hwHead", "#hwSize", "#hwSpace", "#hwMess", "#hwDgStyle"].forEach((id) =>
     $(id).addEventListener("change", () => { if (pages.length) makeHandwriting(); }));
 
   $("#hwPdf").onclick = async () => {
