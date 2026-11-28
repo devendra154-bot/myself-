@@ -1,0 +1,75 @@
+[
+ {
+  "id": "s1",
+  "who": "sci",
+  "tts": "Namaskaram friends! Nenu mee scientist friend. Ivvala Anthropic create chesina Claude AI models ni introduce chestanu. Four models, four super powers!",
+  "sub": [
+   "Namaskaram friends! Nenu mee scientist friend.",
+   "Ivvala Anthropic create chesina Claude AI models ni introduce chestanu.",
+   "Four models, four super powers!"
+  ]
+ },
+ {
+  "id": "s2",
+  "who": "haiku",
+  "tts": "Nenu Haiku 5.5! Lightning speed tho, chala takkuva cost tho, thousands of tasks okesari chesestanu!",
+  "sub": [
+   "Nenu Haiku 5.5!",
+   "Lightning speed tho, chala takkuva cost tho,",
+   "thousands of tasks okesari chesestanu!"
+  ]
+ },
+ {
+  "id": "s3",
+  "who": "sonnet",
+  "tts": "Nenu Sonnet 5.5. Coding, agent tasks, daily work ki speed and intelligence rendu perfect balance lo istanu.",
+  "sub": [
+   "Nenu Sonnet 5.5.",
+   "Coding, agent tasks, daily work ki",
+   "speed and intelligence rendu perfect balance lo istanu."
+  ]
+ },
+ {
+  "id": "s4",
+  "who": "opus",
+  "tts": "Nenu Opus 5.5. Complex reasoning, advanced coding naa speciality.",
+  "sub": [
+   "Nenu Opus 5.5.",
+   "Complex reasoning, advanced coding",
+   "naa speciality."
+  ]
+ },
+ {
+  "id": "s5",
+  "who": "fable",
+  "tts": "Nenu Fable 5.2. Chala tough research, hours tarabadi jarige long-horizon workflows nenu complete chestanu.",
+  "sub": [
+   "Nenu Fable 5.2.",
+   "Chala tough research,",
+   "hours tarabadi jarige long-horizon workflows nenu complete chestanu."
+  ]
+ },
+ {
+  "id": "s6",
+  "who": "sci",
+  "tts": "Naalugu models ki 1 million tokens context, 128K max output tokens. 1 million input tokens ki price: Haiku 10 cents, Sonnet 2 dollars, Opus 4 dollars, Fable 8 dollars. Output price input ki five times.",
+  "sub": [
+   "Naalugu models ki 1M tokens context,",
+   "128K max output tokens.",
+   "1M input tokens ki price:",
+   "Haiku $0.10, Sonnet $2,",
+   "Opus $4, Fable $8.",
+   "Output price input ki five times."
+  ]
+ },
+ {
+  "id": "s7",
+  "who": "sci",
+  "tts": "Speed kavali ante Haiku, balance ki Sonnet, deep thinking ki Opus, toughest tasks ki Fable. Mee work ki correct Claude ni choose cheskondi!",
+  "sub": [
+   "Speed kavali ante Haiku, balance ki Sonnet,",
+   "deep thinking ki Opus, toughest tasks ki Fable.",
+   "Mee work ki correct Claude ni choose cheskondi!"
+  ]
+ }
+]
